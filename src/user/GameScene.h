@@ -9,11 +9,10 @@
 class Model;
 class ModelObject;
 class GaussianBlur;
+class CubeMap;
 
 class GameScene : public BaseScene
 {
-	std::shared_ptr<Model>skyDome;
-	std::shared_ptr<ModelObject>floor;
 	std::shared_ptr<ModelObject>testModel;
 
 	DebugCamera debugCam;
@@ -22,7 +21,9 @@ class GameScene : public BaseScene
 	Light::Point ptLig;
 	Light::HemiSphere hemiLig;
 	Transform trans;
-	ShadowMapDevice shadowMapDevice;
+
+	std::shared_ptr<CubeMap>cubeMap;
+
 public:
 	GameScene();
 	void OnInitialize()override;

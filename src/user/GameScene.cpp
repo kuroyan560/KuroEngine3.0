@@ -7,22 +7,27 @@
 #include"Model.h"
 #include"Object.h"
 #include"GaussianBlur.h"
+#include"CubeMap.h"
 
 GameScene::GameScene()
 {
-	skyDome = Importer::Instance()->LoadModel("resource/user/", "skydome.glb");
-	floor = std::make_shared<ModelObject>("resource/user/", "floor.glb");
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
 	testModel->model->MeshSmoothing();
-	testModel->transform.SetPos({ 0,1.5f,0 });
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	ligMgr.RegisterDirLight(&dirLig);
 	ligMgr.RegisterPointLight(&ptLig);
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
 
-	//trans.SetRotate(Vec3<Angle>(-90, 0, 0));
-	//trans.SetScale(0.3f);
+	const std::string skyBoxDir = "resource/user/skybox/";
+	cubeMap = std::make_shared<CubeMap>("TestCubeMap");
+	cubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "pz.png"));
+	cubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "nz.png"));
+	cubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "px.png"));
+	cubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "nx.png"));
+	cubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "py.png"));
+	cubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "ny.png"));
+
 }
 
 void GameScene::OnInitialize()
@@ -111,13 +116,9 @@ void GameScene::OnDraw()
 
 	dsv->Clear(D3D12App::Instance()->GetCmdList());
 
-	shadowMapDevice.DrawShadowMap({ testModel });
-
 	//•W€•`‰æ
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
-	DrawFunc3D::DrawNonShadingModel(skyDome, trans, debugCam);
-	shadowMapDevice.DrawShadowReceiver({ floor }, debugCam);
-	//DrawFunc3D::DrawADSShadingModel(ligMgr, floor, trans, debugCam);
+	cubeMap->Draw(debugCam);
 	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 }
 

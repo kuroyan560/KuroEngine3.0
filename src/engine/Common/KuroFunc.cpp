@@ -75,38 +75,6 @@ void KuroFunc::GetDivideStr(const std::string& Str, std::string* Dir, std::strin
 	}
 }
 
-Vec2<float> KuroFunc::GetCenterVec2(Vec2<float> From, Vec2<float> To)
-{
-	Vec2<float> result = To - From;
-	result = result * 0.5f;
-	result = From + result;
-	return result;
-}
-
-Vec3<float> KuroFunc::GetCenterVec3(Vec3<float> From, Vec3<float> To)
-{
-	Vec3<float> result = To - From;
-	result = result * 0.5f;
-	result = From + result;
-	return result;
-}
-
-float KuroFunc::GetLineSlope(Vec2<float> From, Vec2<float> To)
-{
-	return (To.y - From.y) / (To.x - From.x);
-}
-
-Angle KuroFunc::GetAngle(Vec2<float> Vec)
-{
-	return Angle((float)atan2(Vec.y, Vec.x));
-}
-
-Angle KuroFunc::GetAngle(Vec2<float> From, Vec2<float> To)
-{
-	auto vec = To - From;
-	vec.Normalize();
-	return GetAngle(vec);
-}
 
 Vec2<float> KuroFunc::ConvertWorldToScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>& WinSize)
 {
@@ -361,26 +329,3 @@ void KuroFunc::SaveData(FILE* Fp, std::string DataName, const void* Data, size_t
 	}
 }
 
-Vec3<float> KuroFunc::TransformVec3(const Vec3<float>& Value, const Matrix& Mat)
-{
-	XMVECTOR valVec = XMVectorSet(Value.x, Value.y, Value.z, 1.0f);
-	valVec = XMVector4Transform(valVec, Mat);
-	return Vec3<float>(valVec.m128_f32[0], valVec.m128_f32[1], valVec.m128_f32[2]);
-}
-
-Vec3<float> KuroFunc::TransformVec3(const Vec3<float>& Value, const Vec3<float>& Axis, const Angle& Angle)
-{
-	//‰ñ“]Ž²
-	Vec3<float>axis = Axis;
-	if (1.0f < axis.Length())axis.Normalize();
-	XMVECTOR axisVec = XMVectorSet(axis.x, axis.y, axis.z, 1.0f);
-
-	//‰ñ“]s—ñ¶¬
-	auto rot = XMMatrixRotationQuaternion(XMQuaternionRotationAxis(axisVec, Angle));
-
-	//‰ñ“]‚³‚¹‚é’l
-	XMVECTOR valueVec = XMVectorSet(Value.x, Value.y, Value.z, 1.0f);
-	valueVec = XMVector4Transform(valueVec, rot);
-
-	return Vec3<float>(valueVec.m128_f32[0], valueVec.m128_f32[1], valueVec.m128_f32[2]);
-}

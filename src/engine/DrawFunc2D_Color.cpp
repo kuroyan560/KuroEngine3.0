@@ -169,5 +169,5 @@ void DrawFunc2D_Color::DrawLine2DGraph(const Vec2<float>& FromPos, const Vec2<fl
 	Vec2<float>expRate = { distance / graphSize.x,Thickness / graphSize.y };
 	Vec2<float>centerPos = FromPos + vec * distance / 2;
 
-	DrawRotaGraph2D(centerPos, expRate, KuroFunc::GetAngle(vec), Tex, Paint, { 0.5f,0.5f }, Mirror);
+	DrawRotaGraph2D(centerPos, expRate, KuroMath::GetAngle(vec), Tex, Paint, { 0.5f,0.5f }, Mirror);
 }

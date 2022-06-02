@@ -158,4 +158,19 @@ public:
 
     //2Dベクトルを回転させる
     static Vec2<float>RotateVec2(const Vec2<float>& Vec, const float& Radian);
+
+    static Vec2<float> GetCenterVec2(Vec2<float> From, Vec2<float> To);
+    static Vec3<float> GetCenterVec3(Vec3<float> From, Vec3<float> To);
+
+    //２点を通る直線の傾き
+    static float GetLineSlope(Vec2<float> From, Vec2<float> To);
+    //1つのベクトルから角度を取得
+    static Angle GetAngle(Vec2<float>Vec);
+    //２つのベクトルから角度を取得
+    static Angle GetAngle(Vec2<float>From, Vec2<float>To);
+
+    //Vec3に行列を反映
+    static Vec3<float>TransformVec3(const Vec3<float>& Value, const Matrix& Mat);
+    //回転軸を指定して回転
+    static Vec3<float>TransformVec3(const Vec3<float>& Value, const Vec3<float>& Axis, const Angle& Angle);
 };

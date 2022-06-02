@@ -17,16 +17,6 @@ namespace KuroFunc
 
 	void GetDivideStr(const std::string& Str, std::string* Dir, std::string* FileName);
 
-	Vec2<float> GetCenterVec2(Vec2<float> From, Vec2<float> To);
-	Vec3<float> GetCenterVec3(Vec3<float> From, Vec3<float> To);
-
-	//２点を通る直線の傾き
-	float GetLineSlope(Vec2<float> From, Vec2<float> To);
-	//1つのベクトルから角度を取得
-	Angle GetAngle(Vec2<float>Vec);
-	//２つのベクトルから角度を取得
-	Angle GetAngle(Vec2<float>From, Vec2<float>To);
-
 	Vec2<float> ConvertWorldToScreen(Vec3<float> WorldPos,
 		const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>&WinSize);
 	Vec3<float> ConvertScreenToWorld(Vec2<float> ScreenPos, float Z,
@@ -70,8 +60,5 @@ namespace KuroFunc
 	//データ保存
 	void SaveData(FILE* Fp, std::string DataName, const void* Data, size_t Size, int ElementNum);
 
-	//Vec3に行列を反映
-	Vec3<float>TransformVec3(const Vec3<float>& Value, const Matrix& Mat);
-	//回転軸を指定して回転
-	Vec3<float>TransformVec3(const Vec3<float>& Value, const Vec3<float>& Axis, const Angle& Angle);
+
 }
