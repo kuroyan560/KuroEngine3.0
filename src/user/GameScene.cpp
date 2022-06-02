@@ -12,13 +12,14 @@
 GameScene::GameScene()
 {
 	testModel = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
-	//testModel->model->MeshSmoothing();
+	testModel->model->MeshSmoothing();
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
-	dirLigTop.SetDir(Vec3<float>(0, -1, 0));
+	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
 	dirLigFront.SetDir(Vec3<float>(0, 0, 1));
 	ligMgr.RegisterDirLight(&dirLigTop);
 	ligMgr.RegisterDirLight(&dirLigFront);
+	ligMgr.RegisterPointLight(&ptLig);
 	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
@@ -61,7 +62,8 @@ void GameScene::OnUpdate()
 	static const float UINT = 0.1f;
 
 	//テストモデルの位置
-	auto modelPos = testModel->transform.GetPos();
+	//auto modelPos = testModel->transform.GetPos();
+	auto modelPos = ptLig.GetPos();
 	if (UsersInput::Instance()->KeyInput(DIK_E))
 	{
 		modelPos.y += UINT;
@@ -86,7 +88,9 @@ void GameScene::OnUpdate()
 	{
 		modelPos.z -= UINT;
 	}
-	testModel->transform.SetPos(modelPos);
+
+	//testModel->transform.SetPos(modelPos);
+	ptLig.SetPos(modelPos);
 
 	//ライトのON/OFF
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_1))

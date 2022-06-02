@@ -47,6 +47,7 @@ private:
 	ComPtr<IDXGIFactory6>dxgiFactory = nullptr;
 	//コマンドアロケータ
 	std::vector<ComPtr<ID3D12CommandAllocator>> commandAllocators;
+	ComPtr<ID3D12CommandAllocator>oneshotCommandAllocator;
 	//コマンドリスト
 	ComPtr<ID3D12GraphicsCommandList> commandList;
 	//コマンドキュー

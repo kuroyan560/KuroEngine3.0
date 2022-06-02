@@ -281,11 +281,10 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     
     float4 cubeMapCol = cubeMap.Sample(smp, input.reflect);
     float4 result = float4(ligEffect, 1.0f - material.transparent);
-    result.xyz *= cubeMapCol.xyz * cubeMapCol.w;
+    result.xyz *= (cubeMapCol.xyz * cubeMapCol.w);
     
     PSOutput output;
     output.color = result;
-    
     //output.emissive = emissiveMap.Sample(smp, input.uv);
     
     ////–¾‚é‚³ŒvŽZ

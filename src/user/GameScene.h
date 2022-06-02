@@ -20,6 +20,7 @@ class GameScene : public BaseScene
 	Light::Direction dirLigTop;
 	Light::Direction dirLigFront;
 	Light::HemiSphere hemiLig;
+	Light::Point ptLig;
 	Transform trans;
 
 	std::shared_ptr<CubeMap>yokohamaCubeMap;

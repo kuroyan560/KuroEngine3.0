@@ -88,6 +88,10 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 			assert(0);
 		}
 	}
+	result = device->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(&oneshotCommandAllocator)
+	);
 	//バッファの転送を行うためにコマンドリストを使うので準備
 	commandAllocators[0]->Reset();
 
@@ -571,7 +575,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 	}
 
 	TexMetadata metadata{};
-	ScratchImage scratchImg{};
+	ScratchImage image{};
 
 	//ワイド文字変換
 	auto wtexpath = KuroFunc::GetWideStrFromStr(LoadImgFilePath);
@@ -583,46 +587,37 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 	auto hr = loadLambdaTable[ext](
 		wtexpath,
 		&metadata,
-		scratchImg);
+		image);
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "画像データ抽出に失敗\n");
 
-	const Image* img = scratchImg.GetImage(0, 0, 0);	//生データ抽出
+	ComPtr<ID3D12Resource>buff;
+	CreateTexture(device.Get(), metadata, &buff);
 
-	//テクスチャリソース設定
-	CD3DX12_RESOURCE_DESC texDesc = CD3DX12_RESOURCE_DESC::Tex2D(
-		metadata.format,	//RGBAフォーマット
-		metadata.width,
-		(UINT)metadata.height,
-		(UINT16)metadata.arraySize,
-		(UINT16)metadata.mipLevels);
+	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+	PrepareUpload(device.Get(), image.GetImages(), image.GetImageCount(), metadata, subresources);
+	const auto totalBytes = GetRequiredIntermediateSize(buff.Get(), 0, UINT(subresources.size()));
 
-	//リソースバリア
-	auto barrier = D3D12_RESOURCE_STATE_GENERIC_READ;
+	auto texDesc = CD3DX12_RESOURCE_DESC::Buffer(totalBytes);
 
-	//テクスチャ用リソースバッファの生成
-	ComPtr<ID3D12Resource1>buff;
-	CD3DX12_HEAP_PROPERTIES heapPropForTex(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK, D3D12_MEMORY_POOL_L0);
+	ComPtr<ID3D12GraphicsCommandList> command;
+	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, oneshotCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&command));
+	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "CreateCommandList(OneShot) Failed.");
+	command->SetName(L"OneShotCommand");
+
+	ComPtr<ID3D12Resource1>staging;
+	CD3DX12_HEAP_PROPERTIES heapPropForTex(D3D12_HEAP_TYPE_UPLOAD);
 	hr = device->CreateCommittedResource(
 		&heapPropForTex,
 		D3D12_HEAP_FLAG_NONE,
 		&texDesc,
-		barrier,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&buff));
+		IID_PPV_ARGS(&staging));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "ロード画像テクスチャバッファ生成に失敗\n");
+	UpdateSubresources(command.Get(), buff.Get(), staging.Get(), 0, 0, UINT(subresources.size()), subresources.data());
 
 	//名前セット
 	buff->SetName(wtexpath.c_str());
-
-	//テクスチャバッファにデータ転送
-	hr = buff->WriteToSubresource(
-		0,
-		nullptr,	//全領域へコピー
-		img->pixels,	//元データアドレス
-		(UINT)img->rowPitch,	//1ラインサイズ
-		(UINT)img->slicePitch	//１枚サイズ
-	);
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "ロード画像テクスチャバッファへのデータ転送に失敗\n");
 
 	//シェーダーリソースビュー作成
 	if (SRVAsCube)
@@ -644,18 +639,29 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 	//ビューを作成した位置のディスクリプタハンドルを取得
 	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
+
 	//専用のシェーダーリソースクラスにまとめる
 	std::shared_ptr<TextureBuffer>result;
-	result = std::make_shared<TextureBuffer>(buff, barrier, handles, texDesc);
+	result = std::make_shared<TextureBuffer>(buff, D3D12_RESOURCE_STATE_COPY_DEST, handles, texDesc);
 
 	//テクスチャ用のリソースバリアに変更
-	result->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	result->ChangeBarrier(command, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	//作成したカラーテクスチャ情報を記録
-	LoadImgTexture loadImgTexData;
-	loadImgTexData.path = LoadImgFilePath;
-	loadImgTexData.textures = { result };
-	loadImgTextures.emplace_back(loadImgTexData);
+	ID3D12CommandList* commandList[] = {
+   command.Get()
+	};
+	command->Close();
+	commandQueue->ExecuteCommandLists(1, commandList);
+	
+	ComPtr<ID3D12Fence1> fence;
+	hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "CreateFence Failed.");
+	const UINT64 expectValue = 1;
+	commandQueue->Signal(fence.Get(), expectValue);
+	do
+	{
+	} while (fence->GetCompletedValue() != expectValue);
+	oneshotCommandAllocator->Reset();
 
 	return result;
 }

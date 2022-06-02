@@ -101,11 +101,11 @@ class GPUResource
 
 	void* buffOnCPU = nullptr;//CPU側からアクセスできるするバッファのアドレス
 	bool mapped = false;
-	ComPtr<ID3D12Resource1>buff = nullptr;	//リソースバッファ
+	ComPtr<ID3D12Resource>buff = nullptr;	//リソースバッファ
 	D3D12_RESOURCE_STATES barrier = D3D12_RESOURCE_STATE_COMMON;	//リソースバリアの状態
 
 public:
-	GPUResource(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier,const wchar_t* Name = nullptr) 
+	GPUResource(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier,const wchar_t* Name = nullptr) 
 	{
 		buff = Buff;
 		if (Name != nullptr)buff.Get()->SetName(Name);
@@ -124,7 +124,7 @@ public:
 	}
 
 	//バッファ取得
-	const ComPtr<ID3D12Resource1>& GetBuff() { return buff; }
+	const ComPtr<ID3D12Resource>& GetBuff() { return buff; }
 	//マッピング
 	void Mapping(const size_t& DataSize, const int& ElementNum, const void* SendData);
 	//リソースバリアの変更
@@ -149,7 +149,7 @@ protected:
 	std::shared_ptr<GPUResource> resource;	//定数バッファ
 	DescHandlesContainer handles;	//ディスクリプタハンドル
 
-	DescriptorData(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier) :resource(std::make_shared<GPUResource>(Buff, Barrier)) {}
+	DescriptorData(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier) :resource(std::make_shared<GPUResource>(Buff, Barrier)) {}
 	DescriptorData(const std::shared_ptr<GPUResource>& GPUResource) :resource(GPUResource) {}	//同じものを差す
 
 	//バッファセットのタイミングで呼ばれる関数、リソースバリアを変えるなど
@@ -263,12 +263,12 @@ protected:
 	}
 
 public:
-	TextureBuffer(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier, const DescHandles& SRVHandles, const CD3DX12_RESOURCE_DESC& Desc)
+	TextureBuffer(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier, const DescHandles& SRVHandles, const CD3DX12_RESOURCE_DESC& Desc)
 		:DescriptorData(Buff, Barrier), texDesc(Desc) 
 	{
 		handles.Initialize(SRV, SRVHandles);
 	}
-	TextureBuffer(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier, const DescHandles& SRVHandles, const D3D12_RESOURCE_DESC& Desc)
+	TextureBuffer(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier, const DescHandles& SRVHandles, const D3D12_RESOURCE_DESC& Desc)
 		:DescriptorData(Buff, Barrier), texDesc(CD3DX12_RESOURCE_DESC(Desc)) 
 	{
 		handles.Initialize(SRV, SRVHandles);
