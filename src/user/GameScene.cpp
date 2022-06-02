@@ -11,22 +11,22 @@
 
 GameScene::GameScene()
 {
-	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
-	testModel->model->MeshSmoothing();
+	testModel = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
+	//testModel->model->MeshSmoothing();
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	ligMgr.RegisterDirLight(&dirLig);
 	ligMgr.RegisterPointLight(&ptLig);
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
 
-	const std::string skyBoxDir = "resource/user/skybox/";
+	const std::string skyBoxDir = "resource/user/Yokohama3/";
 	cubeMap = std::make_shared<CubeMap>("TestCubeMap");
-	cubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "pz.png"));
-	cubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "nz.png"));
-	cubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "px.png"));
-	cubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "nx.png"));
-	cubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "py.png"));
-	cubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "ny.png"));
+	cubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "posz.jpg"));
+	cubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "negz.jpg"));
+	cubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "posx.jpg"));
+	cubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "negx.jpg"));
+	cubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "posy.jpg"));
+	cubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "negy.jpg"));
 
 }
 
@@ -119,7 +119,8 @@ void GameScene::OnDraw()
 	//•W€•`‰æ
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 	cubeMap->Draw(debugCam);
-	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
+	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam);
 }
 
 void GameScene::OnImguiDebug()
