@@ -444,7 +444,7 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 	return result;
 }
 
-std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Color, const DXGI_FORMAT& Format, const int& Width)
+std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Color, const int& Width, const bool& SRVAsCube, const DXGI_FORMAT& Format)
 {
 	//既にあるか確認
 	for (auto itr = colorTextures.begin(); itr != colorTextures.end(); ++itr)
@@ -523,7 +523,21 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "単色塗りつぶしテクスチャバッファへのデータ転送に失敗\n");
 
 	//シェーダーリソースビュー作成
-	descHeapCBV_SRV_UAV->CreateSRV(device, buff, Format);
+	if (SRVAsCube)
+	{
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.Format = Format;
+		srvDesc.TextureCube.MipLevels = 1;
+		srvDesc.TextureCube.MostDetailedMip = 0;
+		srvDesc.TextureCube.ResourceMinLODClamp = 0;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		descHeapCBV_SRV_UAV->CreateSRV(device, buff, srvDesc);
+	}
+	else
+	{
+		descHeapCBV_SRV_UAV->CreateSRV(device, buff, Format);
+	}
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
 	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());

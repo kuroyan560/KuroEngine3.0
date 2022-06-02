@@ -40,8 +40,9 @@ public:
 	
 private:
 	std::string name;
-	std::array<Surface, SURFACE_NUM>surfaces;
+	std::array<Surface, SURFACE_NUM>surfaces;	//描画に使用
 	float sideLength = 10.0f;	//辺の長さ
+	std::shared_ptr<TextureBuffer>cubeMap;	//ライティングで参照する（ディメンションがTEXTURE_CUBE）
 
 	void ResetMeshVertices();
 
@@ -60,10 +61,18 @@ public:
 		surfaces[Surface].tex = Tex;
 	}
 
+	//ライティングに用いるテクスチャをアタッチ
+	void AttachCubeMapTex(const std::shared_ptr<TextureBuffer>& CubeMapTex)
+	{
+		cubeMap = CubeMapTex;
+	}
+
 	//辺の長さを設定
 	void SetSideLength(const float& Length);
 
 	//描画
 	void Draw(Camera& Cam);
+
+	const std::shared_ptr<TextureBuffer>& GetCubeMapTex() { return cubeMap; }
 };
 

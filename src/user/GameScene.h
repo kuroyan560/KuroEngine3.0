@@ -17,12 +17,13 @@ class GameScene : public BaseScene
 
 	DebugCamera debugCam;
 	LightManager ligMgr;
-	Light::Direction dirLig;
-	Light::Point ptLig;
+	Light::Direction dirLigTop;
+	Light::Direction dirLigFront;
 	Light::HemiSphere hemiLig;
 	Transform trans;
 
-	std::shared_ptr<CubeMap>cubeMap;
+	std::shared_ptr<CubeMap>yokohamaCubeMap;
+	std::shared_ptr<CubeMap>skyCubeMap;
 
 public:
 	GameScene();

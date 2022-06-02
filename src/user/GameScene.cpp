@@ -15,19 +15,34 @@ GameScene::GameScene()
 	//testModel->model->MeshSmoothing();
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
-	ligMgr.RegisterDirLight(&dirLig);
-	ligMgr.RegisterPointLight(&ptLig);
+	dirLigTop.SetDir(Vec3<float>(0, -1, 0));
+	dirLigFront.SetDir(Vec3<float>(0, 0, 1));
+	ligMgr.RegisterDirLight(&dirLigTop);
+	ligMgr.RegisterDirLight(&dirLigFront);
+	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
 
-	const std::string skyBoxDir = "resource/user/Yokohama3/";
-	cubeMap = std::make_shared<CubeMap>("TestCubeMap");
-	cubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "posz.jpg"));
-	cubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "negz.jpg"));
-	cubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "posx.jpg"));
-	cubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "negx.jpg"));
-	cubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "posy.jpg"));
-	cubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(skyBoxDir + "negy.jpg"));
+	const std::string yokohamaDir = "resource/user/Yokohama3/";
+	yokohamaCubeMap = std::make_shared<CubeMap>("YokohamaCubeMap");
+	yokohamaCubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "posz.jpg"));
+	yokohamaCubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "negz.jpg"));
+	yokohamaCubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "posx.jpg"));
+	yokohamaCubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "negx.jpg"));
+	yokohamaCubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "posy.jpg"));
+	yokohamaCubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "negy.jpg"));
+	//yokohamaCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "yokohama_cube.dds", true));
+	yokohamaCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "my_yokohama_cube.dds", true));
 
+	const std::string skyDir = "resource/user/skybox/";
+	skyCubeMap = std::make_shared<CubeMap>("SkyCubeMap");
+	skyCubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "posz.png"));
+	skyCubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "negz.png"));
+	skyCubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "posx.png"));
+	skyCubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "negx.png"));
+	skyCubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "posy.png"));
+	skyCubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "negy.png"));
+	skyCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(skyDir + "sky_cube.dds", true));
 }
 
 void GameScene::OnInitialize()
@@ -44,24 +59,6 @@ void GameScene::OnUpdate()
 
 	//ポイントライト位置
 	static const float UINT = 0.1f;
-	auto ptLigPos = ptLig.GetPos();
-	if (UsersInput::Instance()->KeyInput(DIK_RIGHT))
-	{
-		ptLigPos.x += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_LEFT))
-	{
-		ptLigPos.x -= UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_UP))
-	{
-		ptLigPos.z += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_DOWN))
-	{
-		ptLigPos.z -= UINT;
-	}
-	ptLig.SetPos(ptLigPos);
 
 	//テストモデルの位置
 	auto modelPos = testModel->transform.GetPos();
@@ -94,11 +91,11 @@ void GameScene::OnUpdate()
 	//ライトのON/OFF
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_1))
 	{
-		dirLig.SetActive();
+		dirLigFront.SetActive();
 	}
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_2))
 	{
-		ptLig.SetActive();
+		dirLigTop.SetActive();
 	}
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_3))
 	{
@@ -118,13 +115,15 @@ void GameScene::OnDraw()
 
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
-	cubeMap->Draw(debugCam);
+	yokohamaCubeMap->Draw(debugCam);
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam);
+	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
 }
 
 void GameScene::OnImguiDebug()
 {
+	ImguiApp::Instance()->DebugMaterial(testModel->model->meshes[0].material, REWRITE);
 }
 
 void GameScene::OnFinalize()

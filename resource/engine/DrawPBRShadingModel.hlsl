@@ -17,6 +17,7 @@ StructuredBuffer<DirectionLight> dirLight : register(t0);
 StructuredBuffer<PointLight> pointLight : register(t1);
 StructuredBuffer<SpotLight> spotLight : register(t2);
 StructuredBuffer<HemiSphereLight> hemiSphereLight : register(t3);
+TextureCube cubeMap : register(t4);
 
 
 cbuffer cbuff2 : register(b2)
@@ -24,10 +25,10 @@ cbuffer cbuff2 : register(b2)
     matrix world;
 }
 
-Texture2D<float4> baseTex : register(t4);
-Texture2D<float4> metalnessTex : register(t5);
-Texture2D<float4> normalMap : register(t6);
-Texture2D<float4> roughnessTex : register(t7);
+Texture2D<float4> baseTex : register(t5);
+Texture2D<float4> metalnessTex : register(t6);
+Texture2D<float4> normalMap : register(t7);
+Texture2D<float4> roughnessTex : register(t8);
 SamplerState smp : register(s0);
 
 static float3 s_baseColor;
@@ -47,6 +48,7 @@ struct VSOutput
     float3 tangent : TANGENT;
     float3 biNormal : BINORMAL;
     float2 uv : TEXCOORD;
+    float3 reflect : REFLECT;
 };
 
 VSOutput VSmain(Vertex input)
@@ -98,6 +100,9 @@ VSOutput VSmain(Vertex input)
     output.tangent = normalize(mul(world, input.tangent));
     output.biNormal = normalize(mul(world, input.binormal));
     output.uv = input.uv;
+    
+    //視線ベクトルと法線より反射ベクトルを求める
+    output.reflect = reflect(normalize(wpos.xyz - cam.eyePos), output.normal);
     return output;
 }
 
@@ -274,7 +279,9 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
         ligEffect *= hemiLight;
     }
     
+    float4 cubeMapCol = cubeMap.Sample(smp, input.reflect);
     float4 result = float4(ligEffect, 1.0f - material.transparent);
+    result.xyz *= cubeMapCol.xyz * cubeMapCol.w;
     
     PSOutput output;
     output.color = result;

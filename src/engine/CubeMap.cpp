@@ -63,6 +63,7 @@ CubeMap::CubeMap(const std::string& Name, const float& SideLength) : name(Name),
 
 	//デフォルトのテクスチャ
 	static std::shared_ptr<TextureBuffer>DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(0.0f, 0.0f, 0.0f, 1.0f));
+	static std::shared_ptr<TextureBuffer>DEFAULT_CUBE_MAP_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f), true);
 
 	ResetMeshVertices();
 
@@ -77,6 +78,8 @@ CubeMap::CubeMap(const std::string& Name, const float& SideLength) : name(Name),
 		//デフォルトのテクスチャアタッチ
 		surfaces[surfaceIdx].tex = DEFAULT_TEX;
 	}
+
+	cubeMap = DEFAULT_CUBE_MAP_TEX;
 }
 
 void CubeMap::SetSideLength(const float& Length)
