@@ -4,8 +4,11 @@
 #include<array>
 #include"Mesh.h"
 #include<memory>
+#include<vector>
 class TextureBuffer;
 class Camera;
+class LightManager;
+class ModelObject;
 
 class CubeMap
 {
@@ -28,6 +31,9 @@ public:
 		NY = DOWN,
 		SURFACE_NUM
 	};
+
+	//メッシュ名に付与するタグ
+	static const std::array<std::string, SURFACE_NUM>SURFACE_NAME_TAG;
 	
 protected:
 	CubeMap();
@@ -52,6 +58,9 @@ private:
 		Mesh<Vertex>mesh;
 		std::shared_ptr<TextureBuffer>tex;
 	};
+
+public:
+	static std::shared_ptr<StaticallyCubeMap>&GetDefaultCubeMap();
 
 private:
 	std::string name;
@@ -80,5 +89,25 @@ public:
 
 	//描画
 	void Draw(Camera& Cam);
+};
 
+//動的キューブマップ
+class DynamicCubeMap : public CubeMap
+{
+private:
+	static int ID;
+	static std::array<std::unique_ptr<Camera>, SURFACE_NUM>CAMERA;	//各面に描画する際に用いるカメラ
+
+private:
+	struct SurfaceTargets
+	{
+		std::shared_ptr<RenderTarget>renderTargets;
+		std::shared_ptr<DepthStencil>depthStencil;
+	};
+	std::array<SurfaceTargets, SURFACE_NUM>surfaceTargets;
+	std::shared_ptr<DepthStencil>cubeDepth;
+
+public:
+	DynamicCubeMap(const int& CubeMapEdge = 512);
+	void DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>&ModelObject);
 };

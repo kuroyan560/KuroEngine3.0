@@ -6,6 +6,7 @@
 #include <cassert>
 #include"Vec.h"
 #include"KuroFunc.h"
+#include"Color.h"
 
 static const enum DESC_HANDLE_TYPE { CBV, SRV, UAV, RTV, DSV, DESC_HANDLE_NUM };
 
@@ -158,6 +159,7 @@ public:
 	//バッファセット
 	void SetGraphicsDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
 	void SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
+	const std::shared_ptr<GPUResource>& GetResource() { return resource; }
 };
 
 //定数バッファ
@@ -273,6 +275,11 @@ public:
 	{
 		handles.Initialize(SRV, SRVHandles);
 	}
+	TextureBuffer(const std::shared_ptr<GPUResource>& GPUResource, const DescHandles& SRVHandles, const D3D12_RESOURCE_DESC& Desc)
+	: DescriptorData(GPUResource), texDesc(CD3DX12_RESOURCE_DESC(Desc))
+	{
+		handles.Initialize(SRV, SRVHandles);
+	}
 
 	void ChangeBarrier(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const D3D12_RESOURCE_STATES& Barrier) { resource->ChangeBarrier(CmdList, Barrier); }
 	void CopyTexResource(const ComPtr<ID3D12GraphicsCommandList>& CmdList, TextureBuffer* CopySource);
@@ -305,18 +312,30 @@ public:
 		const DescHandles& SRVHandles,
 		const DescHandles& RTVHandles,
 		const CD3DX12_RESOURCE_DESC& Desc,
-		const float* ClearValue = nullptr)
+		const Color& ClearValue = Color(0.0f, 0.0f, 0.0f, 0.0f))
 		:TextureBuffer(Buff, Barrier, SRVHandles, Desc)
 	{
 		handles.Initialize(RTV, RTVHandles);
-		if (ClearValue != nullptr)
-		{
-			clearValue[0] = ClearValue[0];
-			clearValue[1] = ClearValue[1];
-			clearValue[2] = ClearValue[2];
-			clearValue[3] = ClearValue[3];
-		}
+		clearValue[0] = ClearValue.r;
+		clearValue[1] = ClearValue.g;
+		clearValue[2] = ClearValue.b;
+		clearValue[3] = ClearValue.a;
 	}
+
+	RenderTarget(const std::shared_ptr<GPUResource>& GPUResource,
+		const DescHandles& SRVHandles,
+		const DescHandles& RTVHandles,
+		const CD3DX12_RESOURCE_DESC& Desc,
+		const Color& ClearValue = Color(0.0f, 0.0f, 0.0f, 0.0f))
+		:TextureBuffer(GPUResource, SRVHandles, Desc)
+	{
+		handles.Initialize(RTV, RTVHandles);
+		clearValue[0] = ClearValue.r;
+		clearValue[1] = ClearValue.g;
+		clearValue[2] = ClearValue.b;
+		clearValue[3] = ClearValue.a;
+	}
+
 
 	//レンダーターゲットをクリア
 	void Clear(const ComPtr<ID3D12GraphicsCommandList>& CmdList);

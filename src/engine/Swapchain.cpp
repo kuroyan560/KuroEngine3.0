@@ -38,7 +38,7 @@ void Swapchain::SetMetadata()
 	swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(HDR10MetaData), &HDR10MetaData);
 }
 
-Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapChain1>& Swapchain, DescriptorHeap_CBV_SRV_UAV& DescHeap_CBV_SRV_UAV, DescriptorHeap_RTV& DescHeapRTV, bool UseHDR, float* ClearValue)
+Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapChain1>& Swapchain, DescriptorHeap_CBV_SRV_UAV& DescHeap_CBV_SRV_UAV, DescriptorHeap_RTV& DescHeapRTV, bool UseHDR, const Color& ClearValue)
 {
 	Swapchain.As(&swapchain);	//IDXGISwapChain4 Žæ“¾
 	swapchain->GetDesc1(&desc);

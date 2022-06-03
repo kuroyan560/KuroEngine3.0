@@ -51,22 +51,22 @@ void DescriptorHeap_CBV_SRV_UAV::CreateUAV(const ComPtr<ID3D12Device>& Device, c
     OnCreateView();
 }
 
-void DescriptorHeap_RTV::CreateRTV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff)
+void DescriptorHeap_RTV::CreateRTV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc)
 {
     //ヒープにレンダーターゲットビュー作成
     Device->CreateRenderTargetView(
         Buff.Get(), //ビューと関連付けるバッファ
-        nullptr,
+        ViewDesc,
         GetCpuHandleEnd());
     OnCreateView();
 }
 
-void DescriptorHeap_DSV::CreateDSV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff)
+void DescriptorHeap_DSV::CreateDSV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc)
 {
     //ヒープにデプスステンシルビュー作成
     Device->CreateDepthStencilView(
         Buff.Get(), //ビューと関連付けるバッファ
-        nullptr,
+        ViewDesc,
         GetCpuHandleEnd());
     OnCreateView();
 }

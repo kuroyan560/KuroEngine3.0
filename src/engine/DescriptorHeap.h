@@ -134,7 +134,7 @@ public:
 	DescriptorHeap_RTV(ComPtr<ID3D12Device> Device)
 		:DescriptorHeapBase(Device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, MAX_DESCRIPTOR_NUM) {}
 
-	void CreateRTV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff);
+	void CreateRTV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc = nullptr);
 };
 
 //D3D12_DESCRIPTOR_HEAP_TYPE_DSV
@@ -145,5 +145,5 @@ public:
 	DescriptorHeap_DSV(ComPtr<ID3D12Device> Device)
 		:DescriptorHeapBase(Device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, MAX_DESCRIPTOR_NUM) {}
 
-	void CreateDSV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff);
+	void CreateDSV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc = nullptr);
 };

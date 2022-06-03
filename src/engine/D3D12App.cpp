@@ -170,15 +170,7 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 			assert(0);
 		}
 
-		auto val = ClearValue.GetColor();
-		float clearValue[4] =
-		{
-			val.x,
-			val.y,
-			val.z,
-			val.w,
-		};
-		swapchain = std::make_unique<Swapchain>(device, swapchain1, *descHeapCBV_SRV_UAV, *descHeapRTV, useHDR, clearValue);
+		swapchain = std::make_unique<Swapchain>(device, swapchain1, *descHeapCBV_SRV_UAV, *descHeapRTV, useHDR, ClearValue);
 	}
 
 	//画像ロードのラムダ式生成
@@ -448,7 +440,7 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 	return result;
 }
 
-std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Color, const int& Width, const bool& SRVAsCube, const DXGI_FORMAT& Format)
+std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Color, const int& Width, const DXGI_FORMAT& Format)
 {
 	//既にあるか確認
 	for (auto itr = colorTextures.begin(); itr != colorTextures.end(); ++itr)
@@ -466,13 +458,12 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 	XMFLOAT4* texturedata = new XMFLOAT4[texDataCount];
 
 	//全ピクセルの色を初期化
-	auto colorval = Color.GetColor();
 	for (int i = 0; i < texDataCount; ++i)
 	{
-		texturedata[i].x = colorval.x;	//R
-		texturedata[i].y = colorval.y;	//G
-		texturedata[i].z = colorval.z;	//B
-		texturedata[i].w = colorval.w;	//A
+		texturedata[i].x = Color.r;	//R
+		texturedata[i].y = Color.g;	//G
+		texturedata[i].z = Color.b;	//B
+		texturedata[i].w =Color.a;	//A
 	}
 
 	//テクスチャヒープ設定
@@ -508,10 +499,10 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 
 	//バッファに名前セット
 	std::wstring name = L"ColorTexture - ";
-	name += std::to_wstring(colorval.x) + L" , ";
-	name += std::to_wstring(colorval.y) + L" , ";
-	name += std::to_wstring(colorval.z) + L" , ";
-	name += std::to_wstring(colorval.w);
+	name += std::to_wstring(Color.r) + L" , ";
+	name += std::to_wstring(Color.g) + L" , ";
+	name += std::to_wstring(Color.b) + L" , ";
+	name += std::to_wstring(Color.a);
 	buff->SetName(name.c_str());
 
 	//テクスチャバッファにデータ転送
@@ -527,21 +518,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "単色塗りつぶしテクスチャバッファへのデータ転送に失敗\n");
 
 	//シェーダーリソースビュー作成
-	if (SRVAsCube)
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Format = Format;
-		srvDesc.TextureCube.MipLevels = 1;
-		srvDesc.TextureCube.MostDetailedMip = 0;
-		srvDesc.TextureCube.ResourceMinLODClamp = 0;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-		descHeapCBV_SRV_UAV->CreateSRV(device, buff, srvDesc);
-	}
-	else
-	{
-		descHeapCBV_SRV_UAV->CreateSRV(device, buff, Format);
-	}
+	descHeapCBV_SRV_UAV->CreateSRV(device, buff, Format);
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
 	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
@@ -785,6 +762,24 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 	return result;
 }
 
+DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc)
+{
+	descHeapCBV_SRV_UAV->CreateSRV(device, Buff, ViewDesc);
+	return DescHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+}
+
+DescHandles D3D12App::CreateRTV(const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc)
+{
+	descHeapRTV->CreateRTV(device, Buff, ViewDesc);
+	return DescHandles(descHeapRTV->GetCpuHandleTail(), descHeapRTV->GetGpuHandleTail());
+}
+
+DescHandles D3D12App::CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc)
+{
+	descHeapDSV->CreateDSV(device, Buff, ViewDesc);
+	return DescHandles(descHeapDSV->GetCpuHandleTail(), descHeapDSV->GetGpuHandleTail());
+}
+
 std::vector<std::shared_ptr<TextureBuffer>> D3D12App::GenerateTextureBuffer(const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum)
 {
 	auto sourceTexture = GenerateTextureBuffer(LoadImgFilePath);
@@ -815,21 +810,13 @@ std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& 
 	);
 
 	//レンダーターゲットのクリア値
-	auto colorval = ClearValue.GetColor();
-	float clearColor[4] =
-	{
-		colorval.x,
-		colorval.y,
-		colorval.z,
-		colorval.w
-	};
 
 	D3D12_CLEAR_VALUE clearValue;
 	clearValue.Format = Format;
-	for (int i = 0; i < 4; ++i)
-	{
-		clearValue.Color[i] = clearColor[i];
-	}
+	clearValue.Color[0] = ClearValue.r;
+	clearValue.Color[1] = ClearValue.g;
+	clearValue.Color[2] = ClearValue.b;
+	clearValue.Color[3] = ClearValue.a;
 
 	//リソース生成
 	ComPtr<ID3D12Resource1>buff;
@@ -858,7 +845,7 @@ std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& 
 
 	//専用のレンダーターゲットクラスにまとめる
 	std::shared_ptr<RenderTarget>result;
-	result = std::make_shared<RenderTarget>(buff, InitState, srvHandles, rtvHandles, desc, clearColor);
+	result = std::make_shared<RenderTarget>(buff, InitState, srvHandles, rtvHandles, desc, ClearValue);
 
 	return result;
 }

@@ -122,10 +122,18 @@ public:
 	//出力用バッファ作成
 	std::shared_ptr<RWStructuredBuffer>GenerateRWStructuredBuffer(const size_t& DataSize, const int& ElementNum, const char* Name = nullptr);
 	//テクスチャバッファ生成
-	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Color& Color, const int& Width = 1, const bool& SRVAsCube = false, const DXGI_FORMAT& Format = DXGI_FORMAT_R32G32B32A32_FLOAT);	//単色塗りつぶしテクスチャ生成
+	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Color& Color, const int& Width = 1, const DXGI_FORMAT& Format = DXGI_FORMAT_R32G32B32A32_FLOAT);	//単色塗りつぶしテクスチャ生成
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::string& LoadImgFilePath, const bool& SRVAsCube = false);	//画像ファイル
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Vec2<int>&Size,const DXGI_FORMAT& Format,const char* Name = nullptr);	//コンピュートシェーダーでの描き込み先用（UAVも作成する）
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::vector<char>& ImgData);
+
+	//SRV作成（D3D12App経由）
+	DescHandles CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc);
+	//RTV作成（D3D12App経由）
+	DescHandles CreateRTV(const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc = nullptr);
+	//DSV作成（D3D12App経由）
+	DescHandles CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc = nullptr);
+
 	/// <summary>
 	/// 画像を読み込んで分割 (LoadDivGraph)
 	/// </summary>

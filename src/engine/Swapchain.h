@@ -26,7 +26,7 @@ public:
 		DescriptorHeap_CBV_SRV_UAV& DescHeap_CBV_SRV_UAV,
 		DescriptorHeap_RTV& DescHeapRTV,
 		bool UseHDR,
-		float* ClearValue);
+		const Color& ClearValue);
 
 	//スワップチェインゲッタ
 	const ComPtr<IDXGISwapChain4>& GetSwapchain() { return swapchain; }

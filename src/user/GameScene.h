@@ -5,14 +5,15 @@
 #include"Transform.h"
 #include<array>
 #include"ShadowMapDevice.h"
+#include"CubeMap.h"
 
 class Model;
 class ModelObject;
 class GaussianBlur;
-class StaticallyCubeMap;
 
 class GameScene : public BaseScene
 {
+	std::shared_ptr<ModelObject>sphere;
 	std::shared_ptr<ModelObject>testModel;
 
 	DebugCamera debugCam;
@@ -25,6 +26,7 @@ class GameScene : public BaseScene
 
 	std::shared_ptr<StaticallyCubeMap>yokohamaCubeMap;
 	std::shared_ptr<StaticallyCubeMap>skyCubeMap;
+	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
 
 public:
 	GameScene();
