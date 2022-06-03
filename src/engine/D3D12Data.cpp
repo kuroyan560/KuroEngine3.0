@@ -70,10 +70,6 @@ void DescriptorData::SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsComma
 
 void TextureBuffer::CopyTexResource(const ComPtr<ID3D12GraphicsCommandList>& CmdList, TextureBuffer* CopySource)
 {
-	bool differSize = (texDesc.Width != CopySource->texDesc.Width) || (texDesc.Height != CopySource->texDesc.Height);
-	bool differFormat = texDesc.Format != CopySource->texDesc.Format;
-	KuroFunc::ErrorMessage(differSize || differFormat, "TextureBuffer", "CopyTexResource", "コピー先と元のテクスチャフォーマットが違います\n");
-
 	resource->CopyGPUResource(CmdList, *CopySource->resource);
 }
 

@@ -2,6 +2,7 @@
 #include"KuroEngine.h"
 #include"Camera.h"
 #include"DrawFunc3D.h"
+#include"DrawFunc2D.h"
 
 std::shared_ptr<TextureBuffer>CubeMap::DEFAULT_CUBE_MAP_TEX;
 
@@ -24,6 +25,11 @@ CubeMap::CubeMap()
 	}
 
 	cubeMap = DEFAULT_CUBE_MAP_TEX;
+}
+
+void CubeMap::CopyCubeMap(std::shared_ptr<CubeMap> Src)
+{
+	this->cubeMap->CopyTexResource(D3D12App::Instance()->GetCmdList(), Src->cubeMap.get());
 }
 
 std::shared_ptr<StaticallyCubeMap>& StaticallyCubeMap::GetDefaultCubeMap()
@@ -307,7 +313,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	}
 }
 
-void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>& ModelObject)
+void DynamicCubeMap::Clear()
 {
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
@@ -315,12 +321,21 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 		rt->Clear(D3D12App::Instance()->GetCmdList());
 		auto& ds = surfaceTargets[surfaceIdx].depthStencil;
 		ds->Clear(D3D12App::Instance()->GetCmdList());
+	}
+}
+
+void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>& ModelObject)
+{
+	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
+	{
+		auto& rt = surfaceTargets[surfaceIdx].renderTargets;
+		auto& ds = surfaceTargets[surfaceIdx].depthStencil;
 
 		KuroEngine::Instance().Graphics().SetRenderTargets({ rt }, ds);
 
 		for (auto& modelPtr : ModelObject)
 		{
-			DrawFunc3D::DrawPBRShadingModel(LigManager, modelPtr, *CAMERA[surfaceIdx]);
+			DrawFunc3D::DrawPBRShadingModel(LigManager, modelPtr, *CAMERA[surfaceIdx], StaticallyCubeMap::GetDefaultCubeMap());
 		}
 	}
 }

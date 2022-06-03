@@ -16,6 +16,7 @@ GameScene::GameScene()
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
 	testModel->transform.SetPos({ 4,0,0 });
+	testModel->model->MeshSmoothing();
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -123,6 +124,8 @@ void GameScene::OnDraw()
 	dsv->Clear(D3D12App::Instance()->GetCmdList());
 
 	//動的キューブマップに書き込み
+	dynamicCubeMap->Clear();
+	dynamicCubeMap->CopyCubeMap(yokohamaCubeMap);
 	dynamicCubeMap->DrawToCubeMap(ligMgr, { testModel });
 
 	//標準描画
@@ -131,7 +134,7 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
 	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, dynamicCubeMap);
 }
 
 void GameScene::OnImguiDebug()

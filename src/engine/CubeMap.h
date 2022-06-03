@@ -42,6 +42,7 @@ protected:
 public:
 
 	const std::shared_ptr<TextureBuffer>& GetCubeMapTex() { return cubeMap; }
+	void CopyCubeMap(std::shared_ptr<CubeMap>Src);
 };
 
 //静的キューブマップ
@@ -81,6 +82,12 @@ public:
 		surfaces[Surface].tex = Tex;
 	}
 
+	//描画に用いるテクスチャ取得
+	std::shared_ptr<TextureBuffer>GetTex(const SURFACE_TYPE& Surface)
+	{
+		return surfaces[Surface].tex;
+	}
+
 	//ライティングに用いるテクスチャをアタッチ
 	void AttachCubeMapTex(const std::shared_ptr<TextureBuffer>& CubeMapTex)
 	{
@@ -89,6 +96,7 @@ public:
 
 	//描画
 	void Draw(Camera& Cam);
+
 };
 
 //動的キューブマップ
@@ -109,5 +117,6 @@ private:
 
 public:
 	DynamicCubeMap(const int& CubeMapEdge = 512);
+	void Clear();
 	void DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>&ModelObject);
 };

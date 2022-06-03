@@ -227,7 +227,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 	DRAW_ADS_SHADING_COUNT++;
 }
 
-void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode)
+void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const std::shared_ptr<CubeMap>CubeMap, const AlphaBlendMode& BlendMode)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE[AlphaBlendModeNum];
 	static std::vector<std::shared_ptr<ConstantBuffer>>TRANSFORM_BUFF;
@@ -252,6 +252,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "ポイントライト情報 (構造化バッファ)"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "スポットライト情報 (構造化バッファ)"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "天球ライト情報 (構造化バッファ)"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "キューブマップ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ベースカラーテクスチャ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"メタルネステクスチャ"),
@@ -291,6 +292,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 				LigManager.GetLigInfo(Light::POINT),
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
+				CubeMap->GetCubeMapTex(),
 				TRANSFORM_BUFF[DRAW_PBR_SHADING_COUNT],
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[METALNESS_TEX],
@@ -298,7 +300,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 				mesh.material->texBuff[ROUGHNESS_TEX],
 				mesh.material->buff,
 			},
-			{ CBV,CBV,SRV,SRV,SRV,SRV,CBV,SRV,SRV,SRV,SRV,CBV },
+			{ CBV,CBV,SRV,SRV,SRV,SRV,SRV,CBV,SRV,SRV,SRV,SRV,CBV },
 			Transform.GetPos().z,
 			true);
 	}

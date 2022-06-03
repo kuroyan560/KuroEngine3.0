@@ -38,7 +38,7 @@ public:
 	/// <param name="ToPos">終点座標</param>
 	/// <param name="Color">色</param>
 	/// <param name="BlendMode">ブレンドモード</param>
-	static void DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos, const Color& LineColor, const AlphaBlendMode& BlendMode = AlphaBlendMode_None);
+	static void DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos, const Color& LineColor, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 
 	/// <summary>
 	/// 直線の描画（画像）
@@ -49,7 +49,7 @@ public:
 	/// <param name="Thickness">線の太さ</param>
 	/// <param name="BlendMode">ブレンドモード</param>
 	/// <param name="Miror">反転フラグ</param>
-	static void DrawLine2DGraph(const Vec2<float>& FromPos, const Vec2<float>& ToPos, const std::shared_ptr<TextureBuffer>& Tex, const int& Thickness, const AlphaBlendMode& BlendMode = AlphaBlendMode_None, const Vec2<bool>& Mirror = { false,false });
+	static void DrawLine2DGraph(const Vec2<float>& FromPos, const Vec2<float>& ToPos, const std::shared_ptr<TextureBuffer>& Tex, const int& Thickness, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans, const Vec2<bool>& Mirror = { false,false });
 
 	/// <summary>
 	/// 2D四角形の描画
@@ -59,7 +59,7 @@ public:
 	/// <param name="Color">色</param>
 	/// <param name="FillFlg">中を塗りつぶすか</param>
 	/// <param name="BlendMode">ブレンドモード</param>
-	static void DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& RightBottomPos, const Color& BoxColor, const bool& FillFlg = false, const AlphaBlendMode& BlendMode = AlphaBlendMode_None);
+	static void DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& RightBottomPos, const Color& BoxColor, const bool& FillFlg = false, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 
 	/// <summary>
 	/// ２D円の描画
@@ -70,7 +70,7 @@ public:
 	/// <param name="FillFlg">中を塗りつぶすか</param>
 	/// <param name="LineThickness">中を塗りつぶさない場合の線の太さ</param>
 	/// <param name="BlendMode">ブレンドモード</param>
-	static void DrawCircle2D(const Vec2<float>& Center, const float& Radius, const Color& CircleColor, const bool& FillFlg = false, const int& LineThickness = 1, const AlphaBlendMode& BlendMode = AlphaBlendMode_None);
+	static void DrawCircle2D(const Vec2<float>& Center, const float& Radius, const Color& CircleColor, const bool& FillFlg = false, const int& LineThickness = 1, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 
 	/// <summary>
 	/// 画像描画
@@ -78,7 +78,7 @@ public:
 	/// <param name="LeftUpPos">矩形の左上座標</param>
 	/// <param name="Tex">テクスチャ</param>
 	/// <param name="BlendMode">ブレンドモード</param>
-	static void DrawGraph(const Vec2<float>& LeftUpPos, const std::shared_ptr<TextureBuffer>& Tex, const AlphaBlendMode& BlendMode = AlphaBlendMode_None, const Vec2<bool>& Miror = { false,false });
+	static void DrawGraph(const Vec2<float>& LeftUpPos, const std::shared_ptr<TextureBuffer>& Tex, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans, const Vec2<bool>& Miror = { false,false });
 
 	/// <summary>
 	/// 拡大縮小描画
