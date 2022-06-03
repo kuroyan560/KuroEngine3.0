@@ -25,7 +25,7 @@ GameScene::GameScene()
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
 
 	const std::string yokohamaDir = "resource/user/Yokohama3/";
-	yokohamaCubeMap = std::make_shared<CubeMap>("YokohamaCubeMap");
+	yokohamaCubeMap = std::make_shared<StaticallyCubeMap>("YokohamaCubeMap");
 	yokohamaCubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "posz.jpg"));
 	yokohamaCubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "negz.jpg"));
 	yokohamaCubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "posx.jpg"));
@@ -36,7 +36,7 @@ GameScene::GameScene()
 	yokohamaCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(yokohamaDir + "my_yokohama_cube.dds", true));
 
 	const std::string skyDir = "resource/user/skybox/";
-	skyCubeMap = std::make_shared<CubeMap>("SkyCubeMap");
+	skyCubeMap = std::make_shared<StaticallyCubeMap>("SkyCubeMap");
 	skyCubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "posz.png"));
 	skyCubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "negz.png"));
 	skyCubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "posx.png"));

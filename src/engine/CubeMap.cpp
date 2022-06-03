@@ -2,7 +2,20 @@
 #include"KuroEngine.h"
 #include"Camera.h"
 
-void CubeMap::ResetMeshVertices()
+std::shared_ptr<TextureBuffer>CubeMap::DEFAULT_CUBE_MAP_TEX;
+
+CubeMap::CubeMap()
+{
+	//デフォルトのテクスチャ
+	if (!DEFAULT_CUBE_MAP_TEX)
+	{
+		DEFAULT_CUBE_MAP_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f), true);
+	}
+
+	cubeMap = DEFAULT_CUBE_MAP_TEX;
+}
+
+void StaticallyCubeMap::ResetMeshVertices()
 {
 	//頂点の順番
 	static const enum { LB, LT, RB, RT, IDX_NUM };
@@ -48,8 +61,11 @@ void CubeMap::ResetMeshVertices()
 	}
 }
 
-CubeMap::CubeMap(const std::string& Name, const float& SideLength) : name(Name), sideLength(SideLength)
+StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideLength) : name(Name), sideLength(SideLength)
 {
+	//デフォルトのテクスチャ
+	static std::shared_ptr<TextureBuffer>DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(0.0f, 0.0f, 0.0f, 1.0f));
+
 	//メッシュ名に付与するタグ
 	static const std::array<std::string, SURFACE_NUM>NAME_TAG =
 	{
@@ -60,10 +76,6 @@ CubeMap::CubeMap(const std::string& Name, const float& SideLength) : name(Name),
 		"- Up(+Y)",
 		"- Down(-Y)",
 	};
-
-	//デフォルトのテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(0.0f, 0.0f, 0.0f, 1.0f));
-	static std::shared_ptr<TextureBuffer>DEFAULT_CUBE_MAP_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f), true);
 
 	ResetMeshVertices();
 
@@ -78,11 +90,9 @@ CubeMap::CubeMap(const std::string& Name, const float& SideLength) : name(Name),
 		//デフォルトのテクスチャアタッチ
 		surfaces[surfaceIdx].tex = DEFAULT_TEX;
 	}
-
-	cubeMap = DEFAULT_CUBE_MAP_TEX;
 }
 
-void CubeMap::SetSideLength(const float& Length)
+void StaticallyCubeMap::SetSideLength(const float& Length)
 {
 	sideLength = Length;
 	ResetMeshVertices();
@@ -92,7 +102,7 @@ void CubeMap::SetSideLength(const float& Length)
 	}
 }
 
-void CubeMap::Draw(Camera& Cam)
+void StaticallyCubeMap::Draw(Camera& Cam)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE;
 

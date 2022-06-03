@@ -9,7 +9,7 @@
 class Model;
 class ModelObject;
 class GaussianBlur;
-class CubeMap;
+class StaticallyCubeMap;
 
 class GameScene : public BaseScene
 {
@@ -23,8 +23,8 @@ class GameScene : public BaseScene
 	Light::Point ptLig;
 	Transform trans;
 
-	std::shared_ptr<CubeMap>yokohamaCubeMap;
-	std::shared_ptr<CubeMap>skyCubeMap;
+	std::shared_ptr<StaticallyCubeMap>yokohamaCubeMap;
+	std::shared_ptr<StaticallyCubeMap>skyCubeMap;
 
 public:
 	GameScene();
