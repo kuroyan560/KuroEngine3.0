@@ -89,7 +89,7 @@ void Camera::CameraInfoUpdate()
 		{
 			cameraInfo.matProjection = XMMatrixPerspectiveFovLH(
 				angleOfView,								//画角
-				WinApp::Instance()->GetAspect(),	//アスペクト比
+				aspect,	//アスペクト比
 				nearZ, farZ);		//前端、奥端
 		}
 		else
@@ -108,6 +108,7 @@ void Camera::CameraInfoUpdate()
 Camera::Camera(const std::string& Name) : name(Name)
 {
 	buff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, &ConstData(), Name.c_str());
+	aspect = WinApp::Instance()->GetAspect();
 }
 
 const std::shared_ptr<ConstantBuffer>& Camera::GetBuff()

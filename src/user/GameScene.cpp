@@ -12,7 +12,7 @@
 GameScene::GameScene()
 {
 	sphere = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
-	//sphere->model->MeshSmoothing();
+	sphere->model->MeshSmoothing();
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
 	testModel->transform.SetPos({ 4,0,0 });
@@ -131,7 +131,7 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
 	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, dynamicCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam);
 }
 
 void GameScene::OnImguiDebug()

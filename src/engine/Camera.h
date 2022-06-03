@@ -34,6 +34,7 @@ private:
 	Angle angleOfView = Angle(60);	//‰æŠp
 	float nearZ = 0.1f;
 	float farZ = 3000.0f;
+	float aspect = 0.0f;
 
 	//•½s“Š‰e—p
 	float width = 1280.0f;
@@ -93,6 +94,11 @@ public:
 	void SetHeight(const float& Height)
 	{
 		height = Height;
+		dirty = true;
+	}
+	void SetAspect(const float& Aspect)
+	{
+		aspect = Aspect;
 		dirty = true;
 	}
 

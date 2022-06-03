@@ -171,12 +171,22 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	{
 		static std::array<Vec3<float>, SURFACE_NUM>TARGET =
 		{
-			Vec3<float>(0,0,1),	//PZ
-			Vec3<float>(0,0,-1),	//NZ
-			Vec3<float>(1,0,0),	//PX
-			Vec3<float>(-1,0,0),	//NX
-			Vec3<float>(0,1,0),	//PY
-			Vec3<float>(0,-1,0),	//NY
+			Vec3<float>(1,0,0),
+			Vec3<float>(-1,0,0),
+			Vec3<float>(0,1,0),
+			Vec3<float>(0,-1,0),
+			Vec3<float>(0,0,1),
+			Vec3<float>(0,0,-1)
+		};
+
+		static std::array<Vec3<float>, SURFACE_NUM>UP =
+		{
+			Vec3<float>(0,1,0),
+			Vec3<float>(0,1,0),
+			Vec3<float>(0,0,-1),
+			Vec3<float>(0,0,1),
+			Vec3<float>(0,1,0),
+			Vec3<float>(0,1,0)
 		};
 
 		for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
@@ -185,6 +195,8 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 			CAMERA[surfaceIdx]->SetPos({ 0,0,0 });
 			CAMERA[surfaceIdx]->SetAngleOfView(Angle(90));
 			CAMERA[surfaceIdx]->SetTarget(TARGET[surfaceIdx]);
+			CAMERA[surfaceIdx]->SetAspect(1.0f);
+			CAMERA[surfaceIdx]->SetUp(UP[surfaceIdx]);
 		}
 	}
 
@@ -200,7 +212,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	clearTexValue.Color[0] = 0.0f;
 	clearTexValue.Color[1] = 0.0f;
 	clearTexValue.Color[2] = 0.0f;
-	clearTexValue.Color[3] = 1.0f;
+	clearTexValue.Color[3] = 0.0f;
 
 	const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
@@ -286,7 +298,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 		srvDesc.Texture2DArray.FirstArraySlice = surfaceIdx;
 		auto rtvDescHandles = D3D12App::Instance()->CreateRTV(buff, &rtvDesc);
 		auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, srvDesc);
-		surfaceTargets[surfaceIdx].renderTargets = std::make_shared<RenderTarget>(cubeMap->GetResource(), srvDescHandles, rtvDescHandles, texDesc, Color(0.0f, 0.0f, 0.0f, 1.0f));
+		surfaceTargets[surfaceIdx].renderTargets = std::make_shared<RenderTarget>(cubeMap->GetResource(), srvDescHandles, rtvDescHandles, texDesc, Color(0.0f, 0.0f, 0.0f, 0.0f));
 
 		//デプスステシル
 		dsvDesc.Texture2DArray.FirstArraySlice = surfaceIdx;
@@ -297,7 +309,6 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 
 void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>& ModelObject)
 {
-	auto& defCubeMap = StaticallyCubeMap::GetDefaultCubeMap();
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
 		auto& rt = surfaceTargets[surfaceIdx].renderTargets;
@@ -309,7 +320,7 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 
 		for (auto& modelPtr : ModelObject)
 		{
-			DrawFunc3D::DrawPBRShadingModel(LigManager, modelPtr, *CAMERA[surfaceIdx], defCubeMap);
+			DrawFunc3D::DrawPBRShadingModel(LigManager, modelPtr, *CAMERA[surfaceIdx]);
 		}
 	}
 }
