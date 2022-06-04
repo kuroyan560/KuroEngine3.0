@@ -11,7 +11,7 @@
 
 GameScene::GameScene()
 {
-	sphere = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
+	sphere = std::make_shared<ModelObject>("resource/user/gltf/stoneball/", "stoneball.glb");
 	//sphere->model->MeshSmoothing();
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
@@ -48,6 +48,16 @@ GameScene::GameScene()
 	skyCubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "posy.png"));
 	skyCubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(skyDir + "negy.png"));
 	skyCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(skyDir + "sky_cube.dds", true));
+
+	const std::string hdriDir = "resource/user/hdri/";
+	hdriCubeMap = std::make_shared<StaticallyCubeMap>("HDRICubeMap");
+	hdriCubeMap->AttachTex(CubeMap::PZ, D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "pz.png"));
+	hdriCubeMap->AttachTex(CubeMap::NZ, D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "nz.png"));
+	hdriCubeMap->AttachTex(CubeMap::NX, D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "px.png"));
+	hdriCubeMap->AttachTex(CubeMap::PX, D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "nx.png"));
+	hdriCubeMap->AttachTex(CubeMap::NY, D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "py.png"));
+	hdriCubeMap->AttachTex(CubeMap::PY, D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "ny.png"));
+	hdriCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(hdriDir + "hdri_cube.dds", true));
 
 	dynamicCubeMap = std::make_shared<DynamicCubeMap>();
 }
@@ -125,16 +135,16 @@ void GameScene::OnDraw()
 
 	//動的キューブマップに書き込み
 	dynamicCubeMap->Clear();
-	dynamicCubeMap->CopyCubeMap(yokohamaCubeMap);
+	dynamicCubeMap->CopyCubeMap(skyCubeMap);
 	dynamicCubeMap->DrawToCubeMap(ligMgr, { testModel });
 
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
-	yokohamaCubeMap->Draw(debugCam);
+	hdriCubeMap->Draw(debugCam);
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
 	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, dynamicCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, hdriCubeMap);
 }
 
 void GameScene::OnImguiDebug()

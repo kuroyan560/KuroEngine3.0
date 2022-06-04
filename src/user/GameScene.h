@@ -26,6 +26,7 @@ class GameScene : public BaseScene
 
 	std::shared_ptr<StaticallyCubeMap>yokohamaCubeMap;
 	std::shared_ptr<StaticallyCubeMap>skyCubeMap;
+	std::shared_ptr<StaticallyCubeMap>hdriCubeMap;
 	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
 
 public:

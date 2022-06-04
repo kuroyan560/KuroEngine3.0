@@ -34,7 +34,7 @@ public:
 	};
 	struct PBR
 	{
-		Vec3<float>baseColor = { 1.0f,1.0f,1.0f };
+		Vec3<float>baseColor = { 0.0f,0.0f,0.0f };
 		//float subsurface = 0.0f;
 		float metalness = 0.0f;
 		float specular = 0.5f;

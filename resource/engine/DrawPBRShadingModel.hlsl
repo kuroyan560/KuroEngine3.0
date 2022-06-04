@@ -34,6 +34,7 @@ SamplerState smp : register(s0);
 static float3 s_baseColor;
 static float s_metalness;
 static float s_roughness;
+static float3 s_cubeMapCol;
 
 cbuffer cbuff3 : register(b3)
 {
@@ -201,17 +202,20 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     //float3 localNormal = normalMap.Sample(smp, input.uv).xyz;
     //localNormal = (localNormal - 0.5f) * 2.0f; //タンジェントスペースの法線を0～1の範囲から-1～1の範囲に復元する
     //normal = input.tangent * localNormal.x + input.biNormal * localNormal.y + normal * localNormal.z;
+    //normal = normalize(normal);
     
     s_baseColor = material.baseColor + baseTex.Sample(smp, input.uv).rgb;
     s_metalness = material.metalness + metalnessTex.Sample(smp, input.uv).r;
     s_roughness = material.roughness + roughnessTex.Sample(smp, input.uv).r;
     
-    float4 cubeMapCol = cubeMap.Sample(smp, input.reflect);
-    float3 cubeMapLig = cubeMapCol.xyz * cubeMapCol.w;
+    float4 cubeMapLig = cubeMap.Sample(smp, input.reflect);
+    s_cubeMapCol = cubeMapLig.xyz * cubeMapLig.w;
     
      //ライトの影響
     float3 ligEffect = { 0.0f, 0.0f, 0.0f };
+    ligEffect = BRDF(-input.reflect, s_cubeMapCol, normal, input.worldpos, cam.eyePos);
     
+    /*
     //ディレクションライト
     for (int i = 0; i < ligNum.dirLigNum; ++i)
     {
@@ -219,7 +223,6 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
         
         float3 dir = dirLight[i].direction;
         float3 ligCol = dirLight[i].color.xyz * dirLight[i].color.w;
-        ligCol *= cubeMapLig;
         ligEffect += BRDF(dir, ligCol, normal, input.worldpos, cam.eyePos);
     }
     //ポイントライト
@@ -230,7 +233,6 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
         float3 dir = input.worldpos - pointLight[i].pos;
         dir = normalize(dir);
         float3 ligCol = pointLight[i].color.xyz * pointLight[i].color.w;
-        ligCol *= cubeMapLig;
         
         //距離による減衰
         float3 distance = length(input.worldpos - pointLight[i].pos);
@@ -252,7 +254,6 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
         float3 ligDir = input.worldpos - spotLight[i].pos;
         ligDir = normalize(ligDir);
         float3 ligCol = spotLight[i].color.xyz * spotLight[i].color.w;
-        ligCol *= cubeMapLig;
         
         //スポットライトとの距離を計算
         float3 distance = length(input.worldpos - spotLight[i].pos);
@@ -282,8 +283,9 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
         float t = dot(normal.xyz, hemiSphereLight[i].groundNormal);
         t = (t + 1.0f) / 2.0f;
         float3 hemiLight = lerp(hemiSphereLight[i].groundColor, hemiSphereLight[i].skyColor, t);
-        ligEffect *= hemiLight * cubeMapLig;
+        ligEffect *= hemiLight;
     }
+    */
     
     float4 result = float4(ligEffect, 1.0f - material.transparent);
     
