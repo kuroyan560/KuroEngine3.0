@@ -1355,7 +1355,7 @@ std::shared_ptr<Model> Importer::LoadModel(const std::string& Dir, const std::st
 	{
 		return LoadFBXModel(Dir, FileName, ext);
 	}
-	else if (ext == ".glb" || ext == "gltf")
+	else if (ext == ".glb" || ext == ".gltf")
 	{
 		return LoadGLTFModel(Dir, FileName, ext);
 	}
