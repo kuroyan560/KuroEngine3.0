@@ -771,12 +771,14 @@ DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_
 DescHandles D3D12App::CreateRTV(const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc)
 {
 	descHeapRTV->CreateRTV(device, Buff, ViewDesc);
+	//return DescHandles(descHeapRTV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
 	return DescHandles(descHeapRTV->GetCpuHandleTail(), descHeapRTV->GetGpuHandleTail());
 }
 
 DescHandles D3D12App::CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc)
 {
 	descHeapDSV->CreateDSV(device, Buff, ViewDesc);
+	//return DescHandles(descHeapDSV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
 	return DescHandles(descHeapDSV->GetCpuHandleTail(), descHeapDSV->GetGpuHandleTail());
 }
 

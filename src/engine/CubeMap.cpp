@@ -3,6 +3,8 @@
 #include"Camera.h"
 #include"DrawFunc3D.h"
 #include"DrawFunc2D.h"
+#include"Model.h"
+#include"LightManager.h"
 
 std::shared_ptr<TextureBuffer>CubeMap::DEFAULT_CUBE_MAP_TEX;
 
@@ -169,13 +171,13 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 }
 
 int DynamicCubeMap::ID = 0;
-std::array<std::unique_ptr<Camera>, DynamicCubeMap::SURFACE_NUM>DynamicCubeMap::CAMERA;
+std::shared_ptr<ConstantBuffer>DynamicCubeMap::VIEW_PROJ_MATRICIES;
 
 DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 {
 	if (ID == 0)
 	{
-		static std::array<Vec3<float>, SURFACE_NUM>TARGET =
+		std::array<Vec3<float>, SURFACE_NUM>target =
 		{
 			Vec3<float>(1,0,0),
 			Vec3<float>(-1,0,0),
@@ -185,7 +187,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 			Vec3<float>(0,0,-1)
 		};
 
-		static std::array<Vec3<float>, SURFACE_NUM>UP =
+		std::array<Vec3<float>, SURFACE_NUM>up =
 		{
 			Vec3<float>(0,1,0),
 			Vec3<float>(0,1,0),
@@ -195,15 +197,20 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 			Vec3<float>(0,1,0)
 		};
 
+		std::array<Matrix, SURFACE_NUM>viewProj;
+		std::array<std::unique_ptr<Camera>, SURFACE_NUM>camera;	//各面に描画する際に用いるカメラ
 		for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 		{
-			CAMERA[surfaceIdx] = std::make_unique<Camera>("DynamicCubeMap" + SURFACE_NAME_TAG[surfaceIdx]);
-			CAMERA[surfaceIdx]->SetPos({ 0,0,0 });
-			CAMERA[surfaceIdx]->SetAngleOfView(Angle(90));
-			CAMERA[surfaceIdx]->SetTarget(TARGET[surfaceIdx]);
-			CAMERA[surfaceIdx]->SetAspect(1.0f);
-			CAMERA[surfaceIdx]->SetUp(UP[surfaceIdx]);
+			camera[surfaceIdx] = std::make_unique<Camera>("DynamicCubeMap" + SURFACE_NAME_TAG[surfaceIdx]);
+			camera[surfaceIdx]->SetPos({ 0,0,0 });
+			camera[surfaceIdx]->SetAngleOfView(Angle(90));
+			camera[surfaceIdx]->SetTarget(target[surfaceIdx]);
+			camera[surfaceIdx]->SetAspect(1.0f);
+			camera[surfaceIdx]->SetUp(up[surfaceIdx]);
+			viewProj[surfaceIdx] = camera[surfaceIdx]->GetViewMat() * camera[surfaceIdx]->GetProjectionMat();
 		}
+
+		VIEW_PROJ_MATRICIES = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), SURFACE_NUM, viewProj.data(), "DynamicCubeMap - ViewProjMatricies");
 	}
 
 #pragma region キューブマップテクスチャバッファ生成
@@ -246,6 +253,17 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, cubeMapSrvDesc);
 
 	cubeMap = std::make_shared<TextureBuffer>(buff, texBarrier, srvDescHandles, texDesc);
+
+	//キューブマップ用のレンダーターゲットビュー
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	rtvDesc.Format = texDesc.Format;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Texture2DArray.ArraySize = 6;
+	rtvDesc.Texture2DArray.FirstArraySlice = 0;
+	auto rtvDescHandles = D3D12App::Instance()->CreateRTV(buff, &rtvDesc);
+
+	cubeRenderTarget = std::make_shared<RenderTarget>(cubeMap->GetResource(), srvDescHandles, rtvDescHandles, texDesc);
+
 #pragma endregion
 
 #pragma region キューブマップデプスステンシル生成
@@ -278,64 +296,82 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	cubeDepth = std::make_shared<DepthStencil>(depthBuff, depthBarrier, dsvDescHandles, depthDesc);
 
 #pragma endregion
-
-	//各面ごとのレンダーターゲットとしての設定
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-	rtvDesc.Format = texDesc.Format;
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-	rtvDesc.Texture2DArray.ArraySize = 1;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = texDesc.Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Texture2DArray.ArraySize = 1;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Texture2D.MipLevels = 1;
-
-	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-	dsvDesc.Texture2DArray.ArraySize = 1;
-
-	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
-	{
-		//レンダーターゲット
-		rtvDesc.Texture2DArray.FirstArraySlice = surfaceIdx;
-		srvDesc.Texture2DArray.FirstArraySlice = surfaceIdx;
-		auto rtvDescHandles = D3D12App::Instance()->CreateRTV(buff, &rtvDesc);
-		auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, srvDesc);
-		surfaceTargets[surfaceIdx].renderTargets = std::make_shared<RenderTarget>(cubeMap->GetResource(), srvDescHandles, rtvDescHandles, texDesc, Color(0.0f, 0.0f, 0.0f, 0.0f));
-
-		//デプスステシル
-		dsvDesc.Texture2DArray.FirstArraySlice = surfaceIdx;
-		auto dsvDescHandles = D3D12App::Instance()->CreateDSV(depthBuff, &dsvDesc);
-		surfaceTargets[surfaceIdx].depthStencil = std::make_shared<DepthStencil>(depthBuff, depthBarrier, dsvDescHandles, depthDesc, 1.0f);
-	}
 }
 
 void DynamicCubeMap::Clear()
 {
-	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
-	{
-		auto& rt = surfaceTargets[surfaceIdx].renderTargets;
-		rt->Clear(D3D12App::Instance()->GetCmdList());
-		auto& ds = surfaceTargets[surfaceIdx].depthStencil;
-		ds->Clear(D3D12App::Instance()->GetCmdList());
-	}
+	cubeRenderTarget->Clear(D3D12App::Instance()->GetCmdList());
+	cubeDepth->Clear(D3D12App::Instance()->GetCmdList());
 }
 
 void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>& ModelObject)
 {
-	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
+	static std::shared_ptr<GraphicsPipeline>PIPELINE;
+
+	//パイプライン未生成
+	if (!PIPELINE)
 	{
-		auto& rt = surfaceTargets[surfaceIdx].renderTargets;
-		auto& ds = surfaceTargets[surfaceIdx].depthStencil;
+		//パイプライン設定
+		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		KuroEngine::Instance().Graphics().SetRenderTargets({ rt }, ds);
+		//シェーダー情報
+		static Shaders SHADERS;
+		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "VSmain", "vs_5_0");
+		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "GSmain", "gs_5_0");
+		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "PSmain", "ps_5_0");
 
-		for (auto& modelPtr : ModelObject)
+		//ルートパラメータ
+		static std::vector<RootParam>ROOT_PARAMETER =
 		{
-			DrawFunc3D::DrawPBRShadingModel(LigManager, modelPtr, *CAMERA[surfaceIdx], StaticallyCubeMap::GetDefaultCubeMap());
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"６面分のカメラ情報バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, "アクティブ中のライト数バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "ディレクションライト情報 (構造化バッファ)"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "ポイントライト情報 (構造化バッファ)"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "スポットライト情報 (構造化バッファ)"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "天球ライト情報 (構造化バッファ)"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ベースカラーテクスチャ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"メタルネステクスチャ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ノーマルマップ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"粗さ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"マテリアル基本情報バッファ"),
+		};
+
+		//レンダーターゲット描画先情報
+		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
+		//パイプライン生成
+		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
+	}
+
+	KuroEngine::Instance().Graphics().SetRenderTargets({ cubeRenderTarget }, cubeDepth);
+	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+
+	for (auto& modelPtr : ModelObject)
+	{
+		auto m = modelPtr.lock();
+
+		for (auto& mesh : m->model->meshes)
+		{
+			KuroEngine::Instance().Graphics().ObjectRender(
+				mesh.mesh->vertBuff,
+				mesh.mesh->idxBuff,
+				{
+					VIEW_PROJ_MATRICIES,
+					LigManager.GetLigNumInfo(),
+					LigManager.GetLigInfo(Light::DIRECTION),
+					LigManager.GetLigInfo(Light::POINT),
+					LigManager.GetLigInfo(Light::SPOT),
+					LigManager.GetLigInfo(Light::HEMISPHERE),
+					m->GetTransformBuff(),
+					mesh.material->texBuff[COLOR_TEX],
+					mesh.material->texBuff[METALNESS_TEX],
+					mesh.material->texBuff[NORMAL_TEX],
+					mesh.material->texBuff[ROUGHNESS_TEX],
+					mesh.material->buff,
+				},
+				{ CBV,CBV,SRV,SRV,SRV,SRV,CBV,SRV,SRV,SRV,SRV,CBV },
+				m->transform.GetPos().z,
+				true);
 		}
 	}
 }

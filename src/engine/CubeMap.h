@@ -104,15 +104,10 @@ class DynamicCubeMap : public CubeMap
 {
 private:
 	static int ID;
-	static std::array<std::unique_ptr<Camera>, SURFACE_NUM>CAMERA;	//Še–Ê‚É•`‰æ‚·‚éÛ‚É—p‚¢‚éƒJƒƒ‰
+	static std::shared_ptr<ConstantBuffer>VIEW_PROJ_MATRICIES;
 
 private:
-	struct SurfaceTargets
-	{
-		std::shared_ptr<RenderTarget>renderTargets;
-		std::shared_ptr<DepthStencil>depthStencil;
-	};
-	std::array<SurfaceTargets, SURFACE_NUM>surfaceTargets;
+	std::shared_ptr<RenderTarget>cubeRenderTarget;
 	std::shared_ptr<DepthStencil>cubeDepth;
 
 public:

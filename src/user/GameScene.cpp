@@ -12,11 +12,11 @@
 GameScene::GameScene()
 {
 	sphere = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
-	sphere->model->MeshSmoothing();
+	//sphere->model->MeshSmoothing();
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
 	testModel->transform.SetPos({ 4,0,0 });
-	testModel->model->MeshSmoothing();
+	//testModel->model->MeshSmoothing();
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));

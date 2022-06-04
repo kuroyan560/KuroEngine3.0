@@ -3,9 +3,12 @@
 #include"LightInfo.hlsli"
 #include"Math.hlsli"
 
+static const int DIMENSION_NUM = 6;
+static const float3 EYE_POS = float3(0, 0, 0);
+
 cbuffer cbuff0 : register(b0)
 {
-    Camera cam;
+    matrix viewProj[DIMENSION_NUM];
 }
 
 cbuffer cbuff1 : register(b1)
@@ -17,7 +20,6 @@ StructuredBuffer<DirectionLight> dirLight : register(t0);
 StructuredBuffer<PointLight> pointLight : register(t1);
 StructuredBuffer<SpotLight> spotLight : register(t2);
 StructuredBuffer<HemiSphereLight> hemiSphereLight : register(t3);
-TextureCube cubeMap : register(t4);
 
 
 cbuffer cbuff2 : register(b2)
@@ -25,10 +27,10 @@ cbuffer cbuff2 : register(b2)
     matrix world;
 }
 
-Texture2D<float4> baseTex : register(t5);
-Texture2D<float4> metalnessTex : register(t6);
-Texture2D<float4> normalMap : register(t7);
-Texture2D<float4> roughnessTex : register(t8);
+Texture2D<float4> baseTex : register(t4);
+Texture2D<float4> metalnessTex : register(t5);
+Texture2D<float4> normalMap : register(t6);
+Texture2D<float4> roughnessTex : register(t7);
 SamplerState smp : register(s0);
 
 static float3 s_baseColor;
@@ -42,8 +44,7 @@ cbuffer cbuff3 : register(b3)
 
 struct VSOutput
 {
-    float4 svpos : SV_POSITION;
-    float3 worldpos : POSITION;
+    float4 worldpos : POSITION;
     float3 normal : NORMAL; // 法線
     float3 tangent : TANGENT;
     float3 biNormal : BINORMAL;
@@ -93,8 +94,6 @@ VSOutput VSmain(Vertex input)
 	
     VSOutput output;
     float4 wpos = mul(world, resultPos); //ワールド変換
-    output.svpos = mul(cam.view, wpos); //ビュー変換
-    output.svpos = mul(cam.proj, output.svpos); //プロジェクション変換
     output.worldpos = wpos;
     output.normal = normalize(mul(world, input.normal));
     output.tangent = normalize(mul(world, input.tangent));
@@ -102,8 +101,45 @@ VSOutput VSmain(Vertex input)
     output.uv = input.uv;
     
     //視線ベクトルと法線より反射ベクトルを求める
-    output.reflect = reflect(normalize(wpos.xyz - cam.eyePos), output.normal);
+    output.reflect = reflect(normalize(wpos.xyz - EYE_POS), output.normal);
     return output;
+}
+
+struct GSOutput
+{
+    float4 svpos : SV_POSITION;
+    float3 worldpos : POSITION;
+    float3 normal : NORMAL; // 法線
+    float3 tangent : TANGENT;
+    float3 biNormal : BINORMAL;
+    float2 uv : TEXCOORD;
+    float3 reflect : REFLECT;
+    uint RTIndex : SV_RenderTargetArrayIndex;
+};
+
+[maxvertexcount(3 * DIMENSION_NUM)]
+void GSmain(triangle VSOutput input[3],inout TriangleStream<GSOutput>output)
+{
+    for (int f = 0; f < DIMENSION_NUM;++f)
+    {
+        GSOutput element;
+        matrix camViewProj = viewProj[f];
+        element.RTIndex = f;
+        
+        for (int i = 0; i < 3;++i)
+        {
+            element.svpos = mul(camViewProj, input[i].worldpos);
+            element.worldpos = input[i].worldpos;
+            element.normal = input[i].normal;
+            element.tangent = input[i].tangent;
+            element.biNormal = input[i].biNormal;
+            element.uv = input[i].uv;
+            element.reflect = input[i].reflect;
+            output.Append(element);
+        }
+        output.RestartStrip();
+    }
+
 }
 
 struct PSOutput
@@ -122,7 +158,7 @@ float SchlickFresnel(float f0, float f90, float cosine)
 }
 
 //UE4のGGX分布
-float DistributionGGX(float alpha,float NdotH)
+float DistributionGGX(float alpha, float NdotH)
 {
     float alpha2 = alpha * alpha;
     float t = NdotH * NdotH * (alpha2 - 1.0f) + 1.0f;
@@ -155,7 +191,7 @@ float GeometricSmith(float cosine)
 }
 
 //鏡面反射の計算
-float3 CookTorranceSpecular(float NdotL,float NdotV,float NdotH,float LdotH)
+float3 CookTorranceSpecular(float NdotL, float NdotV, float NdotH, float LdotH)
 {
     float Ds = DistributionGGX(s_roughness * s_roughness, NdotH);
     float3 Fs = DisneyFresnel(LdotH);
@@ -195,19 +231,13 @@ float3 BRDF(float3 LigDirection, float3 LigColor, float3 WorldNormal, float3 Wor
     return diffuseColor + specularColor;
 }
 
-PSOutput PSmain(VSOutput input) : SV_TARGET
+PSOutput PSmain(GSOutput input) : SV_TARGET
 {
     float3 normal = input.normal;
-    //float3 localNormal = normalMap.Sample(smp, input.uv).xyz;
-    //localNormal = (localNormal - 0.5f) * 2.0f; //タンジェントスペースの法線を0～1の範囲から-1～1の範囲に復元する
-    //normal = input.tangent * localNormal.x + input.biNormal * localNormal.y + normal * localNormal.z;
     
     s_baseColor = material.baseColor + baseTex.Sample(smp, input.uv).rgb;
     s_metalness = material.metalness + metalnessTex.Sample(smp, input.uv).r;
     s_roughness = material.roughness + roughnessTex.Sample(smp, input.uv).r;
-    
-    float4 cubeMapCol = cubeMap.Sample(smp, input.reflect);
-    float3 cubeMapLig = cubeMapCol.xyz * cubeMapCol.w;
     
      //ライトの影響
     float3 ligEffect = { 0.0f, 0.0f, 0.0f };
@@ -215,22 +245,22 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     //ディレクションライト
     for (int i = 0; i < ligNum.dirLigNum; ++i)
     {
-        if (!dirLight[i].active)continue;
+        if (!dirLight[i].active)
+            continue;
         
         float3 dir = dirLight[i].direction;
         float3 ligCol = dirLight[i].color.xyz * dirLight[i].color.w;
-        ligCol *= cubeMapLig;
-        ligEffect += BRDF(dir, ligCol, normal, input.worldpos, cam.eyePos);
+        ligEffect += BRDF(dir, ligCol, normal, input.worldpos, EYE_POS);
     }
     //ポイントライト
     for (int i = 0; i < ligNum.ptLigNum; ++i)
     {
-        if (!pointLight[i].active)continue;
+        if (!pointLight[i].active)
+            continue;
         
         float3 dir = input.worldpos - pointLight[i].pos;
         dir = normalize(dir);
         float3 ligCol = pointLight[i].color.xyz * pointLight[i].color.w;
-        ligCol *= cubeMapLig;
         
         //距離による減衰
         float3 distance = length(input.worldpos - pointLight[i].pos);
@@ -242,18 +272,18 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
 		//影響を指数関数的にする
         affect = pow(affect, 3.0f);
         
-        ligEffect += BRDF(dir, ligCol, normal, input.worldpos, cam.eyePos) * affect;
+        ligEffect += BRDF(dir, ligCol, normal, input.worldpos, EYE_POS) * affect;
     }
     //スポットライト
     for (int i = 0; i < ligNum.spotLigNum; ++i)
     {
-        if (!spotLight[i].active)continue;
+        if (!spotLight[i].active)
+            continue;
         
         float3 ligDir = input.worldpos - spotLight[i].pos;
         ligDir = normalize(ligDir);
         float3 ligCol = spotLight[i].color.xyz * spotLight[i].color.w;
-        ligCol *= cubeMapLig;
-        
+
         //スポットライトとの距離を計算
         float3 distance = length(input.worldpos - spotLight[i].pos);
        	//影響率は距離に比例して小さくなっていく
@@ -272,17 +302,18 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
             affect = 0.0f;
         affect = pow(affect, 0.5f);
         
-        ligEffect += BRDF(dir, ligCol, normal, input.worldpos, cam.eyePos) * affect;
+        ligEffect += BRDF(dir, ligCol, normal, input.worldpos, EYE_POS) * affect;
     }
     //天球
     for (int i = 0; i < ligNum.hemiSphereNum; ++i)
     {
-        if (!hemiSphereLight[i].active)continue;
+        if (!hemiSphereLight[i].active)
+            continue;
         
         float t = dot(normal.xyz, hemiSphereLight[i].groundNormal);
         t = (t + 1.0f) / 2.0f;
         float3 hemiLight = lerp(hemiSphereLight[i].groundColor, hemiSphereLight[i].skyColor, t);
-        ligEffect *= hemiLight * cubeMapLig;
+        ligEffect *= hemiLight;
     }
     
     float4 result = float4(ligEffect, 1.0f - material.transparent);
@@ -300,7 +331,7 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     return output;
 }
 
-float4 main( float4 pos : POSITION ) : SV_POSITION
+float4 main(float4 pos : POSITION) : SV_POSITION
 {
-	return pos;
+    return pos;
 }
