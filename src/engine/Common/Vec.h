@@ -135,18 +135,22 @@ struct Vec3
 	Vec3() {};
 	Vec3(T X, T Y, T Z) :x(X), y(Y), z(Z) {};
 	float Length()const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
 	};
 	Vec3(Vec2<T>XY, T Z) :x(XY.x), y(XY.y), z(Z) {};
 	float Distance(const Vec3& To)const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		return sqrt(pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2));
 	};
 	Vec3<float> GetNormal()const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		float len = Length();
 		if (len == 0.0f)return Vec3(0, 0, 0);
 		return Vec3<float>(x / len, y / len, z / len);
 	};
 	void Normalize() {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		float len = Length();
 		if (len == 0.0f)
 		{
@@ -158,19 +162,30 @@ struct Vec3
 	};
 	//’†ŠÔ’n“_Žæ“¾
 	Vec3<float>GetCenter(const Vec3& To)const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		const float distHalf = this->Distance(To) / 2.0f;
 		Vec3<float> vec = To - *this;
 		return *this + vec.GetNormal() * distHalf;
 	}
-	Vec3<int>Int()const { return Vec3<int>(x, y, z); }
-	Vec3<float>Float()const { return Vec3<float>((float)x, (float)y, (float)z); }
+	Vec3<int>Int()const 
+	{ 
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
+		return Vec3<int>(x, y, z); 
+	}
+	Vec3<float>Float()const 
+	{
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
+		return Vec3<float>((float)x, (float)y, (float)z); 
+	}
 
 
 	float Dot(const Vec3<float>& rhs)const{
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		auto me = Float();
 		return me.x * rhs.x + me.y * rhs.y + me.z * rhs.z;
 	}
 	Vec3<float>Cross(const Vec3<float>& rhs)const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		auto me = Float();
 		return Vec3<float>(
 			me.y * rhs.z - rhs.y * me.z,
