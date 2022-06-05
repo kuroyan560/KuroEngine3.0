@@ -12,7 +12,7 @@
 GameScene::GameScene()
 {
 	sphere = std::make_shared<ModelObject>("resource/user/gltf/stoneball/", "stoneball.glb");
-	//sphere->model->MeshSmoothing();
+	sphere->model->MeshSmoothing();
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
 	testModel->transform.SetPos({ 4,0,0 });
@@ -135,7 +135,7 @@ void GameScene::OnDraw()
 
 	//動的キューブマップに書き込み
 	dynamicCubeMap->Clear();
-	dynamicCubeMap->CopyCubeMap(skyCubeMap);
+	dynamicCubeMap->CopyCubeMap(hdriCubeMap);
 	dynamicCubeMap->DrawToCubeMap(ligMgr, { testModel });
 
 	//標準描画
@@ -144,7 +144,7 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
 	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, hdriCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, dynamicCubeMap);
 }
 
 void GameScene::OnImguiDebug()

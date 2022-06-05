@@ -34,7 +34,6 @@ SamplerState smp : register(s0);
 static float3 s_baseColor;
 static float s_metalness;
 static float s_roughness;
-static float3 s_cubeMapCol;
 
 cbuffer cbuff3 : register(b3)
 {
@@ -209,11 +208,10 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     s_roughness = material.roughness + roughnessTex.Sample(smp, input.uv).r;
     
     float4 cubeMapLig = cubeMap.Sample(smp, input.reflect);
-    s_cubeMapCol = cubeMapLig.xyz * cubeMapLig.w;
     
      //ライトの影響
     float3 ligEffect = { 0.0f, 0.0f, 0.0f };
-    ligEffect = BRDF(-input.reflect, s_cubeMapCol, normal, input.worldpos, cam.eyePos);
+    ligEffect = BRDF(-input.reflect, cubeMapLig.xyz, normal, input.worldpos, cam.eyePos);
     
     /*
     //ディレクションライト
@@ -291,6 +289,7 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     
     PSOutput output;
     output.color = result;
+    output.color.xyz = cubeMapLig.xyz;
     //output.emissive = emissiveMap.Sample(smp, input.uv);
     
     ////明るさ計算

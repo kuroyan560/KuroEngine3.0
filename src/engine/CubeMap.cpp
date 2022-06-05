@@ -214,7 +214,8 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	}
 
 #pragma region キューブマップテクスチャバッファ生成
-	auto texFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//auto texFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	auto texFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(
 		texFormat,
 		CubeMapEdge, CubeMapEdge, 6, 1, 1, 0,
@@ -338,7 +339,7 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 		};
 
 		//レンダーターゲット描画先情報
-		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
+		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(cubeRenderTarget->GetDesc().Format, AlphaBlendMode_Trans) };
 		//パイプライン生成
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
