@@ -102,7 +102,7 @@ VSOutput VSmain(Vertex input)
     output.uv = input.uv;
     
     //視線ベクトルと法線より反射ベクトルを求める
-    output.reflect = reflect(normalize(wpos.xyz - cam.eyePos), output.normal);
+    output.reflect = normalize(reflect(normalize(wpos.xyz - cam.eyePos), output.normal));
     return output;
 }
 
@@ -190,9 +190,9 @@ float3 BRDF(float3 LigDirection, float3 LigColor, float3 WorldNormal, float3 Wor
     float Fd = FL * FV * energyFactor;
     
     float3 diffuseColor = diffuseReflectance * Fd * s_baseColor * (1 - s_metalness);
-    float3 specularColor = CookTorranceSpecular(NdotL, NdotV, NdotH, LdotH);
+    float3 specularColor = CookTorranceSpecular(NdotL, NdotV, NdotH, LdotH) * LigColor;
     
-    return diffuseColor + specularColor;
+    return (diffuseColor + specularColor);
 }
 
 PSOutput PSmain(VSOutput input) : SV_TARGET
@@ -213,11 +213,11 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     float3 ligEffect = { 0.0f, 0.0f, 0.0f };
     ligEffect = BRDF(-input.reflect, cubeMapLig.xyz, normal, input.worldpos, cam.eyePos);
     
-    /*
     //ディレクションライト
     for (int i = 0; i < ligNum.dirLigNum; ++i)
     {
-        if (!dirLight[i].active)continue;
+        if (!dirLight[i].active)
+            continue;
         
         float3 dir = dirLight[i].direction;
         float3 ligCol = dirLight[i].color.xyz * dirLight[i].color.w;
@@ -226,7 +226,8 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     //ポイントライト
     for (int i = 0; i < ligNum.ptLigNum; ++i)
     {
-        if (!pointLight[i].active)continue;
+        if (!pointLight[i].active)
+            continue;
         
         float3 dir = input.worldpos - pointLight[i].pos;
         dir = normalize(dir);
@@ -247,7 +248,8 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     //スポットライト
     for (int i = 0; i < ligNum.spotLigNum; ++i)
     {
-        if (!spotLight[i].active)continue;
+        if (!spotLight[i].active)
+            continue;
         
         float3 ligDir = input.worldpos - spotLight[i].pos;
         ligDir = normalize(ligDir);
@@ -276,20 +278,20 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     //天球
     for (int i = 0; i < ligNum.hemiSphereNum; ++i)
     {
-        if (!hemiSphereLight[i].active)continue;
+        if (!hemiSphereLight[i].active)
+            continue;
         
         float t = dot(normal.xyz, hemiSphereLight[i].groundNormal);
         t = (t + 1.0f) / 2.0f;
         float3 hemiLight = lerp(hemiSphereLight[i].groundColor, hemiSphereLight[i].skyColor, t);
         ligEffect *= hemiLight;
     }
-    */
     
     float4 result = float4(ligEffect, 1.0f - material.transparent);
     
     PSOutput output;
     output.color = result;
-    output.color.xyz = cubeMapLig.xyz;
+    //output.color.xyz = cubeMapLig.xyz;
     //output.emissive = emissiveMap.Sample(smp, input.uv);
     
     ////明るさ計算

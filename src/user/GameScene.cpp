@@ -11,21 +11,23 @@
 
 GameScene::GameScene()
 {
-	sphere = std::make_shared<ModelObject>("resource/user/gltf/stoneball/", "stoneball.glb");
-	sphere->model->MeshSmoothing();
+	models[WOOD_CUBE] = std::make_shared<ModelObject>("resource/user/gltf/woodball/", "woodcube.glb");
+	models[METAL_BALL] = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
+	models[STONE_BALL] = std::make_shared<ModelObject>("resource/user/gltf/stoneball/", "stoneball.glb");
+	//sphere->model->MeshSmoothing();
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
 	testModel->transform.SetPos({ 4,0,0 });
+	//testModel->model->MeshBuildTangentAndBiNormal();
 	//testModel->model->MeshSmoothing();
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
 	dirLigFront.SetDir(Vec3<float>(0, 0, 1));
 	ligMgr.RegisterDirLight(&dirLigTop);
+	dirLigTop.SetColor(Color(1.0f, 0.0f, 1.0f, 1.0f));
 	ligMgr.RegisterDirLight(&dirLigFront);
 	ligMgr.RegisterPointLight(&ptLig);
-	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
 
 	const std::string yokohamaDir = "resource/user/Yokohama3/";
@@ -122,6 +124,17 @@ void GameScene::OnUpdate()
 		hemiLig.SetActive();
 	}
 
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_LEFT))
+	{
+		if (0 < nowModel)nowModel = (MODEL_NAME)(nowModel - 1);
+		else nowModel = (MODEL_NAME)(MODEL_NUM - 1);
+	}
+	else if (UsersInput::Instance()->KeyOnTrigger(DIK_RIGHT))
+	{
+		if (nowModel < MODEL_NUM - 1)nowModel = (MODEL_NAME)(nowModel + 1);
+		else nowModel = (MODEL_NAME)0;
+	}
+
 	debugCam.Move();
 }
 
@@ -143,13 +156,13 @@ void GameScene::OnDraw()
 	hdriCubeMap->Draw(debugCam);
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
-	DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, sphere, debugCam, dynamicCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, hdriCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, models[nowModel], debugCam, dynamicCubeMap);
 }
 
 void GameScene::OnImguiDebug()
 {
-	ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
+	ImguiApp::Instance()->DebugMaterial(models[nowModel]->model->meshes[0].material, REWRITE);
 }
 
 void GameScene::OnFinalize()

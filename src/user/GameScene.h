@@ -13,7 +13,8 @@ class GaussianBlur;
 
 class GameScene : public BaseScene
 {
-	std::shared_ptr<ModelObject>sphere;
+	enum MODEL_NAME{ WOOD_CUBE, STONE_BALL, METAL_BALL, MODEL_NUM }nowModel = WOOD_CUBE;
+	std::array<std::shared_ptr<ModelObject>, MODEL_NUM>models;
 	std::shared_ptr<ModelObject>testModel;
 
 	DebugCamera debugCam;
