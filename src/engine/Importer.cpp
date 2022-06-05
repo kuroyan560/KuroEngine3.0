@@ -1134,19 +1134,19 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 		FbxAnimStack* animStack = fbxScene->GetSrcObject<FbxAnimStack>(animIdx);
 		animation.name = animStack->GetName();	//アニメーション名取得
 
-		FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(0);
-		TraceBoneAnim(animation, fbxScene->GetRootNode(), animLayer);
+		//FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(i);
+		//TraceBoneAnim(animation, fbxScene->GetRootNode(), animLayer);
 
+		//アニメーションが割り当てられている”部位”の数（AnimCurve の集合）
+		int animLayersCount = animStack->GetMemberCount<FbxAnimLayer>();
+		for (int i = 0; i < animLayersCount; ++i)
+		{
+			FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(i);
+			std::string layerName = animLayer->GetName();
+			TraceBoneAnim(animation, fbxScene->GetRootNode(), animLayer);
+		}
 		skel.animations.emplace_back(animation);
 
-		////アニメーションが割り当てられている”部位”の数（AnimCurve の集合）
-		//int animLayersCount = animStack->GetMemberCount<FbxAnimLayer>();
-		//for (int i = 0; i < animLayersCount; ++i)
-		//{
-		//	FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(i);
-		//	std::string layerName = animLayer->GetName();
-		//	TraceBoneAnim(skel, fbxScene->GetRootNode(), animLayer);
-		//}
 	}
 
 	skel.CreateBoneTree();
@@ -1243,8 +1243,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 	PrintResourceInfo(doc, *resourceReader);
 
 	//スケルトン読み込み途中
-	/*
-	for (const auto& glTFSkin : doc.skins.Elements())
+	/*for (const auto& glTFSkin : doc.skins.Elements())
 	{
 		auto& idBoneOffsetMat = glTFSkin.inverseBindMatricesAccessorId;
 		auto& accBoneOffsetMat = doc.accessors.Get(idBoneOffsetMat);
@@ -1263,8 +1262,8 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			}
 			int asdas = 0;
 		}
-	}
-	*/
+	}*/
+	
 
 	//マテリアル読み込み
 	std::vector<std::shared_ptr<Material>>loadMaterials;
