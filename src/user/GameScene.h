@@ -13,8 +13,7 @@ class GaussianBlur;
 
 class GameScene : public BaseScene
 {
-	std::shared_ptr<ModelObject>sphere;
-	std::shared_ptr<ModelObject>testModel;
+	std::shared_ptr<ModelObject>animModel;
 
 	DebugCamera debugCam;
 	LightManager ligMgr;
@@ -23,10 +22,6 @@ class GameScene : public BaseScene
 	Light::HemiSphere hemiLig;
 	Light::Point ptLig;
 	Transform trans;
-
-	std::shared_ptr<StaticallyCubeMap>yokohamaCubeMap;
-	std::shared_ptr<StaticallyCubeMap>skyCubeMap;
-	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
 
 public:
 	GameScene();
