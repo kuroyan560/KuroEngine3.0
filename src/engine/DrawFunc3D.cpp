@@ -3,6 +3,7 @@
 #include"Model.h"
 #include"LightManager.h"
 #include"CubeMap.h"
+#include"ModelAnimator.h"
 
 //DrawLine
 int DrawFunc3D::DRAW_LINE_COUNT = 0;
@@ -152,7 +153,7 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 	DRAW_NON_SHADING_COUNT++;
 }
 
-void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode)
+void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, ModelAnimator* Animator, const AlphaBlendMode& BlendMode)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE[AlphaBlendModeNum];
 	static std::vector<std::shared_ptr<ConstantBuffer>>TRANSFORM_BUFF;
@@ -178,6 +179,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "スポットライト情報 (構造化バッファ)"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "天球ライト情報 (構造化バッファ)"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ボーン行列バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"カラーテクスチャ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ノーマルマップ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"マテリアル基本情報バッファ"),
@@ -200,6 +202,8 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 	TRANSFORM_BUFF[DRAW_ADS_SHADING_COUNT]->Mapping(&Transform.GetMat());
 
 	auto model = Model.lock();
+	std::shared_ptr<ConstantBuffer>boneBuff;
+	if(Animator)boneBuff = Animator->
 
 	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
 	{

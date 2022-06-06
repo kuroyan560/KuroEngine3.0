@@ -1,10 +1,20 @@
 #include "Object.h"
 #include"Importer.h"
-#include"Model.h"
+
+void ModelObject::AttachModel(const std::shared_ptr<Model>& Model)
+{
+	model = Model;
+	
+	//アニメーション情報を持つならアニメーター生成
+	if (!model->skelton->animations.empty())
+	{
+		animator = std::make_shared<ModelAnimator>(model);
+	}
+}
 
 ModelObject::ModelObject(const std::string& Dir, const std::string& FileName)
 {
-	model = Importer::Instance()->LoadModel(Dir, FileName);
+	AttachModel(Importer::Instance()->LoadModel(Dir, FileName));
 }
 
 const std::shared_ptr<ConstantBuffer>& ModelObject::GetTransformBuff()

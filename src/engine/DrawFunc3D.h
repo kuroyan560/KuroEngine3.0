@@ -10,6 +10,7 @@
 class Model;
 class LightManager;
 class CubeMap;
+class ModelAnimator;
 
 static class DrawFunc3D
 {
@@ -48,7 +49,7 @@ public:
 		DrawNonShadingModel(obj->model, obj->transform, Camera, BlendMode);
 	}
 	//‰e‚Â‚«•`‰æ
-	static void DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
+	static void DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, ModelAnimator* Animator = nullptr, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 	static void DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
