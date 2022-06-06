@@ -18,7 +18,7 @@ public:
 	char parent = -1;	//親ボーン
 	int transLayer = 0;	//変形階層
 	Vec3<float> pos = { 0.0f,0.0f,0.0f };
-	Matrix offsetMat = DirectX::XMMatrixIdentity();
+	Matrix invOffsetMat = DirectX::XMMatrixIdentity();
 };
 
 class BoneNode
@@ -37,20 +37,22 @@ class Skeleton
 public:
 	struct BoneAnimation
 	{
-		static const enum { X, Y, Z, NUM };
-		std::array<Animation, NUM>pos;
-		std::array<Animation, NUM>rotate;
-		std::array < Animation, NUM>scale;
+		static const enum { POS_X, POS_Y, POS_Z, ROTATE_X, ROTATE_Y, ROTATE_Z, SCALE_X, SCALE_Y, SCALE_Z, ANIM_IDX_NUM };
+		std::array<Animation, ANIM_IDX_NUM>anims;
+		Matrix GetMatrix(const float& Frame, bool* FinishFlg = nullptr)const;
 	};
 	struct ModelAnimation
 	{
-		std::string name;	//アニメーション名
 		std::map<std::string, BoneAnimation>boneAnim;	//ボーン単位のアニメーション
 	};
 
 	std::vector<Bone>bones;
 	std::map<std::string, BoneNode>boneNodeTable;
-	std::vector<ModelAnimation>animations;	//アニメーション情報（Skeletonがアニメーションを行う訳では無い。Animatorからの参照用）
+	/*
+		アニメーション情報（Skeletonがアニメーションを行う訳では無い。Animatorからの参照用）
+		キーは アニメーション名
+	*/
+	std::map<std::string, ModelAnimation>animations;
 	void CreateBoneTree();
 	int GetIndex(const std::string& BoneName);
 };

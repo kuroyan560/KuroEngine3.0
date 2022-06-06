@@ -17,11 +17,11 @@ private:
 	class ConstData
 	{
 	public:
-		Matrix matView; // ビュー行列
-		Matrix matProjection;	//プロジェクション行列
-		Vec3<float> eye; // カメラ座標（ワールド座標）
-		Matrix billboardMat;
-		Matrix billboardMatY;
+		Matrix matView = XMMatrixIdentity(); // ビュー行列
+		Matrix matProjection = XMMatrixIdentity();	//プロジェクション行列
+		Vec3<float> eye = { 0,0,0 }; // カメラ座標（ワールド座標）
+		Matrix billboardMat = XMMatrixIdentity();
+		Matrix billboardMatY = XMMatrixIdentity();
 	}cameraInfo;
 	std::shared_ptr<ConstantBuffer>buff;
 

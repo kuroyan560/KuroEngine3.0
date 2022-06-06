@@ -141,7 +141,7 @@ void Importer::LoadFbxSkin(Skeleton& Skel, FbxMesh* FbxMesh, BoneTable& BoneTabl
 			//ボーンのオフセット行列
 			FbxAMatrix globalTransform;
 			cluster->GetTransformLinkMatrix(globalTransform);
-			Skel.bones[j].offsetMat = FbxMatrixConvert(globalTransform);
+			Skel.bones[j].invOffsetMat = XMMatrixInverse(nullptr, FbxMatrixConvert(globalTransform));
 		}
 	}
 }
@@ -493,33 +493,33 @@ void Importer::TraceBoneAnim(Skeleton::ModelAnimation& ModelAnimation, FbxNode* 
 
 		//座標
 		animCurve = FbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-		if (animCurve)LoadAnimCurve(animCurve, boneAnim.pos[Skeleton::BoneAnimation::X]);
+		if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_X]);
 
 		animCurve = FbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.pos[Skeleton::BoneAnimation::Y]);
+		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Y]);
 
 		animCurve = FbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.pos[Skeleton::BoneAnimation::Z]);
+		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Z]);
 
 		//回転
 		animCurve = FbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-		if (animCurve)LoadAnimCurve(animCurve, boneAnim.rotate[Skeleton::BoneAnimation::X]);
+		if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X]);
 
 		animCurve = FbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.rotate[Skeleton::BoneAnimation::Y]);
+		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Y]);
 
 		animCurve = FbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.rotate[Skeleton::BoneAnimation::Z]);
+		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Z]);
 
 		//スケール
 		animCurve = FbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-		if (animCurve)LoadAnimCurve(animCurve, boneAnim.scale[Skeleton::BoneAnimation::X]);
+		if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_X]);
 
 		animCurve = FbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.scale[Skeleton::BoneAnimation::Y]);
+		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Y]);
 
 		animCurve = FbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.scale[Skeleton::BoneAnimation::Z]);
+		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Z]);
 	}
 
 	// 子ノードに対して再帰呼び出し
@@ -1132,7 +1132,7 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 
 		// AnimStack読み込み（AnimLayerの集合)
 		FbxAnimStack* animStack = fbxScene->GetSrcObject<FbxAnimStack>(animIdx);
-		animation.name = animStack->GetName();	//アニメーション名取得
+		std::string animName = animStack->GetName();	//アニメーション名取得
 
 		//FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(i);
 		//TraceBoneAnim(animation, fbxScene->GetRootNode(), animLayer);
@@ -1145,12 +1145,12 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 			std::string layerName = animLayer->GetName();
 			TraceBoneAnim(animation, fbxScene->GetRootNode(), animLayer);
 		}
-		skel.animations.emplace_back(animation);
+		skel.animations[animName] = animation;
 
 	}
 
 	skel.CreateBoneTree();
-	result->skelton = skel;
+	result->skelton = std::make_shared<Skeleton>(skel);
 
 	//SaveHSMModel(HSM_TAIL, result, fbxLastWriteTime);
 

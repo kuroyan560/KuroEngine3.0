@@ -13,7 +13,7 @@ public:
 	//メッシュ
 	std::vector<ModelMesh>meshes;
 	//スケルトン（ボーン構成）
-	Skeleton skelton;
+	std::shared_ptr<Skeleton> skelton;
 
 	Model(const std::string& Dir, const std::string& FileName) :header(Dir, FileName) {}
 

@@ -293,10 +293,12 @@ std::shared_ptr<IndexBuffer> D3D12App::GenerateIndexBuffer(const int& IndexNum, 
 
 	//頂点バッファ生成
 	ComPtr<ID3D12Resource1>buff;
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto idxDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeIB);
 	auto hr = device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(sizeIB),
+		&idxDesc,
 		barrier,
 		nullptr,
 		IID_PPV_ARGS(&buff));
@@ -330,11 +332,13 @@ std::shared_ptr<ConstantBuffer> D3D12App::GenerateConstantBuffer(const size_t& D
 	auto barrier = D3D12_RESOURCE_STATE_GENERIC_READ;
 
 	//定数バッファ生成
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto desc = CD3DX12_RESOURCE_DESC::Buffer(alignmentSize);
 	ComPtr<ID3D12Resource1>buff;
 	auto hr = device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(alignmentSize),
+		&desc,
 		barrier,
 		nullptr,
 		IID_PPV_ARGS(&buff));
@@ -366,11 +370,13 @@ std::shared_ptr<StructuredBuffer> D3D12App::GenerateStructuredBuffer(const size_
 	auto barrier = D3D12_RESOURCE_STATE_GENERIC_READ;
 
 	//定数バッファ生成
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto desc = CD3DX12_RESOURCE_DESC::Buffer(DataSize * ElementNum);
 	ComPtr<ID3D12Resource1>buff;
 	auto hr = device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(DataSize * ElementNum),
+		&desc,
 		barrier,
 		nullptr,
 		IID_PPV_ARGS(&buff));
@@ -868,12 +874,14 @@ std::shared_ptr<DepthStencil> D3D12App::GenerateDepthStencil(const Vec2<int>& Si
 
 	//デプスステンシルバッファ生成
 	ComPtr<ID3D12Resource1>buff;
+	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	auto clearVal = CD3DX12_CLEAR_VALUE(Format, ClearValue, 0);
 	auto hr = device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
-		&CD3DX12_CLEAR_VALUE(Format, ClearValue, 0),
+		&clearVal,
 		IID_PPV_ARGS(&buff));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateDepthStencil", "デプスステンシルバッファ生成に失敗\n");
 

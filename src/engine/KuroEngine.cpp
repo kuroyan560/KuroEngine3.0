@@ -101,8 +101,9 @@ void KuroEngine::Initialize(const EngineOption& Option)
 
 
 	//平行投影行列定数バッファ生成
+	auto parallelMatProj = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, winApp->GetExpandWinSize().x, winApp->GetExpandWinSize().y, 0.0f, 0.0f, 1.0f);
 	parallelMatProjBuff = d3d12App->GenerateConstantBuffer(sizeof(XMMATRIX), 1, 
-		&XMMATRIX(DirectX::XMMatrixOrthographicOffCenterLH(0.0f, winApp->GetExpandWinSize().x, winApp->GetExpandWinSize().y, 0.0f, 0.0f, 1.0f)));
+		&parallelMatProj);
 
 	printf("KuroEngine起動成功\n");
 	invalid = false;

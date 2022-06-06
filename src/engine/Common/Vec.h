@@ -1,10 +1,13 @@
 #pragma once
+#undef min
+#undef max
 
 #ifndef VEC_H
 #define VEC_H
 
 #include<DirectXMath.h>
 #include<type_traits>
+#include<algorithm>
 
 template<typename T>
 struct Vec2

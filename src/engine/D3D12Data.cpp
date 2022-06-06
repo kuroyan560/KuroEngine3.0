@@ -23,12 +23,14 @@ void GPUResource::ChangeBarrier(const ComPtr<ID3D12GraphicsCommandList>& CmdList
     if (barrier == NewBarrier)return;
 
     //リソースバリア変更
+	auto changeBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		buff.Get(),
+		barrier,
+		NewBarrier);
+
     CmdList->ResourceBarrier(
         1,
-        &CD3DX12_RESOURCE_BARRIER::Transition(
-            buff.Get(),
-            barrier,
-            NewBarrier));
+        &changeBarrier);
 
     //リソースバリア状態記録
     barrier = NewBarrier;

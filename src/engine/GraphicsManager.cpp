@@ -10,10 +10,12 @@ void GraphicsManager::SetRenderTargetsCommand::Excute(const ComPtr<ID3D12Graphic
 
 	const auto targetSize = renderTargets[0].lock()->GetGraphSize();
 	//ビューポート設定
-	CmdList->RSSetViewports(1, &CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y));
+	auto viewPort = CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y);
+	CmdList->RSSetViewports(1, &viewPort);
 
 	//シザー矩形設定
-	CmdList->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, targetSize.x, targetSize.y));
+	auto rect = CD3DX12_RECT(0, 0, targetSize.x, targetSize.y);
+	CmdList->RSSetScissorRects(1, &rect);
 
 	//デプスステンシルがある場合
 	if (auto ptr = depthStencil.lock())

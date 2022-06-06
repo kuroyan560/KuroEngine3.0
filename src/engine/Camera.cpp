@@ -107,7 +107,8 @@ void Camera::CameraInfoUpdate()
 
 Camera::Camera(const std::string& Name) : name(Name)
 {
-	buff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, &ConstData(), Name.c_str());
+	auto initData = ConstData();
+	buff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, &initData, Name.c_str());
 	aspect = WinApp::Instance()->GetAspect();
 }
 

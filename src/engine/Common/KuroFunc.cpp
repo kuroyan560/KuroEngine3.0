@@ -115,7 +115,8 @@ Vec3<float> KuroFunc::ConvertScreenToWorld(Vec2<float> ScreenPos, float Z, const
 	invViewPort = XMMatrixInverse(nullptr, invViewPort);
 
 	XMVECTOR pos;
-	pos = XMLoadFloat3(&XMFLOAT3(ScreenPos.x, ScreenPos.y, Z));
+	auto screenPosXMFLOAT3 = XMFLOAT3(ScreenPos.x, ScreenPos.y, Z);
+	pos = XMLoadFloat3(&screenPosXMFLOAT3);
 	/*
 		¦ö‹Æ‘—¿05_03.Ë‰e•ÏŠ·@“§‹“Š‰e•ÏŠ·‚ğQÆ
 		z(0.0f ~ 1.0f)
