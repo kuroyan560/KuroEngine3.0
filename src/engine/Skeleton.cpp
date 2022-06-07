@@ -48,7 +48,7 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 	std::array<float, ANIM_IDX_NUM>getValue = { 0 };
 	for (int i = 0; i < ANIM_IDX_NUM; ++i)
 	{
-		if (!anims[i].keyFrames.empty())continue;		//キーフレーム情報なし
+		if (anims[i].keyFrames.empty())continue;		//キーフレーム情報なし
 		if (Frame < anims[i].startFrame)getValue[i] = anims[i].keyFrames.front().value;	//範囲外：一番手前を採用
 		if (anims[i].endFrame < Frame)getValue[i] = anims[i].keyFrames.back().value;	//範囲外：一番最後を採用
 
@@ -78,9 +78,9 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 		}
 	}
 
-	result *= XMMatrixTranslation(getValue[POS_X], getValue[POS_Y], getValue[POS_Z]);
-	result *= KuroMath::RotateMat(Vec3<Angle>(getValue[ROTATE_X], getValue[ROTATE_Y], getValue[ROTATE_Z]));
 	result *= XMMatrixScaling(getValue[SCALE_X], getValue[SCALE_Y], getValue[SCALE_Z]);
+	result *= KuroMath::RotateMat(Vec3<Angle>(getValue[ROTATE_X], getValue[ROTATE_Y], getValue[ROTATE_Z]));
+	result *= XMMatrixTranslation(getValue[POS_X], getValue[POS_Y], getValue[POS_Z]);
 
 	if (FinishFlg)*FinishFlg = finish;
 

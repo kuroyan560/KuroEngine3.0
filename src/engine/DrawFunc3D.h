@@ -53,7 +53,7 @@ public:
 	static void DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
-		DrawADSShadingModel(LigManager, obj->model, obj->transform, Cam, BlendMode);
+		DrawADSShadingModel(LigManager, obj->model, obj->transform, Cam, obj->animator.get(), BlendMode);
 	}
 	//‰e‚Â‚«•`‰æ(PBR)
 	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, const std::shared_ptr<CubeMap>CubeMap, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);

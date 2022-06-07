@@ -8,6 +8,7 @@
 #include"Object.h"
 #include"GaussianBlur.h"
 #include"CubeMap.h"
+#include"ModelAnimator.h"
 
 GameScene::GameScene()
 {
@@ -34,6 +35,7 @@ void GameScene::OnUpdate()
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_I))
 	{
 		debugCam.Init({ 0,1,-3 }, { 0,1,0 });
+		animModel->animator->Reset();
 	}
 
 	//ポイントライト位置
@@ -84,6 +86,13 @@ void GameScene::OnUpdate()
 		hemiLig.SetActive();
 	}
 
+	//アニメーション
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_L))
+	{
+		animModel->animator->Play("Bones|Action1", false);
+	}
+	animModel->animator->Update();
+
 	debugCam.Move();
 }
 
@@ -98,6 +107,8 @@ void GameScene::OnDraw()
 	//動的キューブマップに書き込み
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
+
+	DrawFunc3D::DrawADSShadingModel(ligMgr, animModel, debugCam);
 }
 
 void GameScene::OnImguiDebug()

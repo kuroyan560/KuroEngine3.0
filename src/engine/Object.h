@@ -3,8 +3,8 @@
 class ConstantBuffer;
 #include"Transform.h"
 #include<string>
-#include"Model.h"
-//#include"ModelAnimator.h"
+class ModelAnimator;
+class Model;
 
 struct ModelObject
 {
@@ -14,7 +14,7 @@ private:
 
 public:
 	std::shared_ptr<Model>model;
-	//std::shared_ptr<ModelAnimator>animator;
+	std::shared_ptr<ModelAnimator>animator;
 	Transform transform;
 
 	ModelObject(const std::string& Dir, const std::string& FileName);

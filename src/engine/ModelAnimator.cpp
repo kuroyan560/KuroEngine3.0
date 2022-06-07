@@ -2,6 +2,11 @@
 #include"KuroEngine.h"
 #include"Model.h"
 
+ModelAnimator::ModelAnimator(std::weak_ptr<Model> Model)
+{
+	Attach(Model);
+}
+
 void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 {
 	auto model = Model.lock();
@@ -11,21 +16,27 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 	//バッファ未生成
 	if (!boneBuff)
 	{
-		D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), MAX_BONE_NUM);
+		boneBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), MAX_BONE_NUM);
 	}
 	
 	//バッファのリネーム
 	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->header.GetModelName())).c_str());
 
-	//単位行列で埋めてリセット
-	Matrix initMat[MAX_BONE_NUM] = { XMMatrixIdentity() };
-	boneBuff->Mapping(initMat);
-
-	//再生中アニメーション名リセット
-	playAnimations.clear();
+	Reset();
 
 	//スケルトンをアタッチ
 	attachSkelton = skel;
+}
+
+void ModelAnimator::Reset()
+{
+	//単位行列で埋めてリセット
+	std::array<Matrix, MAX_BONE_NUM>initMat;
+	initMat.fill(XMMatrixIdentity());
+	boneBuff->Mapping(initMat.data());
+
+	//再生中アニメーション名リセット
+	playAnimations.clear();
 }
 
 void ModelAnimator::Play(const std::string& AnimationName, const bool& Loop)

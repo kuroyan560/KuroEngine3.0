@@ -28,9 +28,11 @@ class ModelAnimator
 
 public:
 	ModelAnimator() {}
-	ModelAnimator(std::weak_ptr<Model>Model) { Attach(Model); }
+	ModelAnimator(std::weak_ptr<Model>Model);
 	void Attach(std::weak_ptr<Model>Model);
 
+	void Reset();
 	void Play(const std::string& AnimationName, const bool& Loop);
 	void Update();
+	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
 };

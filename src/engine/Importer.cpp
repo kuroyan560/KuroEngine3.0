@@ -477,15 +477,17 @@ void Importer::LoadFbxMaterial(const std::string& Dir, ModelMesh& ModelMesh, Fbx
 	}
 }
 
-void Importer::TraceBoneAnim(Skeleton::ModelAnimation& ModelAnimation, FbxNode* FbxNode, FbxAnimLayer* FbxAnimLayer)
+void Importer::TraceBoneAnim(const Skeleton& Skel, Skeleton::ModelAnimation& ModelAnimation, FbxNode* FbxNode, FbxAnimLayer* FbxAnimLayer)
 {
 	auto attribute = FbxNode->GetNodeAttribute();
+	std::string boneName = FbxNode->GetName();
 
-	//ボーンのアニメーションしか読み込まない
-	if (attribute && attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+	auto findName = std::find_if(Skel.bones.begin(), Skel.bones.end(), [boneName](const Bone b)
+		{ return !b.name.compare(boneName); });
+
+	//ボーンのアニメーションしか読み込まない、存在するボーンのみ読み込む
+	if (attribute && attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton && findName != Skel.bones.end())
 	{
-		std::string boneName = FbxNode->GetName();
-
 		//ボーン単位アニメーション取得
 		auto& boneAnim = ModelAnimation.boneAnim[boneName];
 
@@ -511,6 +513,15 @@ void Importer::TraceBoneAnim(Skeleton::ModelAnimation& ModelAnimation, FbxNode* 
 		animCurve = FbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Z]);
 
+		//回転のみ弧度法なのでラジアンに変換
+		for (int i = 0; i < 3; ++i)
+		{
+			for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + i].keyFrames)
+			{
+				key.value = Angle::ConvertToRadian(key.value);
+			}
+		}
+
 		//スケール
 		animCurve = FbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 		if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_X]);
@@ -524,7 +535,7 @@ void Importer::TraceBoneAnim(Skeleton::ModelAnimation& ModelAnimation, FbxNode* 
 
 	// 子ノードに対して再帰呼び出し
 	for (int i = 0; i < FbxNode->GetChildCount(); i++) {
-		TraceBoneAnim(ModelAnimation, FbxNode->GetChild(i), FbxAnimLayer);
+		TraceBoneAnim(Skel, ModelAnimation, FbxNode->GetChild(i), FbxAnimLayer);
 	}
 }
 
@@ -1143,7 +1154,7 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 		{
 			FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(i);
 			std::string layerName = animLayer->GetName();
-			TraceBoneAnim(animation, fbxScene->GetRootNode(), animLayer);
+			TraceBoneAnim(skel, animation, fbxScene->GetRootNode(), animLayer);
 		}
 		skel.animations[animName] = animation;
 

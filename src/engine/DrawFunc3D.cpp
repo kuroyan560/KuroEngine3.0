@@ -203,7 +203,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 
 	auto model = Model.lock();
 	std::shared_ptr<ConstantBuffer>boneBuff;
-	if(Animator)boneBuff = Animator->
+	if (Animator)boneBuff = Animator->GetBoneMatBuff();
 
 	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
 	{
@@ -219,11 +219,12 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
 				TRANSFORM_BUFF[DRAW_ADS_SHADING_COUNT],
+				boneBuff,
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[NORMAL_TEX],
 				mesh.material->buff,
 			},
-			{ CBV,CBV,SRV,SRV,SRV,SRV,CBV,SRV,SRV,CBV },
+			{ CBV,CBV,SRV,SRV,SRV,SRV,CBV,CBV,SRV,SRV,CBV },
 			Transform.GetPos().z,
 			true);
 	}

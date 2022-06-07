@@ -1,5 +1,7 @@
 #include "Object.h"
 #include"Importer.h"
+#include"ModelAnimator.h"
+#include"Model.h"
 
 void ModelObject::AttachModel(const std::shared_ptr<Model>& Model)
 {
