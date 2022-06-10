@@ -11,9 +11,9 @@
 
 GameScene::GameScene()
 {
-	models[WOOD_CUBE] = std::make_shared<ModelObject>("resource/user/gltf/woodball/", "woodcube.glb");
-	models[METAL_BALL] = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
-	models[STONE_BALL] = std::make_shared<ModelObject>("resource/user/gltf/stoneball/", "stoneball.glb");
+	drawModels[WOOD_BALL].modelObject = std::make_shared<ModelObject>("resource/user/gltf/woodball/", "woodball.glb");
+	drawModels[METAL_BALL].modelObject = std::make_shared<ModelObject>("resource/user/gltf/metalball/", "metalball.glb");
+	drawModels[STONE_BALL].modelObject = std::make_shared<ModelObject>("resource/user/gltf/stoneball/", "stoneball.glb");
 	//sphere->model->MeshSmoothing();
 
 	testModel = std::make_shared<ModelObject>("resource/user/", "player.glb");
@@ -24,11 +24,11 @@ GameScene::GameScene()
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
 	dirLigFront.SetDir(Vec3<float>(0, 0, 1));
-	ligMgr.RegisterDirLight(&dirLigTop);
 	dirLigTop.SetColor(Color(1.0f, 0.0f, 1.0f, 1.0f));
-	ligMgr.RegisterDirLight(&dirLigFront);
-	ligMgr.RegisterPointLight(&ptLig);
-	ligMgr.RegisterHemiSphereLight(&hemiLig);
+	//ligMgr.RegisterDirLight(&dirLigTop);
+	//ligMgr.RegisterDirLight(&dirLigFront);
+	//ligMgr.RegisterPointLight(&ptLig);
+	//ligMgr.RegisterHemiSphereLight(&hemiLig);
 
 	const std::string yokohamaDir = "resource/user/Yokohama3/";
 	yokohamaCubeMap = std::make_shared<StaticallyCubeMap>("YokohamaCubeMap");
@@ -157,12 +157,46 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, testModel, debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, yokohamaCubeMap);
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, testModel, debugCam, hdriCubeMap);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, models[nowModel], debugCam, dynamicCubeMap);
+
+	auto m = drawModels[nowModel];
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, m.modelObject, debugCam, dynamicCubeMap);
 }
 
 void GameScene::OnImguiDebug()
 {
-	ImguiApp::Instance()->DebugMaterial(models[nowModel]->model->meshes[0].material, REWRITE);
+	auto m = drawModels[nowModel].modelObject->model;
+	ImguiApp::Instance()->DebugMaterial(m->meshes[0].material, REWRITE);
+
+	//モデル選択
+	static std::string CURRENT_MODEL = m->header.fileName;
+	//描画モード選択
+	static const std::string DRAW_MODE_STR[DRAW_MODE_NUM] =
+	{
+		"ADDS","TOON","PBR"
+	};
+
+
+	ImGui::Begin("ModelSelect");
+
+	if (ImGui::BeginCombo("Model", CURRENT_MODEL.c_str()))
+	{
+		for (int n = 0; n < MODEL_NUM; ++n)
+		{
+			bool isSelected = (CURRENT_MODEL == drawModels[n].modelObject->model->header.fileName);
+			if (ImGui::Selectable(drawModels[n].modelObject->model->header.fileName.c_str(), isSelected))
+			{
+				CURRENT_MODEL = drawModels[n].modelObject->model->header.fileName;
+				nowModel = (MODEL_NAME)n;
+			}
+			if (isSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	ImGui::End();
 }
 
 void GameScene::OnFinalize()

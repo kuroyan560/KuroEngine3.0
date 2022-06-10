@@ -1174,7 +1174,17 @@ void Importer::LoadGLTFMaterial(const MATERIAL_TEX_TYPE& Type, std::weak_ptr<Mat
 		auto imageBufferView = Doc.bufferViews.Get(Img.bufferViewId);
 		auto imageData = Reader.ReadBinaryData<char>(Doc, imageBufferView);
 		std::string path = "glTF - Load (" + Img.mimeType + ") - " + Img.name;
-		material->texBuff[Type] = D3D12App::Instance()->GenerateTextureBuffer(imageData);
+		
+		//gltfではメタリックがRチャンネル、ラフネスがGチャンネルで割り当てられている
+		if (Type == ROUGHNESS_TEX)
+		{
+			material->texBuff[METALNESS_TEX] = D3D12App::Instance()->GenerateTextureBuffer(imageData, 0);	//R
+			material->texBuff[ROUGHNESS_TEX] = D3D12App::Instance()->GenerateTextureBuffer(imageData, 1);	//G
+		}
+		else
+		{
+			material->texBuff[Type] = D3D12App::Instance()->GenerateTextureBuffer(imageData);
+		}
 	}
 }
 
@@ -1274,11 +1284,6 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 		//PBR
 		const auto baseColor = m.metallicRoughness.baseColorFactor;
-		material->constData.pbr.baseColor.x = baseColor.r;
-		material->constData.pbr.baseColor.y = baseColor.g;
-		material->constData.pbr.baseColor.z = baseColor.b;
-		material->constData.pbr.metalness = m.metallicRoughness.metallicFactor;
-		material->constData.pbr.roughness = m.metallicRoughness.roughnessFactor;
 
 		//カラーテクスチャ
 		auto textureId = m.metallicRoughness.baseColorTexture.textureId;
@@ -1287,6 +1292,12 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			auto& texture = doc.textures.Get(textureId);
 			auto& image = doc.images.Get(texture.imageId);
 			LoadGLTFMaterial(COLOR_TEX, material, image, Dir, *resourceReader, doc);
+		}
+		else
+		{
+			material->constData.pbr.baseColor.x = 1.0f;
+			material->constData.pbr.baseColor.y = 1.0f;
+			material->constData.pbr.baseColor.z = 1.0f;
 		}
 		//エミッシブ
 		textureId = m.emissiveTexture.textureId;
@@ -1304,7 +1315,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			auto& image = doc.images.Get(texture.imageId);
 			LoadGLTFMaterial(NORMAL_TEX, material, image, Dir, *resourceReader, doc);
 		}
-		//ラフネス
+		//メタルネスラフネス
 		textureId = m.metallicRoughness.metallicRoughnessTexture.textureId;
 		if (!textureId.empty())
 		{

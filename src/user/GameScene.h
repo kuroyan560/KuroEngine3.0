@@ -13,8 +13,14 @@ class GaussianBlur;
 
 class GameScene : public BaseScene
 {
-	enum MODEL_NAME{ WOOD_CUBE, STONE_BALL, METAL_BALL, MODEL_NUM }nowModel = WOOD_CUBE;
-	std::array<std::shared_ptr<ModelObject>, MODEL_NUM>models;
+	enum MODEL_NAME{ WOOD_BALL, STONE_BALL, METAL_BALL, MODEL_NUM }nowModel = STONE_BALL;
+	enum DRAW_MODE { ADDS, TOON, PBR, DRAW_MODE_NUM };
+
+	struct DrawModel
+	{
+		std::shared_ptr<ModelObject>modelObject;
+	};
+	std::array<DrawModel, MODEL_NUM>drawModels;
 	std::shared_ptr<ModelObject>testModel;
 
 	DebugCamera debugCam;
