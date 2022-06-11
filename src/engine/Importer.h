@@ -61,18 +61,15 @@ class Importer : public Singleton<Importer>
 	void ParseNodeRecursive(std::vector<LoadFbxNode>& LoadFbxNodeArray, FbxNode* FbxNode, LoadFbxNode* Parent = nullptr);
 	//FbxMesh情報を読み込み
 	void LoadFbxMesh(const std::string& Dir, const Skeleton& Skel, ModelMesh& ModelMesh, FbxMesh* FbxMesh);
-
 	//ボーンが頂点に与える影響に関して情報取得
 	void LoadBoneAffectTable(const Skeleton& Skel, FbxMesh* FbxMesh, BoneTable& BoneTable);
-	//頂点に対応ボーン情報格納
-	void SetBoneAffectToVertex(Vertex& Vertex, const int& VertexIdx, BoneTable& BoneTable);
 	//頂点情報読み込み
 	void LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& BoneTable);
 	std::string GetFileName(std::string FbxRelativeFileName);
 	void LoadFbxMaterial(const std::string& Dir, ModelMesh& ModelMesh, FbxMesh* FbxMesh);
 	//アニメーションレイヤーの追跡
-	void TraceBoneAnim(const Skeleton& Skel, Skeleton::ModelAnimation& ModelAnimation, FbxNode* FbxNode, FbxAnimLayer* FbxAnimLayer);
 	void LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation);
+	void LoadBoneAnim(const LoadFbxNode& BoneNode, Skeleton::ModelAnimation& ModelAnimation, FbxAnimLayer* FbxAnimLayer);
 
 #pragma endregion
 
