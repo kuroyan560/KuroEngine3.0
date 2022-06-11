@@ -26,153 +26,136 @@ void Importer::FbxDeviceDestroy()
 	if (fbxManager)fbxManager->Destroy();
 }
 
-void Importer::TraceFbxMesh(FbxNode* Node, std::vector<FbxMesh*>* Mesh)
+void Importer::ParseNodeRecursive(std::vector<LoadFbxNode>& LoadFbxNodeArray, FbxNode* FbxNode, LoadFbxNode* Parent)
 {
-	int childCount = Node->GetChildCount();
-	for (int i = 0; i < childCount; i++)
-	{
-		FbxNode* child = Node->GetChild(i);	//子ノードを取得
-		int meshCount = child->GetNodeAttributeCount();
-		for (int num = 0; num < meshCount; num++)
-		{
-			FbxNodeAttribute* info = child->GetNodeAttributeByIndex(num);
-			FbxNodeAttribute::EType type = info->GetAttributeType();
+	//ロード済ノード配列に要素追加
+	LoadFbxNodeArray.emplace_back();
 
-			if (type == FbxNodeAttribute::EType::eMesh)
-			{
-				Mesh->emplace_back((FbxMesh*)info);
-			}
-		}
-		TraceFbxMesh(child, Mesh);
+	LoadFbxNode& node = LoadFbxNodeArray.back();
+
+	//ノード名取得
+	node.name = FbxNode->GetName();
+
+	// ローカル変形行列の計算
+	FbxDouble3 rotation = FbxNode->LclRotation.Get();
+	FbxDouble3 scaling = FbxNode->LclScaling.Get();
+	FbxDouble3 translation = FbxNode->LclTranslation.Get();
+	node.rotation = { (float)rotation[0], (float)rotation[1], (float)rotation[2], 0.0f };
+	node.scaling = { (float)scaling[0], (float)scaling[1], (float)scaling[2], 0.0f };
+	node.translation = { (float)translation[0], (float)translation[1], (float)translation[2], 1.0f };
+
+	XMMATRIX matScaling, matRotation, matTranslation;
+	matScaling = XMMatrixScalingFromVector(node.scaling);
+	matRotation = XMMatrixRotationRollPitchYawFromVector(node.rotation);
+	matTranslation = XMMatrixTranslationFromVector(node.translation);
+
+	node.transform = XMMatrixIdentity();
+	node.transform *= matScaling;
+	node.transform *= matRotation;
+	node.transform *= matTranslation;
+
+	//親設定
+	if (Parent) 
+	{
+		node.parent = Parent;
+	}
+
+	// FBXノードのメッシュ情報を解析
+	node.attribute = FbxNode->GetNodeAttribute();
+
+	// 子ノードに対して再帰呼び出し
+	const int childCount = FbxNode->GetChildCount();
+	for (int childIdx = 0; childIdx < childCount; childIdx++) {
+		auto childName = FbxNode->GetChild(childIdx)->GetName();
+		ParseNodeRecursive(LoadFbxNodeArray, FbxNode->GetChild(childIdx), &node);
 	}
 }
 
-XMMATRIX Importer::FbxMatrixConvert(const FbxMatrix& Mat)
-{
-	XMMATRIX result;
-	for (int i = 0; i < 4; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			result.r[i].m128_f32[j] = Mat[i][j];
-		}
-	}
-	return result;
-}
-
-void Importer::LoadFbxBone(FbxCluster* Cluster, const int& BoneIndex, BoneTable& BoneTable)
-{
-	//該当ボーンが影響を与える頂点の数
-	int pointNum = Cluster->GetControlPointIndicesCount();
-	//影響を与える頂点のインデックス配列
-	int* pointArray = Cluster->GetControlPointIndices();
-	//ウェイト配列
-	double* weightArray = Cluster->GetControlPointWeights();
-
-	//ボーンが影響を与える頂点の情報を取得する
-	for (int i = 0; i < pointNum; ++i)
-	{
-		//頂点インデックスとウェイトを取得
-		int index = pointArray[i];
-		float weight = (float)weightArray[i];
-
-		//それらの情報を
-		FbxBoneAffect info;
-		info.index = BoneIndex;
-
-		if (0.99 < weight)weight = 1.0f;
-		if (weight < 0.01)weight = 0.0f;
-
-		info.weight = weight;
-
-		if (info.weight != 0.0f)
-		{
-			//頂点インデックス(添字)ごとにリストとして影響を受けるボーンは管理している。
-			//ボーン情報をプッシュ
-			BoneTable[index].emplace_front(info);
-		}
-	}
-}
-
-void Importer::LoadFbxSkin(Skeleton& Skel, FbxMesh* FbxMesh, BoneTable& BoneTable)
+void Importer::LoadBoneAffectTable(const Skeleton& Skel, FbxMesh* FbxMesh, BoneTable& BoneTable)
 {
 	//スキンの数を取得
 	int skinCount = FbxMesh->GetDeformerCount(FbxDeformer::eSkin);
 	if (!skinCount)return;
 
-	for (int i = 0; i < skinCount; ++i)
+	for (int skinIdx = 0; skinIdx < skinCount; ++skinIdx)
 	{
 		//i番目のスキンを取得
-		FbxSkin* skin = (FbxSkin*)FbxMesh->GetDeformer(i, FbxDeformer::eSkin);
+		FbxSkin* skin = (FbxSkin*)FbxMesh->GetDeformer(skinIdx, FbxDeformer::eSkin);
 
 		//クラスターの数を取得
 		int clusterNum = skin->GetClusterCount();
 
-		for (int j = 0; j < clusterNum; ++j)
+		for (int clusterIdx = 0; clusterIdx < clusterNum; ++clusterIdx)
 		{
 			//j番目のクラスタを取得
-			FbxCluster* cluster = skin->GetCluster(j);
+			FbxCluster* cluster = skin->GetCluster(clusterIdx);
+
+			//該当ボーンが影響を与える頂点の数
+			int pointNum = cluster->GetControlPointIndicesCount();
+			if (!pointNum)continue;
+
+			//クラスター名から影響するボーンのインデックス取得
 			std::string clusterName = cluster->GetName();
+			int affectBoneIdx = -1;
+			for (int boneIdx = 0; boneIdx < Skel.bones.size(); ++boneIdx)
+			{
+				if (Skel.bones[boneIdx].name != clusterName)continue;
 
-			//ボーンを新規追加するかどうか
-			bool newBone = true;
-			int boneIdx = j;
-			for (int k = 0; k < Skel.bones.size(); ++k)
-			{
-				//既にスケルトンに存在するボーンならそのインデックスをセット
-				if (Skel.bones[k].name == clusterName)
-				{
-					newBone = false;
-					boneIdx = k;
-					break;
-				}
-			}
-			//新しいボーンの追加
-			if (newBone)
-			{
-				Skel.bones.emplace_back();
-				Skel.bones.back().name = clusterName;
-				boneIdx = Skel.bones.size() - 1;
+				affectBoneIdx = boneIdx;
+				break;
 			}
 
-			//クラスターをボーンの情報として保存
-			LoadFbxBone(cluster, boneIdx, BoneTable);
+			//ボーンが見つからなかった
+			KuroFunc::ErrorMessage(affectBoneIdx == -1, "Imporeter", "LoadBoneAffectTable", "Affect bone index wasn't found.");
 
-			//ボーンのオフセット行列
-			FbxAMatrix globalTransform;
-			cluster->GetTransformLinkMatrix(globalTransform);
-			Skel.bones[j].invOffsetMat = XMMatrixInverse(nullptr, FbxMatrixConvert(globalTransform));
+			//影響を与える頂点のインデックス配列
+			int* pointArray = cluster->GetControlPointIndices();
+			//ウェイト配列
+			double* weightArray = cluster->GetControlPointWeights();
+
+			//ボーンが影響を与える頂点の情報を取得する
+			for (int pointIdx = 0; pointIdx < pointNum; ++pointIdx)
+			{
+				//頂点インデックスとウェイトを取得
+				int vertIdx = pointArray[pointIdx];
+
+				//影響テーブルに格納
+				FbxBoneAffect info;
+				info.index = affectBoneIdx;
+				info.weight = (float)weightArray[pointIdx];
+				info.weight = std::clamp(info.weight, 0.0f, 1.0f);
+
+				if (info.weight == 0.0f)continue;	//０なら格納する必要なし
+
+				//頂点インデックス(添字)ごとにリストとして影響を受けるボーンは管理している。
+				BoneTable[vertIdx].emplace_front(info);
+			}
 		}
 	}
 }
 
-void Importer::SetBoneAffectToVertex(Vertex& Vertex, const int& VertexIdx, BoneTable& BoneTable)
+void Importer::LoadFbxMesh(const std::string& Dir, const Skeleton& Skel, ModelMesh& ModelMesh, FbxMesh* FbxMesh)
 {
-	//影響データ表が空じゃない
-	if (!BoneTable[VertexIdx].empty())
+	//ボーンが頂点に与える影響に関する情報テーブル
+	BoneTable boneAffectTable;
+	//テーブル構築
+	LoadBoneAffectTable(Skel, FbxMesh, boneAffectTable);
+	//頂点
+	LoadFbxVertex(ModelMesh, FbxMesh, boneAffectTable);
+
+	//インデックス
+	//ポリゴンの数だけ連番として保存する
+	auto polygonNum = FbxMesh->GetPolygonCount();
+	for (int polygonIdx = 0; polygonIdx < polygonNum; polygonIdx++)
 	{
-		//適用されるボーンの数
-		int count = 0;
-
-		//該当インデックスの影響データ一覧を参照
-		for (auto itr = BoneTable[VertexIdx].begin(); itr != BoneTable[VertexIdx].end(); ++itr)
-		{
-			for (int i = 0; i < 4; ++i)
-			{
-				//対象の頂点のボーンデータで空な領域にデータを保存
-				if (Vertex.boneIdx[i] == -1)	//ボーン未登録
-				{
-					Vertex.boneIdx[i] = itr->index;
-					Vertex.boneWeight[i] = itr->weight;
-					break;
-				}
-			}
-			count++;
-		}
-
-		//４つまでしかボーン適用できない
-		KuroFunc::ErrorMessage(4 < count, "Importer", "SetBoneAffectToVertex", "頂点読み込みにて５つ以上のボーンが適用されました。１つの頂点につき最大４つのボーンを適用出来ません\n");
+		//左手系（右周り）
+		ModelMesh.mesh->indices.emplace_back(polygonIdx * 3 + 1);
+		ModelMesh.mesh->indices.emplace_back(polygonIdx * 3);
+		ModelMesh.mesh->indices.emplace_back(polygonIdx * 3 + 2);
 	}
+
+	//マテリアル
+	LoadFbxMaterial(Dir, ModelMesh, FbxMesh);
 }
 
 void Importer::LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& BoneTable)
@@ -199,44 +182,54 @@ void Importer::LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& 
 	FbxMesh->GetPolygonVertexNormals(normals);
 
 	//頂点情報の取得
-	for (int i = 0; i < polygonVertexCount; i++)
+	for (int polygonVertIdx = 0; polygonVertIdx < polygonVertexCount; polygonVertIdx++)
 	{
 		Vertex vertex;
 
 		//インデックスバッファから頂点番号を取得
-		int index = indices[i];
+		int vertIdx = indices[polygonVertIdx];
 
 		//頂点座標リストから座標を取得
-		vertex.pos.x = -vertices[index][0];
-		vertex.pos.y = vertices[index][1];
-		vertex.pos.z = vertices[index][2];
+		vertex.pos.x = -vertices[vertIdx][0];
+		vertex.pos.y = vertices[vertIdx][1];
+		vertex.pos.z = vertices[vertIdx][2];
 
 		//法線リストから法線を取得
-		vertex.normal.x = -(float)normals[i][0];
-		vertex.normal.y = (float)normals[i][1];
-		vertex.normal.z = (float)normals[i][2];
+		vertex.normal.x = -(float)normals[polygonVertIdx][0];
+		vertex.normal.y = (float)normals[polygonVertIdx][1];
+		vertex.normal.z = (float)normals[polygonVertIdx][2];
 
 		//UVリストから取得
-		vertex.uv.x = (float)uvBuffers[i][0];
-		vertex.uv.y = (float)uvBuffers[i][1];
+		vertex.uv.x = (float)uvBuffers[polygonVertIdx][0];
+		vertex.uv.y = (float)uvBuffers[polygonVertIdx][1];
 
-		//保存しておいたボーンの対応表から頂点に対する影響データを取得
-		SetBoneAffectToVertex(vertex, index, BoneTable);
+		//影響データ表が空じゃない
+		if (!BoneTable[vertIdx].empty())
+		{
+			//適用されるボーンの数
+			int count = 0;
+
+			//該当インデックスの影響データ一覧を参照
+			for (auto itr = BoneTable[vertIdx].begin(); itr != BoneTable[vertIdx].end(); ++itr)
+			{
+				//対象の頂点のボーンデータで空な領域にデータを保存
+				for (int affectBoneIdx = 0; affectBoneIdx < 4; ++affectBoneIdx)
+				{
+					//ボーン未登録でないなら
+					if (vertex.boneIdx[affectBoneIdx] != -1)continue;	
+					vertex.boneIdx[affectBoneIdx] = itr->index;
+					vertex.boneWeight[affectBoneIdx] = itr->weight;
+					break;
+				}
+				count++;
+			}
+
+			//４つまでしかボーン適用できない
+			KuroFunc::ErrorMessage(4 < count, "Importer", "SetBoneAffectToVertex", "頂点読み込みにて５つ以上のボーンが適用されました。１つの頂点につき最大４つのボーンを適用出来ません\n");
+		}
 
 		//モデルのメッシュに頂点追加
 		ModelMesh.mesh->vertices.emplace_back(vertex);
-	}
-}
-
-void Importer::LoadFbxIndex(ModelMesh& ModelMesh, FbxMesh* FbxMesh)
-{
-	//ポリゴンの数だけ連番として保存する
-	for (int i = 0; i < FbxMesh->GetPolygonCount(); i++)
-	{
-		//左手系（右周り）
-		ModelMesh.mesh->indices.emplace_back(i * 3 + 1);
-		ModelMesh.mesh->indices.emplace_back(i * 3);
-		ModelMesh.mesh->indices.emplace_back(i * 3 + 2);
 	}
 }
 
@@ -502,6 +495,12 @@ void Importer::TraceBoneAnim(const Skeleton& Skel, Skeleton::ModelAnimation& Mod
 
 		animCurve = FbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 		if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Z]);
+
+		//DirectXの座標軸に合わせる
+		for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::POS_X].keyFrames)
+		{
+			key.value = -key.value;
+		}
 
 		//回転
 		animCurve = FbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
@@ -1090,49 +1089,76 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 	//シーン内のノードのポリゴンを全て三角形にする
 	FbxGeometryConverter converter(fbxManager);
 
+	//ポリゴンを三角形にする
+	converter.Triangulate(fbxScene, true);
 	//全FbxMeshをマテリアル単位で分割
 	converter.SplitMeshesPerMaterial(fbxScene, true);
 
-	//ポリゴンを三角形にする
-	converter.Triangulate(fbxScene, true);
 
-	//メッシュ情報読み取り、保存
-	std::vector<FbxMesh*>fbxMeshes;
-	TraceFbxMesh(fbxScene->GetRootNode(), &fbxMeshes);
+	//ノード探索（独自のノード配列に格納）
+	std::vector<LoadFbxNode>loadFbxNodes;
+	loadFbxNodes.reserve(fbxScene->GetNodeCount());
+	ParseNodeRecursive(loadFbxNodes, fbxScene->GetRootNode());
 
+	//情報の受け皿となるモデルオブジェクト生成
 	result = std::make_shared<Model>(Dir, FileName);
+
+	//スケルトン情報
 	Skeleton skel;
-
-	for (int i = 0; i < fbxMeshes.size(); ++i)
+	//先にボーンの情報取得（頂点に与える影響を取得するのに必要
+	for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
 	{
-		auto& fbxMesh = fbxMeshes[i];
+		if (!itr->attribute)continue;
 
-		//モデル用メッシュ生成
-		ModelMesh mesh;
-		mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex_Model>>();
+		if (itr->attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+		{
+			//新規ボーン
+			skel.bones.emplace_back();
+			auto& newBone = skel.bones.back();
 
-		//メッシュ名取得
-		const std::string meshName = fbxMesh->GetName();
+			//情報取得
+			newBone.name = itr->name;
+			newBone.invOffsetMat = XMMatrixInverse(nullptr, itr->transform);
 
-		//メッシュ名セット
-		mesh.mesh->name = meshName;
+			//親がいないならスルー
+			if (!itr->parent)continue;
 
-		//ボーンが頂点に与える影響に関する情報テーブル
-		BoneTable boneAffectTable;
+			continue; //デバッグ用
 
-		//ボーン（スケルトン）
-		LoadFbxSkin(skel, fbxMesh, boneAffectTable);
-		//頂点
-		LoadFbxVertex(mesh, fbxMesh, boneAffectTable);
-		//インデックス
-		LoadFbxIndex(mesh, fbxMesh);
-		//マテリアル
-		LoadFbxMaterial(Dir, mesh, fbxMesh);
+			//既に追加されているボーンから親を探す（親より子が先に存在することはない）
+			for (int boneIdx = 0; boneIdx < skel.bones.size(); ++boneIdx)
+			{
+				if (skel.bones[boneIdx].name != itr->parent->name)continue;
+				newBone.parent = boneIdx;
+				break;
+			}
+		}
+	}
 
-		mesh.material->CreateBuff();
-		mesh.mesh->CreateBuff();
+	//次にメッシュ情報読み込み
+	for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
+	{
+		if (!itr->attribute)continue;
 
-		result->meshes.emplace_back(mesh);
+		//メッシュ読み込み
+		if (itr->attribute->GetAttributeType() == FbxNodeAttribute::eMesh)
+		{
+			FbxMesh* fbxMesh = (FbxMesh*)itr->attribute;
+
+			//モデル用メッシュ生成
+			ModelMesh mesh;
+			mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex_Model>>();
+			//メッシュ名セット
+			mesh.mesh->name = fbxMesh->GetName();
+
+			//メッシュ情報読み込み
+			LoadFbxMesh(Dir, skel, mesh, fbxMesh);
+
+			mesh.material->CreateBuff();
+			mesh.mesh->CreateBuff();
+
+			result->meshes.emplace_back(mesh);
+		}
 	}
 
 	//アニメーションの数

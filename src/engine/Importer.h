@@ -30,6 +30,16 @@ class Importer : public Singleton<Importer>
 
 
 #pragma region FBX関連
+	struct LoadFbxNode
+	{
+		std::string name;
+		DirectX::XMVECTOR scaling = { 1,1,1,0 };
+		DirectX::XMVECTOR rotation = { 0,0,0,0 };
+		DirectX::XMVECTOR translation = { 0,0,0,1 };
+		Matrix transform;
+		LoadFbxNode* parent = nullptr;
+		FbxNodeAttribute* attribute = nullptr;
+	};
 	struct FbxBoneAffect	//ボーンと頂点の関連を記録するためのクラス
 	{
 		signed short index;
@@ -46,16 +56,17 @@ class Importer : public Singleton<Importer>
 
 	//FBX関連デバイスの削除処理
 	void FbxDeviceDestroy();
-	//FbxMeshを辿って配列として保存
-	void TraceFbxMesh(FbxNode* Node, std::vector<FbxMesh*>* Mesh);
-	//FbxMatrixをXMMATRIXに変換
-	XMMATRIX FbxMatrixConvert(const FbxMatrix& Mat);	
-	//各種モデル情報読み取り
-	void LoadFbxBone(FbxCluster* Cluster, const int& BoneIndex, BoneTable& BoneTable);
-	void LoadFbxSkin(Skeleton& Skel, FbxMesh* FbxMesh, BoneTable& BoneTable);
-	void SetBoneAffectToVertex(Vertex& Vertex, const int& VertexIdx, BoneTable& BoneTable);	//頂点に対応ボーン情報格納
+	//Fbxノードを再帰的探索
+	void ParseNodeRecursive(std::vector<LoadFbxNode>& LoadFbxNodeArray, FbxNode* FbxNode, LoadFbxNode* Parent = nullptr);
+	//FbxMesh情報を読み込み
+	void LoadFbxMesh(const std::string& Dir, const Skeleton& Skel, ModelMesh& ModelMesh, FbxMesh* FbxMesh);
+
+	//ボーンが頂点に与える影響に関して情報取得
+	void LoadBoneAffectTable(const Skeleton& Skel, FbxMesh* FbxMesh, BoneTable& BoneTable);
+	//頂点に対応ボーン情報格納
+	void SetBoneAffectToVertex(Vertex& Vertex, const int& VertexIdx, BoneTable& BoneTable);
+	//頂点情報読み込み
 	void LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& BoneTable);
-	void LoadFbxIndex(ModelMesh& ModelMesh, FbxMesh* FbxMesh);
 	std::string GetFileName(std::string FbxRelativeFileName);
 	void LoadFbxMaterial(const std::string& Dir, ModelMesh& ModelMesh, FbxMesh* FbxMesh);
 	//アニメーションレイヤーの追跡

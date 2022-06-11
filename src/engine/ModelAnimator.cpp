@@ -88,6 +88,7 @@ void ModelAnimator::Update()
 			auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
 			//ボーンオフセットの逆行列を乗算
 			boneMatricies[boneNode.boneIdx] = XMMatrixMultiply(skel->bones[boneNode.boneIdx].invOffsetMat, boneAnimMat);
+			//boneMatricies[boneNode.boneIdx] = boneAnimMat;
 		}
 
 		//フレーム経過

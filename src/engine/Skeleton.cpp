@@ -49,8 +49,16 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 	for (int i = 0; i < ANIM_IDX_NUM; ++i)
 	{
 		if (anims[i].keyFrames.empty())continue;		//キーフレーム情報なし
-		if (Frame < anims[i].startFrame)getValue[i] = anims[i].keyFrames.front().value;	//範囲外：一番手前を採用
-		if (anims[i].endFrame < Frame)getValue[i] = anims[i].keyFrames.back().value;	//範囲外：一番最後を採用
+		if (Frame < anims[i].startFrame)
+		{
+			getValue[i] = anims[i].keyFrames.front().value;	//範囲外：一番手前を採用
+			continue;
+		}
+		if (anims[i].endFrame < Frame)
+		{
+			getValue[i] = anims[i].keyFrames.back().value;	//範囲外：一番最後を採用
+			continue;
+		}
 
 		//範囲内なのでアニメーション終了していない
 		finish = false;
@@ -66,13 +74,13 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 				break;
 			}
 
-			if (firstKeyFrame == nullptr && key.frame < Frame)firstKeyFrame = &key;	//補間の開始キーフレーム
+			if (key.frame < Frame)firstKeyFrame = &key;	//補間の開始キーフレーム
 			if (secondKeyFrame == nullptr && Frame < key.frame)secondKeyFrame = &key;	//補間の終了キーフレーム
 
 			//補間の情報が揃ったので線形補間してそれを採用
 			if (firstKeyFrame != nullptr && secondKeyFrame != nullptr)
 			{
-				getValue[i] = KuroMath::Liner(firstKeyFrame->value, secondKeyFrame->value, Frame - firstKeyFrame->frame);
+				getValue[i] = KuroMath::Liner(firstKeyFrame->value, secondKeyFrame->value, (Frame - firstKeyFrame->frame) / (secondKeyFrame->frame - firstKeyFrame->frame));
 				break;
 			}
 		}
