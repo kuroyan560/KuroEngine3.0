@@ -37,6 +37,7 @@ class Importer : public Singleton<Importer>
 		DirectX::XMVECTOR rotation = { 0,0,0,0 };
 		DirectX::XMVECTOR translation = { 0,0,0,1 };
 		Matrix transform;
+		FbxNode* fbxNode = nullptr;
 		LoadFbxNode* parent = nullptr;
 		FbxNodeAttribute* attribute = nullptr;
 	};

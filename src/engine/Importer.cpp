@@ -33,6 +33,9 @@ void Importer::ParseNodeRecursive(std::vector<LoadFbxNode>& LoadFbxNodeArray, Fb
 
 	LoadFbxNode& node = LoadFbxNodeArray.back();
 
+	//FBX上のノードのポインタ格納
+	node.fbxNode = FbxNode;
+
 	//ノード名取得
 	node.name = FbxNode->GetName();
 
@@ -1105,45 +1108,49 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 
 	//スケルトン情報
 	Skeleton skel;
-	//先にボーンの情報取得（頂点に与える影響を取得するのに必要
+
+	//先にボーンの情報取得（頂点に与える影響を取得するのに必要）
 	for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
 	{
-		if (!itr->attribute)continue;
+		if (!itr->attribute)continue;	//Attributeを持たない
+		if (itr->attribute->GetAttributeType() != FbxNodeAttribute::eSkeleton)continue;	//スケルトンノードではない
 
-		if (itr->attribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+		//新規ボーン
+		skel.bones.emplace_back();
+		auto& newBone = skel.bones.back();
+
+		//情報取得
+		newBone.name = itr->name;
+		newBone.invOffsetMat = XMMatrixInverse(nullptr, itr->transform);
+
+		//親がいないならスルー
+		if (!itr->parent)continue;
+
+		continue; //デバッグ用
+
+		//既に追加されているボーンから親を探す（親より子が先に存在することはない）
+		for (int boneIdx = 0; boneIdx < skel.bones.size(); ++boneIdx)
 		{
-			//新規ボーン
-			skel.bones.emplace_back();
-			auto& newBone = skel.bones.back();
-
-			//情報取得
-			newBone.name = itr->name;
-			newBone.invOffsetMat = XMMatrixInverse(nullptr, itr->transform);
-
-			//親がいないならスルー
-			if (!itr->parent)continue;
-
-			continue; //デバッグ用
-
-			//既に追加されているボーンから親を探す（親より子が先に存在することはない）
-			for (int boneIdx = 0; boneIdx < skel.bones.size(); ++boneIdx)
-			{
-				if (skel.bones[boneIdx].name != itr->parent->name)continue;
-				newBone.parent = boneIdx;
-				break;
-			}
+			if (skel.bones[boneIdx].name != itr->parent->name)continue;
+			newBone.parent = boneIdx;
+			break;
 		}
 	}
 
 	//次にメッシュ情報読み込み
 	for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
 	{
-		if (!itr->attribute)continue;
+		if (!itr->attribute)continue;	//Attributeを持たない
+		if (itr->attribute->GetAttributeType() != FbxNodeAttribute::eMesh)continue;	//メッシュノードではない
 
-		//メッシュ読み込み
-		if (itr->attribute->GetAttributeType() == FbxNodeAttribute::eMesh)
+		// 複数のAttributeからメッシュ読み込み（マテリアル単位で分割しているため必要）
+		int meshCount = itr->fbxNode->GetNodeAttributeCount();
+		for (int meshIdx = 0; meshIdx < meshCount; ++meshIdx)
 		{
-			FbxMesh* fbxMesh = (FbxMesh*)itr->attribute;
+			FbxNodeAttribute* nodeAttribute = itr->fbxNode->GetNodeAttributeByIndex(meshIdx);
+			if (nodeAttribute->GetAttributeType() != FbxNodeAttribute::EType::eMesh)continue;	//メッシュではない
+
+			FbxMesh* fbxMesh = (FbxMesh*)nodeAttribute;
 
 			//モデル用メッシュ生成
 			ModelMesh mesh;
