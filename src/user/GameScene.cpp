@@ -12,7 +12,7 @@
 
 GameScene::GameScene()
 {
-	animModel = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.fbx");
+	animModel = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));

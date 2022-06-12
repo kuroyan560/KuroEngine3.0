@@ -1272,28 +1272,105 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 	PrintDocumentInfo(doc);
 	PrintResourceInfo(doc, *resourceReader);
 
-	//スケルトン読み込み途中
-	/*for (const auto& glTFSkin : doc.skins.Elements())
+	Skeleton skel;
+
+	//ボーン読み込み
+	for (const auto& gltfNode : doc.nodes.Elements())
 	{
-		auto& idBoneOffsetMat = glTFSkin.inverseBindMatricesAccessorId;
-		auto& accBoneOffsetMat = doc.accessors.Get(idBoneOffsetMat);
-		auto loadOffsetMat = resourceReader->ReadBinaryData<float>(doc, accBoneOffsetMat);
-		int boneNum = accBoneOffsetMat.count;
-		for (int i = 0; i < boneNum; ++i)
+		skel.bones.emplace_back();
+		auto& bone = skel.bones.back();
+		bone.name = gltfNode.name;
+		for (auto& child : gltfNode.children)
 		{
-			XMMATRIX offsetMatrix;
-			for (int j = 0; j < 4; ++j)
-			{
-				const int idOffset = 4 * 4 * i + 4 * j;
-				offsetMatrix.r[j].m128_f32[0] = loadOffsetMat[idOffset];
-				offsetMatrix.r[j].m128_f32[1] = loadOffsetMat[idOffset + 1];
-				offsetMatrix.r[j].m128_f32[2] = loadOffsetMat[idOffset + 2];
-				offsetMatrix.r[j].m128_f32[3] = loadOffsetMat[idOffset + 3];
-			}
-			int asdas = 0;
+			skel.bones[atoi(child.c_str())].parent = skel.bones.size() - 1;
 		}
-	}*/
-	
+
+		// ローカル変形行列の計算
+		XMVECTOR rotation = { gltfNode.rotation.x, gltfNode.rotation.y, gltfNode.rotation.z, gltfNode.rotation.w };
+		XMVECTOR scaling = { gltfNode.scale.x, gltfNode.scale.y, gltfNode.scale.z, 0.0f };
+		XMVECTOR translation = { gltfNode.translation.x, gltfNode.translation.y, gltfNode.translation.z, 1.0f };
+
+		XMMATRIX matScaling, matRotation, matTranslation;
+		matScaling = XMMatrixScalingFromVector(scaling);
+		matRotation = XMMatrixRotationRollPitchYawFromVector(rotation);
+		matTranslation = XMMatrixTranslationFromVector(translation);
+
+		auto transform = XMMatrixIdentity();
+		transform *= matScaling;
+		transform *= matRotation;
+		transform *= matTranslation;
+		bone.invOffsetMat = XMMatrixInverse(nullptr, transform);
+	}
+
+	//アニメーション
+	for (const auto& gltfAnimNode : doc.animations.Elements())
+	{
+		std::string animName = gltfAnimNode.name;
+		auto& modelAnim = skel.animations[animName];
+
+		//アニメーションの詳細な情報を持つサンプラー（キーフレーム時刻リスト、補間形式、キーフレームに対応するアニメーションデータ）
+		auto animSamplers = gltfAnimNode.samplers.Elements();
+
+		//ボーン、サンプラー、パス（translation,rotation,scale）が割り当てられている
+		for (const auto& animChannel : gltfAnimNode.channels.Elements())
+		{
+			const auto& sampler = animSamplers[gltfAnimNode.samplers.GetIndex(animChannel.samplerId)];
+			auto& boneAnim = modelAnim.boneAnim[skel.bones[doc.nodes.GetIndex(animChannel.target.nodeId)].name];
+
+			//アニメーション情報のターゲット（POS、ROTATE、SCALE）
+			auto& path = animChannel.target.path;
+
+			//補間方法（現状、LINERにしか対応しないので特に情報を格納しない）
+			auto interpolation = sampler.interpolation;
+
+			//開始 / 終了フレーム
+			const auto& input = doc.accessors.Get(sampler.inputAccessorId);
+			const int startFrame = input.min[0] * 60;	//単位が秒なので 60f / 1sec としてフレームに変換
+			const int endFrame = input.max[0] * 60;	//単位が秒なので 60f / 1sec としてフレームに変換
+
+			//キーフレーム情報
+			auto keyFrames = resourceReader->ReadBinaryData<float>(doc, input);
+			for (auto& keyFrame : keyFrames)keyFrame *= 60;	//単位が秒なので 60f / 1sec としてフレームに変換
+
+			//具体的な値
+			const auto& output = doc.accessors.Get(sampler.outputAccessorId);
+			auto values = resourceReader->ReadBinaryData<float>(doc, output);
+
+			for (int valueIdx = 0; valueIdx < 3; ++valueIdx)
+			{
+				Animation* anim = nullptr;
+				if (path == Microsoft::glTF::TARGET_TRANSLATION)
+				{
+					anim = &boneAnim.anims[Skeleton::BoneAnimation::POS_X + valueIdx];
+				}
+				else if (path == Microsoft::glTF::TARGET_ROTATION)
+				{
+					anim = &boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + valueIdx];
+				}
+				else if (path == Microsoft::glTF::TARGET_SCALE)
+				{
+					anim = &boneAnim.anims[Skeleton::BoneAnimation::SCALE_X + valueIdx];
+				}
+				ErrorMessage("LoadGLTFModel", !anim, "This anim's target path is unsupported.");
+
+				anim->startFrame = startFrame;
+				anim->endFrame = endFrame;
+
+				for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
+				{
+					anim->keyFrames.emplace_back();
+					auto& keyFrame = anim->keyFrames.back();
+					keyFrame.frame = keyFrames[keyFrameIdx];
+					keyFrame.value = values[keyFrameIdx * 3 + valueIdx];
+				}
+			}
+
+		}
+
+	}
+
+	result->skelton = std::make_shared<Skeleton>(skel);
+
 
 	//マテリアル読み込み
 	std::vector<std::shared_ptr<Material>>loadMaterials;
@@ -1377,6 +1454,9 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 std::shared_ptr<Model> Importer::LoadModel(const std::string& Dir, const std::string& FileName)
 {
+	//ファイルが存在しているか確認
+	ErrorMessage("LoadModel", !KuroFunc::ExistFile(Dir + FileName), Dir + FileName + " wasn't found.\n");
+
 	//拡張子取得
 	const auto ext = "." + KuroFunc::GetExtension(FileName);
 
@@ -1390,7 +1470,7 @@ std::shared_ptr<Model> Importer::LoadModel(const std::string& Dir, const std::st
 	}
 	else
 	{
-		ErrorMessage("LoadModel", true, "対応していない拡張子です\n");
+		ErrorMessage("LoadModel", true, "This format is valid.");
 	}
 	return std::shared_ptr<Model>();
 }
