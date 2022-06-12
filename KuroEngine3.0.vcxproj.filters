@@ -1,0 +1,512 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="HLSL">
+      <UniqueIdentifier>{7303e5e9-2aee-41e9-814d-1c294b10fe83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\engine">
+      <UniqueIdentifier>{975c51d1-c298-4066-ba79-3ef5b292f0ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\user">
+      <UniqueIdentifier>{925cf3d0-527b-4a97-bda6-6a884f6a144a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="src\engine">
+      <UniqueIdentifier>{c84cff0a-59e8-439f-9d34-222becdf7dbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\user">
+      <UniqueIdentifier>{ac3a9ea1-874d-4c83-bf0d-3781a960ac96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\DirectX12">
+      <UniqueIdentifier>{4dc47835-09dc-4c90-8c2b-97b0e58409e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\レンダリング関連">
+      <UniqueIdentifier>{e46dec56-12ef-4ed4-b051-0270c6e7dea5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\レンダリング関連\レンダーオブジェクト">
+      <UniqueIdentifier>{11ddb2fc-a5de-4366-85ad-a8e3cd32d25f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\フレームワーク">
+      <UniqueIdentifier>{90d4922c-e31e-4dee-85e0-5aceeb1b6122}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け">
+      <UniqueIdentifier>{d5941fa1-02c3-4396-8935-0181850814db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\ポストエフェクト">
+      <UniqueIdentifier>{1bb4082e-ad0a-447d-b3bd-a8f00378aba8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\描画便利関数">
+      <UniqueIdentifier>{24e31f9a-3841-4dc4-8c6f-2b15cb19272d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\オブジェクト">
+      <UniqueIdentifier>{63bc4656-e658-44ac-b8ed-c7a462ff2777}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{8dc21eff-3c37-4119-a7aa-a07727421c2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\engine\DrawFunc">
+      <UniqueIdentifier>{cd03796b-89ea-4f78-a5e9-cdbdfe882f64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\engine\PostEffect">
+      <UniqueIdentifier>{1fc2e5b5-caa4-4a98-818f-f6e971f6ab73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\Common">
+      <UniqueIdentifier>{a66f41a3-d42e-4a16-a425-39d39e8adf59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\フレームワーク\情報コンテナ">
+      <UniqueIdentifier>{3da35daa-08bb-412b-8b95-d224aed07948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\レンダリング関連\レンダーオブジェクト\モデル情報">
+      <UniqueIdentifier>{ced67440-38b0-45dc-9875-27b908e6ea87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\描画便利関数\2D">
+      <UniqueIdentifier>{ca1d5c1d-9c33-475a-a207-5e66075379b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\描画便利関数\3D">
+      <UniqueIdentifier>{bddd62d1-87a7-45ad-8b69-4b236fb1e99e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\engine\DrawFunc\2D">
+      <UniqueIdentifier>{72aa0602-b02e-410a-9698-e7f9dd555dd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLSL\engine\DrawFunc\3D">
+      <UniqueIdentifier>{194e4e66-4a24-4a1b-8500-662087375ce8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="resource\engine\RectTexture.hlsl">
+      <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\Sprite.hlsl">
+      <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\Sprite_Shadow.hlsl">
+      <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\GaussianBlur.hlsl">
+      <Filter>HLSL\engine\PostEffect</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawBox2D.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawCircle2D.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawExtendGraph.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawExtendGraph_Color.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawExtendGraph_FillTex.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawExtendGraph_Mask.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawExtendGraph_Shadow.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawLine2D.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawRotaGraph.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawRotaGraph_Color.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawRotaGraph_FillTex.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawRotaGraph_Mask.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawRotaGraph_Shadow.hlsl">
+      <Filter>HLSL\engine\DrawFunc\2D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawNonShadingModel.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawADSShadingModel.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawLine3D.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawToonModel.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawPBRShadingModel.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawShadowFallModel.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DrawShadowMapModel.hlsl">
+      <Filter>HLSL\engine\DrawFunc\3D</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\CubeMap.hlsl">
+      <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\DynamicCubeMap.hlsl">
+      <Filter>HLSL\engine</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resource\engine\LightInfo.hlsli">
+      <Filter>HLSL\engine</Filter>
+    </None>
+    <None Include="resource\engine\Math.hlsli">
+      <Filter>HLSL\engine</Filter>
+    </None>
+    <None Include="resource\engine\ModelInfo.hlsli">
+      <Filter>HLSL\engine</Filter>
+    </None>
+    <None Include="resource\engine\Camera.hlsli">
+      <Filter>HLSL\engine</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\engine\D3D12App.cpp">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\D3D12Data.cpp">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DescriptorHeap.cpp">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Swapchain.cpp">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\GraphicsManager.cpp">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\PostEffect.cpp">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\LightManager.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\SpriteMesh.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\AudioApp.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Fps.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ImguiApp.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\UsersInput.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\WinApp.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\KuroEngine.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\GaussianBlur.cpp">
+      <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Sprite.cpp">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Sprite_Shadow.cpp">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_impl_dx12.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_impl_win32.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\main.cpp">
+      <Filter>src\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\Color.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\KuroFunc.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\KuroMath.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\Primitive.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\Subject.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\Transform.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\Transform2D.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\Vec.cpp">
+      <Filter>src\engine\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\GameScene.cpp">
+      <Filter>src\user</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Model.cpp">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Importer.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Material.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Skeleton.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ModelMesh.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFunc2D_Color.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFunc2D.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFunc2D_FillTex.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFunc2D_Mask.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFunc2D_Shadow.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFunc3D.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Camera.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DebugCamera.cpp">
+      <Filter>src\engine\ユーザー向け</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Light.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\CubeMap.cpp">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ShadowMapDevice.cpp">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Object.cpp">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ModelAnimator.cpp">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\engine\D3D12App.h">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\D3D12Data.h">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DescriptorHeap.h">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Swapchain.h">
+      <Filter>src\engine\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\GraphicsManager.h">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\PostEffect.h">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Light.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\LightManager.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Mesh.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\SpriteMesh.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\AudioApp.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Fps.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ImguiApp.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\UsersInput.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\WinApp.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\KuroEngine.h">
+      <Filter>src\engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\GaussianBlur.h">
+      <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Sprite.h">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Sprite_Shadow.h">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imgui_impl_dx12.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imgui_impl_win32.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Angle.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Color.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Command.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\KuroFunc.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\KuroMath.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Observer.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Primitive.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Singleton.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Subject.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Transform.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Transform2D.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\Vec.h">
+      <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\GameScene.h">
+      <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Model.h">
+      <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Importer.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Material.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Skeleton.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ImportHeader.h">
+      <Filter>src\engine\フレームワーク\情報コンテナ</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ModelMesh.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFunc2D_Color.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFunc2D.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFunc2D_FillTex.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFunc2D_Mask.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFunc2D_Shadow.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFunc3D.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Camera.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DebugCamera.h">
+      <Filter>src\engine\ユーザー向け</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Animation.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\StreamReader.h">
+      <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Object.h">
+      <Filter>src\engine\ユーザー向け</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\CubeMap.h">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ShadowMapDevice.h">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ModelAnimator.h">
+      <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
