@@ -2,6 +2,8 @@
 #include<memory>
 #include<string>
 #include<list>
+#include<array>
+#include"KuroMath.h"
 class ConstantBuffer;
 class Skeleton;
 class Model;
@@ -13,6 +15,8 @@ class ModelAnimator
 	std::weak_ptr<Skeleton>attachSkelton;
 	//ボーンのローカル行列
 	std::shared_ptr<ConstantBuffer>boneBuff;
+	//ボーン行列
+	std::array<Matrix, MAX_BONE_NUM>boneMatricies;
 
 	struct PlayAnimation
 	{
@@ -25,6 +29,8 @@ class ModelAnimator
 	};
 
 	std::list<PlayAnimation>playAnimations;
+
+	void BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix);
 
 public:
 	ModelAnimator() {}

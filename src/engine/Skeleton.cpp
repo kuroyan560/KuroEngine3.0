@@ -6,17 +6,20 @@ void Skeleton::CreateBoneTree()
 	//ボーンがないなら無視
 	if (bones.empty())return;
 
-	//インデックスと名前の対応関係構築のために後で使う
-	std::vector<std::string>boneNames(bones.size());
+	//全ての親となるボーンを追加
+	int parentBoneIdx = bones.size();
+	bones.emplace_back();
+	bones.back().name = "Parent";
 
 	//ボーンノードマップを作る
 	for (int idx = 0; idx < bones.size(); ++idx)
 	{
 		auto& bone = bones[idx];
-		boneNames[idx] = bone.name;
-		auto& node = boneNodeTable[bone.name];
-		node.boneIdx = idx;
-		node.startPos = bone.pos;
+		boneIdxTable[bone.name] = idx;
+
+		if (bone.parent != -1)continue;	//既に親がいる
+		if (idx == parentBoneIdx)continue;	//自信が全ての親
+		bone.parent = parentBoneIdx;
 	}
 
 	//親子関係構築
@@ -28,16 +31,15 @@ void Skeleton::CreateBoneTree()
 		{
 			continue;
 		}
-		auto parentName = boneNames[bone.parent];
-		boneNodeTable[parentName].children.emplace_back(&boneNodeTable[bone.name]);
+		bones[bone.parent].children.emplace_back(i);
 	}
 }
 
 int Skeleton::GetIndex(const std::string& BoneName)
 {
 	KuroFunc::ErrorMessage(bones.empty(), "Skeleton", "GetIndex", "ボーン情報がありません\n");
-	KuroFunc::ErrorMessage(boneNodeTable[BoneName].boneIdx == -1, "Skeleton", "GetIndex", "存在しないボーンが参照されました (" + BoneName + ")\n");
-	return boneNodeTable[BoneName].boneIdx;
+	KuroFunc::ErrorMessage(!boneIdxTable.contains(BoneName), "Skeleton", "GetIndex", "存在しないボーンが参照されました (" + BoneName + ")\n");
+	return boneIdxTable[BoneName];
 }
 
 Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)const
@@ -86,9 +88,9 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 		}
 	}
 
-	result *= XMMatrixScaling(getValue[SCALE_X], getValue[SCALE_Y], getValue[SCALE_Z]);
-	result *= KuroMath::RotateMat(Vec3<Angle>(getValue[ROTATE_X], getValue[ROTATE_Y], getValue[ROTATE_Z]));
-	result *= XMMatrixTranslation(getValue[POS_X], getValue[POS_Y], getValue[POS_Z]);
+	result *= XMMatrixTranslation(getValue[POS_X], getValue[POS_Y], getValue[POS_Z])
+		* XMMatrixRotationQuaternion(XMVectorSet(getValue[ROTATE_X], getValue[ROTATE_Y], getValue[ROTATE_Z], getValue[ROTATE_W]))
+		* XMMatrixScaling(getValue[SCALE_X], getValue[SCALE_Y], getValue[SCALE_Z]);
 
 	if (FinishFlg)*FinishFlg = finish;
 

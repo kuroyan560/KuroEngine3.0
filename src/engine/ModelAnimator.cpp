@@ -2,6 +2,21 @@
 #include"KuroEngine.h"
 #include"Model.h"
 
+void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix)
+{
+	auto skel = attachSkelton.lock();
+	const auto& bone = skel->bones[BoneIdx];
+
+	//親の行列を適用
+	boneMatricies[BoneIdx] *= ParentMatrix;
+
+	//子を呼び出して再帰的に計算
+	for (auto& child : bone.children)
+	{
+		BoneMatrixRecursive(child, boneMatricies[BoneIdx]);
+	}
+}
+
 ModelAnimator::ModelAnimator(std::weak_ptr<Model> Model)
 {
 	Attach(Model);
@@ -67,7 +82,7 @@ void ModelAnimator::Update()
 	if (playAnimations.empty())return;	//アニメーション再生中でない
 
 	//単位行列で埋めてリセット
-	Matrix boneMatricies[MAX_BONE_NUM] = { XMMatrixIdentity() };
+	std::fill(boneMatricies.begin(), boneMatricies.end(), XMMatrixIdentity());
 
 	//再生中のアニメーション
 	for (auto& playAnim : playAnimations)
@@ -81,15 +96,17 @@ void ModelAnimator::Update()
 		//ボーン単位のアニメーション
 		for (auto& boneAnim : anim.boneAnim)
 		{
-			//ボーンノード取得
-			const BoneNode& boneNode = skel->boneNodeTable[boneAnim.first];
+			int boneIdx = skel->boneIdxTable[boneAnim.first];
 
 			//ボーンアニメーションから行列取得
 			auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
-			//ボーンオフセットの逆行列を乗算
-			boneMatricies[boneNode.boneIdx] = XMMatrixMultiply(skel->bones[boneNode.boneIdx].invOffsetMat, boneAnimMat);
-			//boneMatricies[boneNode.boneIdx] = boneAnimMat;
+			boneMatricies[boneIdx] = boneAnimMat;
+			//オフセット行列
+			boneMatricies[boneIdx] *= skel->bones[boneIdx].invOffsetMat;
 		}
+
+		//全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
+		BoneMatrixRecursive(skel->bones.size() - 1, XMMatrixIdentity());
 
 		//フレーム経過
 		playAnim.past++;
@@ -109,5 +126,5 @@ void ModelAnimator::Update()
 	}
 
 	//バッファにデータ転送
-	boneBuff->Mapping(boneMatricies);
+	boneBuff->Mapping(boneMatricies.data());
 }

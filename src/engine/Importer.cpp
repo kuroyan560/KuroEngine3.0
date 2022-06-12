@@ -1313,13 +1313,12 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 		XMMATRIX matScaling, matRotation, matTranslation;
 		matScaling = XMMatrixScalingFromVector(scaling);
-		matRotation = XMMatrixRotationRollPitchYawFromVector(rotation);
+		//matRotation = XMMatrixRotationRollPitchYawFromVector(rotation);
+		matRotation = XMMatrixRotationQuaternion(rotation);
 		matTranslation = XMMatrixTranslationFromVector(translation);
 
 		auto transform = XMMatrixIdentity();
-		transform *= matScaling;
-		transform *= matRotation;
-		transform *= matTranslation;
+		transform *= matTranslation * matRotation * matScaling;
 		bone.invOffsetMat = XMMatrixInverse(nullptr, transform);
 
 	}
@@ -1359,34 +1358,43 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			const auto& output = doc.accessors.Get(sampler.outputAccessorId);
 			auto values = resourceReader->ReadBinaryData<float>(doc, output);
 
-			for (int valueIdx = 0; valueIdx < 3; ++valueIdx)
+			ErrorMessage("LoadGLTFModel",
+				path == Microsoft::glTF::TARGET_WEIGHTS || path == Microsoft::glTF::TARGET_UNKNOWN, "This anim's target path is unsupported.");
+
+			if (path == Microsoft::glTF::TARGET_ROTATION)
 			{
-				Animation* anim = nullptr;
-				int offset = 3;	//RoatationのみデータタイプがVEC3ではなくVEC4
-				if (path == Microsoft::glTF::TARGET_TRANSLATION)
+				for (int valueIdx = 0; valueIdx < 4; ++valueIdx)
 				{
-					anim = &boneAnim.anims[Skeleton::BoneAnimation::POS_X + valueIdx];
-				}
-				else if (path == Microsoft::glTF::TARGET_ROTATION)
-				{
-					anim = &boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + valueIdx];
-					offset = 4;
-				}
-				else if (path == Microsoft::glTF::TARGET_SCALE)
-				{
-					anim = &boneAnim.anims[Skeleton::BoneAnimation::SCALE_X + valueIdx];
-				}
-				ErrorMessage("LoadGLTFModel", !anim, "This anim's target path is unsupported.");
+					auto& anim = boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + valueIdx];
+					anim.startFrame = startFrame;
+					anim.endFrame = endFrame;
 
-				anim->startFrame = startFrame;
-				anim->endFrame = endFrame;
+					for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
+					{
+						anim.keyFrames.emplace_back();
+						auto& keyFrame = anim.keyFrames.back();
+						keyFrame.frame = keyFrames[keyFrameIdx];
+						keyFrame.value = values[keyFrameIdx * 4 + valueIdx];
+					}
+				}
+			}
+			else if(path == Microsoft::glTF::TARGET_TRANSLATION || Microsoft::glTF::TARGET_SCALE)
+			{
+				int valudIdxOffset = (path == Microsoft::glTF::TARGET_TRANSLATION ? Skeleton::BoneAnimation::POS_X : Skeleton::BoneAnimation::SCALE_X);
 
-				for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
+				for (int valueIdx = 0; valueIdx < 3; ++valueIdx)
 				{
-					anim->keyFrames.emplace_back();
-					auto& keyFrame = anim->keyFrames.back();
-					keyFrame.frame = keyFrames[keyFrameIdx];
-					keyFrame.value = values[keyFrameIdx * offset + valueIdx];
+					auto& anim = boneAnim.anims[valudIdxOffset + valueIdx];
+					anim.startFrame = startFrame;
+					anim.endFrame = endFrame;
+
+					for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
+					{
+						anim.keyFrames.emplace_back();
+						auto& keyFrame = anim.keyFrames.back();
+						keyFrame.frame = keyFrames[keyFrameIdx];
+						keyFrame.value = values[keyFrameIdx * 3 + valueIdx];
+					}
 				}
 			}
 

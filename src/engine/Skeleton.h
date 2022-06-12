@@ -16,20 +16,10 @@ public:
 
 	std::string name;
 	char parent = -1;	//親ボーン
+	std::vector<char>children;	//子ボーン
 	int transLayer = 0;	//変形階層
 	Vec3<float> pos = { 0.0f,0.0f,0.0f };
 	Matrix invOffsetMat = DirectX::XMMatrixIdentity();
-};
-
-class BoneNode
-{
-public:
-	int boneIdx = -1;	//ボーンインデックス
-	Vec3<float>startPos;//ボーン基準点（回転の中心）
-	Vec3<float>endPos;	//ボーン先端点（実際のスキニングには利用しない）
-	std::vector<BoneNode*>children;	//子ノード
-
-	operator bool() { return boneIdx != -1; }
 };
 
 class Skeleton
@@ -37,7 +27,7 @@ class Skeleton
 public:
 	struct BoneAnimation
 	{
-		static const enum { POS_X, POS_Y, POS_Z, ROTATE_X, ROTATE_Y, ROTATE_Z, SCALE_X, SCALE_Y, SCALE_Z, ANIM_IDX_NUM };
+		static const enum { POS_X, POS_Y, POS_Z, ROTATE_X, ROTATE_Y, ROTATE_Z, ROTATE_W, SCALE_X, SCALE_Y, SCALE_Z, ANIM_IDX_NUM };
 		std::array<Animation, ANIM_IDX_NUM>anims;
 		Matrix GetMatrix(const float& Frame, bool* FinishFlg = nullptr)const;
 	};
@@ -47,7 +37,7 @@ public:
 	};
 
 	std::vector<Bone>bones;
-	std::map<std::string, BoneNode>boneNodeTable;
+	std::map<std::string, int>boneIdxTable;
 	/*
 		アニメーション情報（Skeletonがアニメーションを行う訳では無い。Animatorからの参照用）
 		キーは アニメーション名
