@@ -593,29 +593,31 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 	}
 
 	auto vertexCount = accPos.count;
-	for (uint32_t i = 0; i < vertexCount; ++i)
+	for (int vertIdx = 0; vertIdx < vertexCount; ++vertIdx)
 	{
 		// 頂点データの構築
-		int vid0 = 3 * i, vid1 = 3 * i + 1, vid2 = 3 * i + 2;
-		int tid0 = 2 * i, tid1 = 2 * i + 1;
-		int jid0 = 4 * i, jid1 = 4 * i + 1, jid2 = 4 * i + 2, jid3 = 4 * i + 3;
+		int vid0 = 3 * vertIdx, vid1 = 3 * vertIdx + 1, vid2 = 3 * vertIdx + 2;
+		int tid0 = 2 * vertIdx, tid1 = 2 * vertIdx + 1;
+		int jid0 = 4 * vertIdx, jid1 = 4 * vertIdx + 1, jid2 = 4 * vertIdx + 2, jid3 = 4 * vertIdx + 3;
 
 		ModelMesh::Vertex_Model vertex;
 		vertex.pos = { vertPos[vid0],vertPos[vid1],vertPos[vid2] };
 		vertex.normal = { vertNrm[vid0],vertNrm[vid1],vertNrm[vid2] };
 		vertex.uv = { vertUV[tid0],vertUV[tid1] };
 
+		if (!vertWeight.empty())
+		{
+			vertex.boneWeight = { vertWeight[jid0],vertWeight[jid1],vertWeight[jid2],vertWeight[jid3] };
+		}
 		if (!vertJoint.empty())
 		{
+			//ボーン割当がない場合 -1 のままにする必要がある
 			if (vertex.boneWeight.x)vertex.boneIdx.x = static_cast<signed short>(vertJoint[jid0]);
 			if (vertex.boneWeight.y)vertex.boneIdx.y = static_cast<signed short>(vertJoint[jid1]);
 			if (vertex.boneWeight.z)vertex.boneIdx.z = static_cast<signed short>(vertJoint[jid2]);
 			if (vertex.boneWeight.w)vertex.boneIdx.w = static_cast<signed short>(vertJoint[jid3]);
 		}
-		if (!vertWeight.empty())
-		{
-			vertex.boneWeight = { vertWeight[jid0],vertWeight[jid1],vertWeight[jid2],vertWeight[jid3] };
-		}
+
 		ModelMesh.mesh->vertices.emplace_back(vertex);
 	}
 
@@ -1339,6 +1341,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			for (int valueIdx = 0; valueIdx < 3; ++valueIdx)
 			{
 				Animation* anim = nullptr;
+				int offset = 3;	//RoatationのみデータタイプがVEC3ではなくVEC4
 				if (path == Microsoft::glTF::TARGET_TRANSLATION)
 				{
 					anim = &boneAnim.anims[Skeleton::BoneAnimation::POS_X + valueIdx];
@@ -1346,6 +1349,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 				else if (path == Microsoft::glTF::TARGET_ROTATION)
 				{
 					anim = &boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + valueIdx];
+					offset = 4;
 				}
 				else if (path == Microsoft::glTF::TARGET_SCALE)
 				{
@@ -1361,7 +1365,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 					anim->keyFrames.emplace_back();
 					auto& keyFrame = anim->keyFrames.back();
 					keyFrame.frame = keyFrames[keyFrameIdx];
-					keyFrame.value = values[keyFrameIdx * 3 + valueIdx];
+					keyFrame.value = values[keyFrameIdx * offset + valueIdx];
 				}
 			}
 
@@ -1369,8 +1373,8 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 	}
 
+	skel.CreateBoneTree();
 	result->skelton = std::make_shared<Skeleton>(skel);
-
 
 	//マテリアル読み込み
 	std::vector<std::shared_ptr<Material>>loadMaterials;

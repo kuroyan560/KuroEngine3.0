@@ -12,7 +12,7 @@
 
 GameScene::GameScene()
 {
-	animModel = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
+	animModel = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.gltf");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -89,7 +89,7 @@ void GameScene::OnUpdate()
 	//アニメーション
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_L))
 	{
-		animModel->animator->Play("Bones|Action1", false);
+		animModel->animator->Play("Action1", false);
 	}
 	animModel->animator->Update();
 
