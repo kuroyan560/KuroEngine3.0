@@ -125,7 +125,7 @@ public:
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Color& Color, const int& Width = 1, const DXGI_FORMAT& Format = DXGI_FORMAT_R32G32B32A32_FLOAT);	//単色塗りつぶしテクスチャ生成
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::string& LoadImgFilePath, const bool& SRVAsCube = false);	//画像ファイル
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Vec2<int>&Size,const DXGI_FORMAT& Format,const char* Name = nullptr);	//コンピュートシェーダーでの描き込み先用（UAVも作成する）
-	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::vector<char>& ImgData);
+	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::vector<char>& ImgData, const int& Channel = -1);	//Channelで特定のチャンネルのみRチャンネルに出力
 
 	//SRV作成（D3D12App経由）
 	DescHandles CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc);

@@ -697,8 +697,10 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Vec2<int>& 
 	return result;
 }
 
-std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector<char>& ImgData)
+std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector<char>& ImgData, const int& Channel)
 {
+	assert(-1 <= Channel && Channel < 4);
+
 	// VRM なので png/jpeg などのファイルを想定し、WIC で読み込む.
 	ComPtr<ID3D12Resource1> staging;
 	HRESULT hr;
@@ -707,8 +709,33 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "WICメモリのロードに失敗\n");
 
 	auto metadata = image.GetMetadata();
-
 	const Image* img = image.GetImage(0, 0, 0);	//生データ抽出
+
+	if (Channel != -1)
+	{
+		std::vector<uint8_t>pixelBuff;	//特定のチャンネルのみのピクセルデータ
+		for (size_t h = 0; h < img->height; ++h)
+		{
+			for (size_t w = 0; w < img->width; w++)
+			{
+				int idx = h * img->width * 4 + w * sizeof(4) + Channel;
+				pixelBuff.emplace_back(img->pixels[idx]);
+			}
+		}
+
+		int idx = 0;
+		for (size_t h = 0; h < img->height; ++h)
+		{
+			for (size_t w = 0; w < img->width; w++)
+			{
+				int startIdx = h * img->width * 4 + (w * sizeof(4));
+				img->pixels[startIdx] = pixelBuff[idx++];	//R
+				img->pixels[startIdx + 1] = 0;	//G
+				img->pixels[startIdx + 2] = 0;	//B
+				img->pixels[startIdx + 3] = 0;	//A
+			}
+		}
+	}
 
 	//テクスチャリソース設定
 	CD3DX12_RESOURCE_DESC texDesc = CD3DX12_RESOURCE_DESC::Tex2D(

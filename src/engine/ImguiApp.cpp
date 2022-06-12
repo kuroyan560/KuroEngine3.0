@@ -26,6 +26,10 @@ ImguiApp::ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd)
 
 	if (ImGui::CreateContext() == nullptr)assert(0);
 
+	auto& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
 	bool blnResult = ImGui_ImplWin32_Init(Hwnd);
 	if (!blnResult)assert(0);
 
@@ -58,6 +62,8 @@ void ImguiApp::EndImgui(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 	CmdList->SetDescriptorHeaps(1, heap.GetAddressOf());
 
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), CmdList.Get());
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault(NULL, (void*)CmdList.Get());
 }
 
 #include"Material.h"
@@ -142,7 +148,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 	{
 		static const enum TYPE { LAMBERT, PHONG, PBR };
 		static const std::array<std::string, 3> TYPE_STR = { "Lambert","Phong","PBR" };
-		static int TYPE_IDX = 0;
+		static int TYPE_IDX = PBR;
 		static std::string CURRENT_TYPE = TYPE_STR[TYPE_IDX];
 
 		bool changed = false;
