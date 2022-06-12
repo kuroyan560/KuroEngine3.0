@@ -559,7 +559,7 @@ void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 	}
 }
 
-void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::MeshPrimitive& GLTFPrimitive, const Microsoft::glTF::GLTFResourceReader& Reader, const Microsoft::glTF::Document& Doc)
+void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::MeshPrimitive& GLTFPrimitive, const Microsoft::glTF::Skin* GLTFSkin, const Microsoft::glTF::GLTFResourceReader& Reader, const Microsoft::glTF::Document& Doc)
 {
 	using namespace Microsoft::glTF;
 
@@ -579,6 +579,7 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 	std::vector<uint8_t>vertJoint;
 	if (GLTFPrimitive.HasAttribute(ACCESSOR_JOINTS_0))
 	{
+		ErrorMessage("LoadGLTFPrimitive", !GLTFSkin, "This primitive has joint's info,but any skin node didn't be passed.");
 		auto& idJoint = GLTFPrimitive.GetAttributeAccessorId(ACCESSOR_JOINTS_0);
 		auto& accJoint = Doc.accessors.Get(idJoint);
 		vertJoint = Reader.ReadBinaryData<uint8_t>(Doc, accJoint);
@@ -612,10 +613,15 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 		if (!vertJoint.empty())
 		{
 			//ボーン割当がない場合 -1 のままにする必要がある
-			if (vertex.boneWeight.x)vertex.boneIdx.x = static_cast<signed short>(vertJoint[jid0]);
-			if (vertex.boneWeight.y)vertex.boneIdx.y = static_cast<signed short>(vertJoint[jid1]);
-			if (vertex.boneWeight.z)vertex.boneIdx.z = static_cast<signed short>(vertJoint[jid2]);
-			if (vertex.boneWeight.w)vertex.boneIdx.w = static_cast<signed short>(vertJoint[jid3]);
+			auto joint0 = atoi(GLTFSkin->jointIds[vertJoint[jid0]].c_str());
+			auto joint1 = atoi(GLTFSkin->jointIds[vertJoint[jid1]].c_str());
+			auto joint2 = atoi(GLTFSkin->jointIds[vertJoint[jid2]].c_str());
+			auto joint3 = atoi(GLTFSkin->jointIds[vertJoint[jid3]].c_str());
+			
+			if (vertex.boneWeight.x)vertex.boneIdx.x = static_cast<signed short>(joint0);
+			if (vertex.boneWeight.y)vertex.boneIdx.y = static_cast<signed short>(joint1);
+			if (vertex.boneWeight.z)vertex.boneIdx.z = static_cast<signed short>(joint2);
+			if (vertex.boneWeight.w)vertex.boneIdx.w = static_cast<signed short>(joint3);
 		}
 
 		ModelMesh.mesh->vertices.emplace_back(vertex);
@@ -1276,15 +1282,28 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 	Skeleton skel;
 
-	//ボーン読み込み
+	//ノード読み込み
+	std::vector<Microsoft::glTF::Node>skinNodes;	//後に使うためスキンノードを格納する配列
 	for (const auto& gltfNode : doc.nodes.Elements())
 	{
+		//スキン情報
+		if (!gltfNode.skinId.empty())
+		{
+			skinNodes.emplace_back(gltfNode);
+			continue;
+		}
+
+		//ボーン → スキンの順番、その後に来るデータはアーマチュア？の情報でいらない情報ぽい
+		if (!skinNodes.empty())break;
+
+		//ボーン情報
 		skel.bones.emplace_back();
 		auto& bone = skel.bones.back();
 		bone.name = gltfNode.name;
 		for (auto& child : gltfNode.children)
 		{
-			skel.bones[atoi(child.c_str())].parent = skel.bones.size() - 1;
+			auto childIdx = doc.nodes.GetIndex(child);
+			skel.bones[childIdx].parent = skel.bones.size() - 1;
 		}
 
 		// ローカル変形行列の計算
@@ -1302,6 +1321,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		transform *= matRotation;
 		transform *= matTranslation;
 		bone.invOffsetMat = XMMatrixInverse(nullptr, transform);
+
 	}
 
 	//アニメーション
@@ -1317,7 +1337,8 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		for (const auto& animChannel : gltfAnimNode.channels.Elements())
 		{
 			const auto& sampler = animSamplers[gltfAnimNode.samplers.GetIndex(animChannel.samplerId)];
-			auto& boneAnim = modelAnim.boneAnim[skel.bones[doc.nodes.GetIndex(animChannel.target.nodeId)].name];
+			const auto& boneNode = doc.nodes.Get(animChannel.target.nodeId);	//対応するボーンノード取得
+			auto& boneAnim = modelAnim.boneAnim[boneNode.name];	//ボーン単位のアニメーション
 
 			//アニメーション情報のターゲット（POS、ROTATE、SCALE）
 			auto& path = animChannel.target.path;
@@ -1429,18 +1450,32 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 	for (const auto& glTFMesh : doc.meshes.Elements())
 	{
-		for (const auto& meshPrimitive : glTFMesh.primitives)
+		//メッシュIDを比較して対応するスキンノードを取得
+		const Microsoft::glTF::Skin* gltfSkin = nullptr;
+		const auto& meshId = glTFMesh.id;
+		const auto& skinNode = std::find_if(skinNodes.begin(), skinNodes.end(), [meshId](Microsoft::glTF::Node& node) 
+			{
+				return node.meshId == meshId;
+			});
+		if (skinNode != skinNodes.end())gltfSkin = &doc.skins.Get(skinNode->skinId);
+
+		const auto& meshName = glTFMesh.name;	//メッシュ名取得
+		int primitiveNum = 0;	//プリミティブの数記録用
+
+		//マテリアル単位で分けられている？
+		for (const auto& gltfMeshPrimitive : glTFMesh.primitives)
 		{
 			//モデル用メッシュ生成
 			ModelMesh mesh;
 			mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex_Model>>();
+			mesh.mesh->name = meshName + " - " + std::to_string(primitiveNum++);
 
 			//頂点 & インデックス情報
-			LoadGLTFPrimitive(mesh, meshPrimitive, *resourceReader, doc);
+			LoadGLTFPrimitive(mesh, gltfMeshPrimitive, gltfSkin, *resourceReader, doc);
 
-			if (doc.materials.Has(meshPrimitive.materialId))
+			if (doc.materials.Has(gltfMeshPrimitive.materialId))
 			{
-				int materialIdx = int(doc.materials.GetIndex(meshPrimitive.materialId));
+				int materialIdx = int(doc.materials.GetIndex(gltfMeshPrimitive.materialId));
 				mesh.material = loadMaterials[materialIdx];
 			}
 			else
