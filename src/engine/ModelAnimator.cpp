@@ -26,16 +26,7 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 {
 	auto model = Model.lock();
 	auto skel = model->skelton;
-	KuroFunc::ErrorMessage(MAX_BONE_NUM < skel->bones.size(), "ModelAnimator", "AttachSkeleton", "The bone's number is over than limit.");
-
-	//バッファ未生成
-	if (!boneBuff)
-	{
-		boneBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), MAX_BONE_NUM);
-	}
-	
-	//バッファのリネーム
-	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->header.GetModelName())).c_str());
+	boneMatricies.resize(skel->bones.size());
 
 	Reset();
 
@@ -45,11 +36,6 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 
 void ModelAnimator::Reset()
 {
-	//単位行列で埋めてリセット
-	std::array<Matrix, MAX_BONE_NUM>initMat;
-	initMat.fill(XMMatrixIdentity());
-	boneBuff->Mapping(initMat.data());
-
 	//再生中アニメーション名リセット
 	playAnimations.clear();
 }
@@ -124,7 +110,4 @@ void ModelAnimator::Update()
 		//終了しているので削除
 		itr = playAnimations.erase(itr);
 	}
-
-	//バッファにデータ転送
-	boneBuff->Mapping(boneMatricies.data());
 }

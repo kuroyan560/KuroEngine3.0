@@ -10,6 +10,7 @@ struct ModelObject
 {
 private:
 	std::shared_ptr<ConstantBuffer>transformBuff;
+	std::shared_ptr<ConstantBuffer>boneBuff;
 	void AttachModel(const std::shared_ptr<Model>& Model);
 
 public:
@@ -21,4 +22,5 @@ public:
 	ModelObject(const std::shared_ptr<Model>& Model) { AttachModel(Model); }
 
 	const std::shared_ptr<ConstantBuffer>&GetTransformBuff();
+	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff();
 };

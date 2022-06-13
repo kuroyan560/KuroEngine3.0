@@ -7,6 +7,7 @@
 class Model;
 class ModelObject;
 class GaussianBlur;
+class Enemy;
 
 class GameScene : public BaseScene
 {

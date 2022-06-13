@@ -9,6 +9,7 @@
 #include"GaussianBlur.h"
 #include"CubeMap.h"
 #include"ModelAnimator.h"
+#include"EnemyManager.h"
 
 GameScene::GameScene()
 {
@@ -27,6 +28,17 @@ GameScene::GameScene()
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
 
 	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
+
+	Transform initSandBagPos;
+	const float offset = 2.0f;
+	for (int x = 0; x < 10; ++x)
+	{
+		for (int z = 0; z < 10; ++z)
+		{
+			initSandBagPos.SetPos({ (float)x * offset,2,(float)z * offset });
+			EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
+		}
+	}
 }
 
 void GameScene::OnInitialize()
@@ -88,6 +100,8 @@ void GameScene::OnUpdate()
 	GameManager::Instance()->Update();
 
 	player.Update();
+
+	EnemyManager::Instance()->Update();
 }
 
 
@@ -104,6 +118,7 @@ void GameScene::OnDraw()
 
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
 	DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
+	EnemyManager::Instance()->Draw(nowCam);
 	player.Draw(nowCam);
 }
 

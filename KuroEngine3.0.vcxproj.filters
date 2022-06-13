@@ -74,6 +74,15 @@
     <Filter Include="HLSL\engine\DrawFunc\3D">
       <UniqueIdentifier>{194e4e66-4a24-4a1b-8500-662087375ce8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\user\Player">
+      <UniqueIdentifier>{1237bb64-b81f-41f2-a355-86e653f84da1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\user\Game">
+      <UniqueIdentifier>{498d1364-9bd0-40b4-bd1d-98daa3ac4ca2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\user\Enemy">
+      <UniqueIdentifier>{6deebad1-61c6-42c4-bffb-6efc20964ef3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\engine\RectTexture.hlsl">
@@ -153,6 +162,9 @@
     </FxCompile>
     <FxCompile Include="resource\engine\DynamicCubeMap.hlsl">
       <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\user\Enemy.hlsl">
+      <Filter>HLSL\user</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -269,9 +281,6 @@
     <ClCompile Include="src\engine\Common\Vec.cpp">
       <Filter>src\engine\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\user\GameScene.cpp">
-      <Filter>src\user</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\Model.cpp">
       <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
     </ClCompile>
@@ -327,13 +336,25 @@
       <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
     </ClCompile>
     <ClCompile Include="src\user\Player.cpp">
-      <Filter>src\user</Filter>
+      <Filter>src\user\Player</Filter>
     </ClCompile>
     <ClCompile Include="src\user\PlayerCamera.cpp">
-      <Filter>src\user</Filter>
+      <Filter>src\user\Player</Filter>
     </ClCompile>
     <ClCompile Include="src\user\GameManager.cpp">
-      <Filter>src\user</Filter>
+      <Filter>src\user\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\GameScene.cpp">
+      <Filter>src\user\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\Enemy.cpp">
+      <Filter>src\user\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\EnemyBreed.cpp">
+      <Filter>src\user\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\EnemyManager.cpp">
+      <Filter>src\user\Enemy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -454,9 +475,6 @@
     <ClInclude Include="src\engine\Common\Vec.h">
       <Filter>src\engine\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\user\GameScene.h">
-      <Filter>src\user</Filter>
-    </ClInclude>
     <ClInclude Include="src\engine\Model.h">
       <Filter>src\engine\ユーザー向け\オブジェクト</Filter>
     </ClInclude>
@@ -518,13 +536,25 @@
       <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
     </ClInclude>
     <ClInclude Include="src\user\Player.h">
-      <Filter>src\user</Filter>
+      <Filter>src\user\Player</Filter>
     </ClInclude>
     <ClInclude Include="src\user\PlayerCamera.h">
-      <Filter>src\user</Filter>
+      <Filter>src\user\Player</Filter>
     </ClInclude>
     <ClInclude Include="src\user\GameManager.h">
-      <Filter>src\user</Filter>
+      <Filter>src\user\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\GameScene.h">
+      <Filter>src\user\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\Enemy.h">
+      <Filter>src\user\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\EnemyBreed.h">
+      <Filter>src\user\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\EnemyManager.h">
+      <Filter>src\user\Enemy</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

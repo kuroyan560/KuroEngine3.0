@@ -2,21 +2,17 @@
 #include<memory>
 #include<string>
 #include<list>
-#include<array>
+#include<vector>
 #include"KuroMath.h"
-class ConstantBuffer;
 class Skeleton;
 class Model;
 class ModelAnimator
 {
-	static const int MAX_BONE_NUM = 256;
-
+private:
 	//対応するスケルトンの参照
 	std::weak_ptr<Skeleton>attachSkelton;
-	//ボーンのローカル行列
-	std::shared_ptr<ConstantBuffer>boneBuff;
 	//ボーン行列
-	std::array<Matrix, MAX_BONE_NUM>boneMatricies;
+	std::vector<Matrix>boneMatricies;
 
 	struct PlayAnimation
 	{
@@ -40,5 +36,6 @@ public:
 	void Reset();
 	void Play(const std::string& AnimationName, const bool& Loop);
 	void Update();
-	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
+
+	const std::vector<Matrix>& GetBoneMatricies() { return boneMatricies; }
 };

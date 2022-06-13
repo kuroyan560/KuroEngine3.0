@@ -153,7 +153,7 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 	DRAW_NON_SHADING_COUNT++;
 }
 
-void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, ModelAnimator* Animator, const AlphaBlendMode& BlendMode)
+void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const std::shared_ptr<ConstantBuffer>& BoneBuff, const AlphaBlendMode& BlendMode)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE[AlphaBlendModeNum];
 	static std::vector<std::shared_ptr<ConstantBuffer>>TRANSFORM_BUFF;
@@ -202,8 +202,6 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 	TRANSFORM_BUFF[DRAW_ADS_SHADING_COUNT]->Mapping(&Transform.GetMat());
 
 	auto model = Model.lock();
-	std::shared_ptr<ConstantBuffer>boneBuff;
-	if (Animator)boneBuff = Animator->GetBoneMatBuff();
 
 	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
 	{
@@ -219,7 +217,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
 				TRANSFORM_BUFF[DRAW_ADS_SHADING_COUNT],
-				boneBuff,
+				BoneBuff,
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[NORMAL_TEX],
 				mesh.material->buff,

@@ -403,6 +403,28 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="resource\user\Enemy.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\engine\Camera.hlsli" />
@@ -462,6 +484,9 @@
     <ClCompile Include="src\engine\Swapchain.cpp" />
     <ClCompile Include="src\engine\UsersInput.cpp" />
     <ClCompile Include="src\engine\WinApp.cpp" />
+    <ClCompile Include="src\user\Enemy.cpp" />
+    <ClCompile Include="src\user\EnemyBreed.cpp" />
+    <ClCompile Include="src\user\EnemyManager.cpp" />
     <ClCompile Include="src\user\GameManager.cpp" />
     <ClCompile Include="src\user\GameScene.cpp" />
     <ClCompile Include="src\user\Player.cpp" />
@@ -527,6 +552,9 @@
     <ClInclude Include="src\engine\Swapchain.h" />
     <ClInclude Include="src\engine\UsersInput.h" />
     <ClInclude Include="src\engine\WinApp.h" />
+    <ClInclude Include="src\user\Enemy.h" />
+    <ClInclude Include="src\user\EnemyBreed.h" />
+    <ClInclude Include="src\user\EnemyManager.h" />
     <ClInclude Include="src\user\GameManager.h" />
     <ClInclude Include="src\user\GameScene.h" />
     <ClInclude Include="src\user\Player.h" />
