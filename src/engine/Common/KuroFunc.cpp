@@ -305,13 +305,6 @@ int KuroFunc::GetNumSign(float Num)
 	return 1;
 }
 
-float KuroFunc::Clamp(float Min, float Max, float Value)
-{
-	if (Max < Value)Value = Max;
-	if (Value < Min)Value = Min;
-	return Value;
-}
-
 void KuroFunc::LoadData(FILE* Fp, std::string DataName, void* Data, size_t Size, int ElementNum)
 {
 	if (fread(Data, Size, ElementNum, Fp) < 1)

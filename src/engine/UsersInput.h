@@ -125,10 +125,5 @@ public:
 	Vec2<float>GetRightStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate = { 1.0f,1.0f });
 	// "Power" must fit between 0.0f and 1.0f.
 	void ShakeController(const int& ControllerIdx, const float& Power, const int& Span);
-
-	// 生のスティックのレートが欲しかったので臨時で実装しました。開発が終わったら消してください；；
-	Vec2<float>GetLeftStickVecFuna(const int& ControllerIdx){return Vec2<float>(xinputState[ControllerIdx].Gamepad.sThumbLX, -xinputState[ControllerIdx].Gamepad.sThumbLY);}
-	Vec2<float>GetRightStickVecFuna(const int& ControllerIdx){return Vec2<float>(xinputState[ControllerIdx].Gamepad.sThumbRX, -xinputState[ControllerIdx].Gamepad.sThumbRY);}
-
 };
 

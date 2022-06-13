@@ -609,7 +609,6 @@ Matrix KuroMath::RotateMat(const Vec3<float>& VecA, const Vec3<float>& VecB)
     XMVECTOR q = { 0,0,0,0 };
     auto c = b.Cross(a);
     auto d = -c.Length();
-    c.Normalize();
 
     float epsilon = 0.0002;
     auto ip = a.Dot(b);
@@ -631,7 +630,7 @@ Matrix KuroMath::RotateMat(const Vec3<float>& VecA, const Vec3<float>& VecB)
     }
     else
     {
-        auto e = c * sqrt(0.5f * (1.0f - ip));
+        auto e = c.GetNormal() * sqrt(0.5f * (1.0f - ip));
         q.m128_f32[0] = e.x;
         q.m128_f32[1] = e.y;
         q.m128_f32[2] = e.z;

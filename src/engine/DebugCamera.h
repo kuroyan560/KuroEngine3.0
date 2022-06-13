@@ -1,8 +1,9 @@
 #pragma once
 #include"Camera.h"
+#include<memory>
 class DebugCamera
 {
-	Camera cam;
+	std::shared_ptr<Camera>cam;
 
 	//ƒJƒƒ‰`’‹“_‚Ü‚Å‚Ì‹——£
 	float dist = 20.0f;
@@ -18,8 +19,13 @@ public:
 	void Init(const Vec3<float>& InitPos, const Vec3<float>& Target);
 	void Move();
 
-	operator Camera& ()
+	operator std::shared_ptr<Camera>& ()
 	{
 		return cam;
+	}
+
+	operator Camera& ()
+	{
+		return *cam;
 	}
 };

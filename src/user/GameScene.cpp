@@ -12,7 +12,9 @@
 
 GameScene::GameScene()
 {
-	animModel = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
+	floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
+	floorModel->transform.SetPos({ 0,-1,0 });
+	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer(Color());
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -23,21 +25,18 @@ GameScene::GameScene()
 	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	ligMgr.RegisterHemiSphereLight(&hemiLig);
+
+	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
 }
 
 void GameScene::OnInitialize()
 {
-	debugCam.Init({ 0,1,-3 }, { 0,1,0 });
+	player.Init();
+	GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
 }
 
 void GameScene::OnUpdate()
 {
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_I))
-	{
-		debugCam.Init({ 0,1,-3 }, { 0,1,0 });
-		animModel->animator->Reset();
-	}
-
 	//ポイントライト位置
 	static const float UINT = 0.1f;
 
@@ -86,14 +85,9 @@ void GameScene::OnUpdate()
 		hemiLig.SetActive();
 	}
 
-	//アニメーション
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_L))
-	{
-		animModel->animator->Play("Action1", false);
-	}
-	animModel->animator->Update();
+	GameManager::Instance()->Update();
 
-	debugCam.Move();
+	player.Update();
 }
 
 
@@ -108,12 +102,15 @@ void GameScene::OnDraw()
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
-	DrawFunc3D::DrawADSShadingModel(ligMgr, animModel, debugCam);
+	auto& nowCam = *GameManager::Instance()->GetNowCamera();
+	DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
+	player.Draw(nowCam);
 }
 
 void GameScene::OnImguiDebug()
 {
 	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
+	GameManager::Instance()->ImGuiDebug();
 }
 
 void GameScene::OnFinalize()

@@ -4,21 +4,21 @@
 
 void DebugCamera::MoveXMVector(const XMVECTOR& MoveVector)
 {
-	auto pos = cam.GetPos();
-	auto target = cam.GetTarget();
+	auto pos = cam->GetPos();
+	auto target = cam->GetTarget();
 
 	Vec3<float>move(MoveVector.m128_f32[0], MoveVector.m128_f32[1], MoveVector.m128_f32[2]);
 	pos += move;
 	target += move;
 
-	cam.SetPos(pos);
-	cam.SetTarget(target);
+	cam->SetPos(pos);
+	cam->SetTarget(target);
 }
 
 DebugCamera::DebugCamera()
-	:cam("DebugCamera")
 {
-	dist = cam.GetPos().Distance(cam.GetTarget());
+	cam = std::make_shared<Camera>("DebugCamera");
+	dist = cam->GetPos().Distance(cam->GetTarget());
 
 	//画面サイズに対する相対的なスケールに調整
 	scale.x = 1.0f / (float)WinApp::Instance()->GetExpandWinSize().x;
@@ -27,8 +27,8 @@ DebugCamera::DebugCamera()
 
 void DebugCamera::Init(const Vec3<float>& InitPos, const Vec3<float>& Target)
 {
-	cam.SetPos(InitPos);
-	cam.SetTarget(Target);
+	cam->SetPos(InitPos);
+	cam->SetTarget(Target);
 
 	dist = InitPos.Distance(Target);
 }
@@ -93,8 +93,8 @@ void DebugCamera::Move()
 		vUp = XMVector3Transform(vUp, matRot);
 
 		// 注視点からずらした位置に視点座標を決定
-		Vec3<float>target = cam.GetTarget();
-		cam.SetPos({ target.x + vTargetEye.m128_f32[0], target.y + vTargetEye.m128_f32[1], target.z + vTargetEye.m128_f32[2] });
-		cam.SetUp({ vUp.m128_f32[0], vUp.m128_f32[1], vUp.m128_f32[2] });
+		Vec3<float>target = cam->GetTarget();
+		cam->SetPos({ target.x + vTargetEye.m128_f32[0], target.y + vTargetEye.m128_f32[1], target.z + vTargetEye.m128_f32[2] });
+		cam->SetUp({ vUp.m128_f32[0], vUp.m128_f32[1], vUp.m128_f32[2] });
 	}
 }

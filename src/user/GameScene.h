@@ -1,11 +1,8 @@
 #pragma once
 #include"KuroEngine.h"
-#include"DebugCamera.h"
 #include"LightManager.h"
-#include"Transform.h"
-#include<array>
-#include"ShadowMapDevice.h"
-#include"CubeMap.h"
+#include"Player.h"
+#include"GameManager.h"
 
 class Model;
 class ModelObject;
@@ -13,15 +10,15 @@ class GaussianBlur;
 
 class GameScene : public BaseScene
 {
-	std::shared_ptr<ModelObject>animModel;
+	std::shared_ptr<ModelObject>floorModel;
 
-	DebugCamera debugCam;
 	LightManager ligMgr;
 	Light::Direction dirLigTop;
 	Light::Direction dirLigFront;
 	Light::HemiSphere hemiLig;
 	Light::Point ptLig;
-	Transform trans;
+	
+	Player player;
 
 public:
 	GameScene();

@@ -326,6 +326,15 @@
     <ClCompile Include="src\engine\ModelAnimator.cpp">
       <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
     </ClCompile>
+    <ClCompile Include="src\user\Player.cpp">
+      <Filter>src\user</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\PlayerCamera.cpp">
+      <Filter>src\user</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\GameManager.cpp">
+      <Filter>src\user</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -507,6 +516,15 @@
     </ClInclude>
     <ClInclude Include="src\engine\ModelAnimator.h">
       <Filter>src\engine\レンダリング関連\レンダーオブジェクト\モデル情報</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\Player.h">
+      <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\PlayerCamera.h">
+      <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\GameManager.h">
+      <Filter>src\user</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

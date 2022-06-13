@@ -73,9 +73,9 @@ void UsersInput::Update(const HWND& Hwnd, const Vec2<float>& WinSize)
 	GetCursorPos(&p);
 	ScreenToClient(Hwnd, &p);
 	mousePos.x = p.x;
-	mousePos.x = KuroFunc::Clamp(0, WinSize.x, mousePos.x);
+	mousePos.x = std::clamp(mousePos.x, 0.0f, WinSize.x);
 	mousePos.y = p.y;
-	mousePos.y = KuroFunc::Clamp(0, WinSize.y, mousePos.y);
+	mousePos.y = std::clamp(mousePos.y, 0.0f, WinSize.y);
 
 	//コントローラー
 	for (int i = 0; i < CONTROLLER_NUM; ++i)

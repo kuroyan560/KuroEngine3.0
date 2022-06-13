@@ -52,9 +52,6 @@ namespace KuroFunc
 	int GetNumSign(int Num);
 	int GetNumSign(float Num);
 
-	//正規化
-	float Clamp(float Min, float Max, float Value);
-
 	//データ読み込み
 	void LoadData(FILE* Fp, std::string DataName, void* Data, size_t Size, int ElementNum);
 	//データ保存
