@@ -1,6 +1,30 @@
 #include "Collider.h"
 
-void Collider::CheckHitCollision(std::weak_ptr<Collider> Other)
+std::list<std::weak_ptr<Collider>>Collider::COLLIDERS;
+
+void Collider::UpdateAllColliders()
+{
+	//既に寿命切れのコライダーを削除
+	COLLIDERS.remove_if([](std::weak_ptr<Collider>& col) {return col.expired(); });
+
+	//当たり判定記録リセット
+	for (auto& col : COLLIDERS)col.lock()->isHit = false;
+
+	//総当り衝突判定
+	for (auto itrA = COLLIDERS.begin(); itrA != COLLIDERS.end(); ++itrA)
+	{
+		auto colA = itrA->lock();
+
+		auto itrB = itrA;
+		++itrB;
+		for (; itrB != COLLIDERS.end(); ++itrB)
+		{
+			colA->CheckHitCollision(*itrB);
+		}
+	}
+}
+
+void Collider::CheckHitCollision(std::weak_ptr<Collider>& Other)
 {
 	auto other = Other.lock();
 
@@ -13,7 +37,7 @@ void Collider::CheckHitCollision(std::weak_ptr<Collider> Other)
 
 	//判定
 	Vec3<float>inter;
-	bool hit = Collision::CheckPrimitiveHit(this->primitive.get(), other->primitive.get(), &inter);
+	bool hit = Collision::CheckPrimitiveHit(this->primitive.get(), other->primitive.get(),&inter);
 
 	//衝突していたら
 	if (hit)

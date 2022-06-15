@@ -23,7 +23,7 @@ bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* Spher
 	return false;
 }
 
-Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const CollisionMesh::Triangle& Tri, const Matrix& MeshWorld)
+Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const CollisionTriangle& Tri, const Matrix& MeshWorld)
 {
 	//三角メッシュの座標をワールド変換
 	Vec3<float>p0 = KuroMath::TransformVec3(Tri.p0, MeshWorld);

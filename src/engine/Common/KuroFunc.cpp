@@ -78,7 +78,7 @@ void KuroFunc::GetDivideStr(const std::string& Str, std::string* Dir, std::strin
 
 Vec2<float> KuroFunc::ConvertWorldToScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>& WinSize)
 {
-	XMVECTOR pos = XMLoadFloat3(&WorldPos);
+	XMVECTOR pos = XMLoadFloat3((XMFLOAT3*)&WorldPos);
 	//ビュー行列適応
 	pos = XMVector3Transform(pos, ViewMat);
 	//プロジェクション行列適応

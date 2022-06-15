@@ -10,6 +10,7 @@
 #include"CubeMap.h"
 #include"ModelAnimator.h"
 #include"EnemyManager.h"
+#include"Collider.h"
 
 GameScene::GameScene()
 {
@@ -102,6 +103,8 @@ void GameScene::OnUpdate()
 	player.Update();
 
 	EnemyManager::Instance()->Update();
+
+	Collider::UpdateAllColliders();
 }
 
 

@@ -314,11 +314,6 @@ struct Vec3
 		static_assert(std::is_floating_point<T>::value, "template parameter T must be floating type");
 		return DirectX::XMLoadFloat3((DirectX::XMFLOAT3*)this);
 	}
-	operator DirectX::XMFLOAT3*()
-	{
-		static_assert(std::is_floating_point<T>::value, "template parameter T must be floating type");
-		return (DirectX::XMFLOAT3*)this;
-	}
 
 #pragma endregion
 };

@@ -362,7 +362,7 @@
     <ClCompile Include="src\user\Collider.cpp">
       <Filter>src\user\Collision</Filter>
     </ClCompile>
-    <ClCompile Include="src\user\CollisionPrimitive.cpp">
+    <ClCompile Include="src\user\Collision.cpp">
       <Filter>src\user\Collision</Filter>
     </ClCompile>
   </ItemGroup>
@@ -568,7 +568,7 @@
     <ClInclude Include="src\user\Collider.h">
       <Filter>src\user\Collision</Filter>
     </ClInclude>
-    <ClInclude Include="src\user\CollisionPrimitive.h">
+    <ClInclude Include="src\user\Collision.h">
       <Filter>src\user\Collision</Filter>
     </ClInclude>
   </ItemGroup>

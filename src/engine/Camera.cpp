@@ -9,11 +9,11 @@ void Camera::CameraInfoUpdate()
 		cameraInfo.eye = pos;
 
 		//視点座標
-		XMVECTOR eyePosition = XMLoadFloat3(&cameraInfo.eye);
+		XMVECTOR eyePosition = XMLoadFloat3((XMFLOAT3*)&cameraInfo.eye);
 		//注視点座標
-		XMVECTOR targetPosition = XMLoadFloat3(&target);
+		XMVECTOR targetPosition = XMLoadFloat3((XMFLOAT3*)&target);
 		//（仮の）上方向
-		XMVECTOR upVector = XMLoadFloat3(&up);
+		XMVECTOR upVector = XMLoadFloat3((XMFLOAT3*)&up);
 
 		//カメラZ軸（視線方向）
 		XMVECTOR cameraAxisZ = XMVectorSubtract(targetPosition, eyePosition);
