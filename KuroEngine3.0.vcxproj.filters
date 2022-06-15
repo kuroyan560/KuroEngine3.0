@@ -83,6 +83,9 @@
     <Filter Include="src\user\Enemy">
       <UniqueIdentifier>{6deebad1-61c6-42c4-bffb-6efc20964ef3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\user\Collision">
+      <UniqueIdentifier>{83cfc4e3-f909-4989-a998-b2f57f6e5b3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\engine\RectTexture.hlsl">
@@ -356,6 +359,12 @@
     <ClCompile Include="src\user\EnemyManager.cpp">
       <Filter>src\user\Enemy</Filter>
     </ClCompile>
+    <ClCompile Include="src\user\Collider.cpp">
+      <Filter>src\user\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\CollisionPrimitive.cpp">
+      <Filter>src\user\Collision</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -555,6 +564,12 @@
     </ClInclude>
     <ClInclude Include="src\user\EnemyManager.h">
       <Filter>src\user\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\Collider.h">
+      <Filter>src\user\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\CollisionPrimitive.h">
+      <Filter>src\user\Collision</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
