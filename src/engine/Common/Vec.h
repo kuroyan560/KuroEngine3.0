@@ -146,6 +146,10 @@ struct Vec3
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		return sqrt(pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2));
 	};
+	float DistanceSq(const Vec3& To)const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
+		return pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2);
+	};
 	Vec3<float> GetNormal()const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		float len = Length();
@@ -310,7 +314,7 @@ struct Vec3
 		static_assert(std::is_floating_point<T>::value, "template parameter T must be floating type");
 		return DirectX::XMLoadFloat3((DirectX::XMFLOAT3*)this);
 	}
-	DirectX::XMFLOAT3* operator&()
+	operator DirectX::XMFLOAT3*()
 	{
 		static_assert(std::is_floating_point<T>::value, "template parameter T must be floating type");
 		return (DirectX::XMFLOAT3*)this;
