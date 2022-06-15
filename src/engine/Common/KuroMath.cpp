@@ -128,13 +128,13 @@ float KuroMath::SineInOut(float t, float totaltime, float min, float max)
 float KuroMath::ExpIn(float t, float totaltime, float min, float max)
 {
     max -= min;
-    return t == 0.0 ? min : max * pow(2, 10 * (t / totaltime - 1)) + min;
+    return static_cast<float>(t == 0.0 ? min : max * pow(2, 10 * (t / totaltime - 1)) + min);
 }
 
 float KuroMath::ExpOut(float t, float totaltime, float min, float max)
 {
     max -= min;
-    return t == totaltime ? max + min : max * (-pow(2, -10 * t / totaltime) + 1) + min;
+    return static_cast<float>(t == totaltime ? max + min : max * (-pow(2, -10 * t / totaltime) + 1) + min);
 }
 
 float KuroMath::ExpInOut(float t, float totaltime, float min, float max)
@@ -144,10 +144,10 @@ float KuroMath::ExpInOut(float t, float totaltime, float min, float max)
     max -= min;
     t /= totaltime / 2;
 
-    if (t < 1) return max / 2 * pow(2, 10 * (t - 1)) + min;
+    if (t < 1) return static_cast<float>(max / 2 * pow(2, 10 * (t - 1)) + min);
 
     t = t - 1;
-    return max / 2 * (-pow(2, -10 * t) + 2) + min;
+    return static_cast<float>(max / 2 * (-pow(2, -10 * t) + 2) + min);
 }
 
 float KuroMath::CircIn(float t, float totaltime, float min, float max)
@@ -197,7 +197,7 @@ float KuroMath::ElasticIn(float t, float totaltime, float min, float max)
     }
 
     t = t - 1;
-    return -(a * pow(2, 10 * t) * sin((t * totaltime - s) * (2 * PI) / p)) + min;
+    return static_cast<float>(-(a * pow(2, 10 * t) * sin((t * totaltime - s) * (2 * PI) / p)) + min);
 }
 
 float KuroMath::ElasticOut(float t, float totaltime, float min, float max)
@@ -222,7 +222,7 @@ float KuroMath::ElasticOut(float t, float totaltime, float min, float max)
         s = p / (2 * PI) * asin(max / a);
     }
 
-    return a * pow(2, -10 * t) * sin((t * totaltime - s) * (2 * PI) / p) + max + min;
+    return static_cast<float>(a * pow(2, -10 * t) * sin((t * totaltime - s) * (2 * PI) / p) + max + min);
 }
 
 float KuroMath::ElasticInOut(float t, float totaltime, float min, float max)
@@ -249,11 +249,11 @@ float KuroMath::ElasticInOut(float t, float totaltime, float min, float max)
 
     if (t < 1)
     {
-        return -0.5f * (a * pow(2, 10 * (t -= 1)) * sin((t * totaltime - s) * (2 * PI) / p)) + min;
+        return static_cast<float>(-0.5f * (a * pow(2, 10 * (t -= 1)) * sin((t * totaltime - s) * (2 * PI) / p)) + min);
     }
 
     t = t - 1;
-    return a * pow(2, -10 * t) * sin((t * totaltime - s) * (2 * PI) / p) * 0.5f + max + min;
+    return static_cast<float>(a * pow(2, -10 * t) * sin((t * totaltime - s) * (2 * PI) / p) * 0.5f + max + min);
 }
 
 float KuroMath::BackIn(float t, float totaltime, float min, float max)
@@ -472,7 +472,7 @@ float KuroMath::GetSpline(const float& T, const int& P1Idx, const std::vector<fl
     //‚P“_ˆÈ‰º‚Å‚Í‚Å‚«‚È‚¢
     if (Array.size() < 2)assert(0);
 
-    int endIdx = Array.size() - 1;
+    int endIdx = static_cast<int>(Array.size()) - 1;
 
     int p0_idx = P1Idx - 1;
     int p1_idx = P1Idx;
@@ -610,7 +610,7 @@ Matrix KuroMath::RotateMat(const Vec3<float>& VecA, const Vec3<float>& VecB)
     auto c = b.Cross(a);
     auto d = -c.Length();
 
-    float epsilon = 0.0002;
+    float epsilon = 0.0002f;
     auto ip = a.Dot(b);
     if (-epsilon < d || 1.0f < ip)
     {

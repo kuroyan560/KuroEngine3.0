@@ -12,16 +12,16 @@ bool operator==(const Matrix& lhs, const Matrix& rhs);
 
 #include"Angle.h"
 
-static const enum EASE_CHANGE_TYPE
+enum EASE_CHANGE_TYPE
 {
     In, Out, InOut, EASE_CHANGE_TYPE_NUM
 };
-static const enum EASING_TYPE
+enum EASING_TYPE
 {
     Quad, Cubic, Quart, Quint, Sine, Exp, Circ, Elastic, Back, Bounce, EASING_TYPE_NUM
 };
 
-static class KuroMath
+class KuroMath
 {
 private:
     static float QuadIn(float t, float totaltime, float min, float max);

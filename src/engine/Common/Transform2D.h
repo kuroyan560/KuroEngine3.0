@@ -3,10 +3,10 @@
 #include<cmath>
 #include"Common/KuroFunc.h"
 #include"Angle.h"
-#include<vector>
+#include<list>
 class Transform2D
 {
-	static std::vector<Transform2D*> TRANSFORMS;
+	static std::list<Transform2D*> TRANSFORMS;
 public:
 	static void DirtyReset()
 	{
@@ -34,11 +34,12 @@ public:
 	Transform2D(Transform2D* Parent = nullptr) {
 		SetParent(Parent);
 		TRANSFORMS.emplace_back(this);
-		std::remove_if(TRANSFORMS.begin(), TRANSFORMS.end(), [this](Transform2D* tmp) {
+	}
+	~Transform2D() {
+		(void)TRANSFORMS.remove_if([this](Transform2D* tmp) {
 			return tmp == this;
 			});
 	}
-	~Transform2D() {	}
 	void SetParent(Transform2D* Parent) {
 		parent = Parent;
 		MatReset();

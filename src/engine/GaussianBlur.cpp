@@ -82,7 +82,7 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     SourceTex->SetComputeDescriptorBuffer(CmdList, SRV, 2);
     xBlurResult->SetComputeDescriptorBuffer(CmdList, UAV, 3);
-    CmdList->Dispatch(xBlurResult->GetDesc().Width / DIV, xBlurResult->GetDesc().Height / DIV, 1);
+    CmdList->Dispatch(static_cast<UINT>(xBlurResult->GetDesc().Width / DIV), static_cast<UINT>(xBlurResult->GetDesc().Height / DIV), 1);
 
     //Yƒuƒ‰[
     yBlurPipeline->SetPipeline(CmdList);
@@ -90,7 +90,7 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     xBlurResult->SetComputeDescriptorBuffer(CmdList, SRV, 2);
     yBlurResult->SetComputeDescriptorBuffer(CmdList, UAV, 3);
-    CmdList->Dispatch(yBlurResult->GetDesc().Width / DIV, yBlurResult->GetDesc().Height / DIV, 1);
+    CmdList->Dispatch(static_cast<UINT>(yBlurResult->GetDesc().Width / DIV), static_cast<UINT>(yBlurResult->GetDesc().Height / DIV), 1);
 
     //ÅIŒ‹‰Ê‡¬
     finalPipeline->SetPipeline(CmdList);
@@ -98,7 +98,7 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     yBlurResult->SetComputeDescriptorBuffer(CmdList, SRV, 2);
     finalResult->SetComputeDescriptorBuffer(CmdList, UAV, 3);
-    CmdList->Dispatch(finalResult->GetDesc().Width / DIV, finalResult->GetDesc().Height / DIV, 1);
+    CmdList->Dispatch(static_cast<UINT>(finalResult->GetDesc().Width / DIV), static_cast<UINT>(finalResult->GetDesc().Height / DIV), 1);
 }
 
 #include"KuroEngine.h"

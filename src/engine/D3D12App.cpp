@@ -250,7 +250,7 @@ std::shared_ptr<VertexBuffer> D3D12App::GenerateVertexBuffer(const size_t& Verte
 	D3D12_VERTEX_BUFFER_VIEW vbView;
 	vbView.BufferLocation = buff->GetGPUVirtualAddress();
 	vbView.SizeInBytes = sizeVB;
-	vbView.StrideInBytes = VertexSize;
+	vbView.StrideInBytes = static_cast<UINT>(VertexSize);
 
 	//専用のクラスにまとめる
 	std::shared_ptr<VertexBuffer>result;
@@ -686,7 +686,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Vec2<int>& 
 	DescHandles srvHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//アンオーダードアクセスビュー作成
-	descHeapCBV_SRV_UAV->CreateUAV(device, buff, 4, texDesc.Width * texDesc.Height, D3D12_UAV_DIMENSION_TEXTURE2D, texDesc.Format);
+	descHeapCBV_SRV_UAV->CreateUAV(device, buff, 4, static_cast<int>(texDesc.Width * texDesc.Height), D3D12_UAV_DIMENSION_TEXTURE2D, texDesc.Format);
 	DescHandles uavHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用のシェーダーリソースクラスにまとめる
@@ -718,7 +718,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 		{
 			for (size_t w = 0; w < img->width; w++)
 			{
-				int idx = h * img->width * 4 + w * sizeof(4) + Channel;
+				int idx = h * static_cast<int>(img->width) * 4 + static_cast<int>(w) * 4 + Channel;
 				pixelBuff.emplace_back(img->pixels[idx]);
 			}
 		}
@@ -728,7 +728,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 		{
 			for (size_t w = 0; w < img->width; w++)
 			{
-				int startIdx = h * img->width * 4 + (w * sizeof(4));
+				int startIdx = h * static_cast<int>(img->width) * 4 + (static_cast<int>(w) * 4);
 				img->pixels[startIdx] = pixelBuff[idx++];	//R
 				img->pixels[startIdx + 1] = 0;	//G
 				img->pixels[startIdx + 2] = 0;	//B
@@ -1044,7 +1044,7 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 			inputLayout.emplace_back(input);
 		}
 		desc.InputLayout.pInputElementDescs = &inputLayout[0];
-		desc.InputLayout.NumElements = inputLayout.size();
+		desc.InputLayout.NumElements = static_cast<UINT>(inputLayout.size());
 	}
 
 	//ルートパラメータ
@@ -1111,7 +1111,8 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 		}
 		// ルートシグネチャの設定
 		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init_1_0(rootParameters.size(), rootParameters.data(), Samplers.size(), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		rootSignatureDesc.Init_1_0(static_cast<UINT>(rootParameters.size()), rootParameters.data(), 
+			static_cast<UINT>(Samplers.size()), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		ComPtr<ID3DBlob> rootSigBlob;
 		ComPtr<ID3DBlob> errorBlob = nullptr;	//エラーオブジェクト
@@ -1300,7 +1301,8 @@ std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<
 
 		// ルートシグネチャの設定
 		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init_1_0(rootParameters.size(), rootParameters.data(), Samplers.size(), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		rootSignatureDesc.Init_1_0(static_cast<UINT>(rootParameters.size()), rootParameters.data(), 
+			static_cast<UINT>(Samplers.size()), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		ComPtr<ID3DBlob> rootSigBlob;
 		ComPtr<ID3DBlob> errorBlob = nullptr;	//エラーオブジェクト
@@ -1345,7 +1347,7 @@ void D3D12App::SetBackBufferRenderTarget()
 {
 	swapchain->GetBackBufferRenderTarget()->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> BACK_BUFF_HANDLE = { swapchain->GetBackBufferRenderTarget()->AsRTV(commandList) };
-	commandList->OMSetRenderTargets(BACK_BUFF_HANDLE.size(), &BACK_BUFF_HANDLE[0], FALSE, nullptr);
+	commandList->OMSetRenderTargets(static_cast<UINT>(BACK_BUFF_HANDLE.size()), &BACK_BUFF_HANDLE[0], FALSE, nullptr);
 }
 
 void D3D12App::SplitTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name)

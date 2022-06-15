@@ -7,7 +7,7 @@
 
 class LightManager;
 
-static class DrawFunc2D_Shadow
+class DrawFunc2D_Shadow
 {
 	//視点座標用の定数バッファ
 	static std::shared_ptr<ConstantBuffer>EYE_POS_BUFF;

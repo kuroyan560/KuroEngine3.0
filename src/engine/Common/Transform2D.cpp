@@ -1,6 +1,6 @@
 #include "Transform2D.h"
 
-std::vector<Transform2D*> Transform2D::TRANSFORMS;
+std::list<Transform2D*> Transform2D::TRANSFORMS;
 
 const Matrix& Transform2D::GetMat()
 {

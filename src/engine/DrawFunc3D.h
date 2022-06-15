@@ -12,7 +12,7 @@ class LightManager;
 class CubeMap;
 class ModelAnimator;
 
-static class DrawFunc3D
+class DrawFunc3D
 {
 	//DrawLine
 	static int DRAW_LINE_COUNT;

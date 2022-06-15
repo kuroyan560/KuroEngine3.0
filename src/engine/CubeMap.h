@@ -15,7 +15,7 @@ class CubeMap
 protected:
 	static std::shared_ptr<TextureBuffer>DEFAULT_CUBE_MAP_TEX;
 public:
-	static const enum SURFACE_TYPE
+	enum SURFACE_TYPE
 	{
 		FRONT,	//+Z
 		PZ = FRONT,

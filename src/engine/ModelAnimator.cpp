@@ -92,7 +92,7 @@ void ModelAnimator::Update()
 		}
 
 		//全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
-		BoneMatrixRecursive(skel->bones.size() - 1, XMMatrixIdentity());
+		BoneMatrixRecursive(static_cast<int>(skel->bones.size() - 1), XMMatrixIdentity());
 
 		//フレーム経過
 		playAnim.past++;

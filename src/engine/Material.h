@@ -6,9 +6,9 @@
 
 class ConstantBuffer;
 class TextureBuffer;
-static const enum MATERIAL_TEX_TYPE { COLOR_TEX, EMISSIVE_TEX, NORMAL_TEX, BASE_COLOR_TEX, METALNESS_TEX, ROUGHNESS_TEX, MATERIAL_TEX_TYPE_NUM };
+enum MATERIAL_TEX_TYPE { COLOR_TEX, EMISSIVE_TEX, NORMAL_TEX, BASE_COLOR_TEX, METALNESS_TEX, ROUGHNESS_TEX, MATERIAL_TEX_TYPE_NUM };
 
-struct Material
+class Material
 {
 private:
 	bool invalid = true;
@@ -16,7 +16,7 @@ public:
 	std::string name = "DefaultMaterial";
 	struct Lambert
 	{
-		Vec3<float> ambient = { 0.2,0.2,0.2 };	//環境光(全方向から当たる光)
+		Vec3<float> ambient = { 0.2f,0.2f,0.2f };	//環境光(全方向から当たる光)
 		float ambientFactor = 1.0f;			//強度(weight)
 		Vec3<float> diffuse = { 1.0f,1.0f,1.0f };	//拡散反射光(モデルが本来持っている色味)
 		float diffuseFactor = 1.0f;

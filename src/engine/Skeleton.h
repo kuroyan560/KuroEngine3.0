@@ -27,7 +27,7 @@ class Skeleton
 public:
 	struct BoneAnimation
 	{
-		static const enum { POS_X, POS_Y, POS_Z, ROTATE_X, ROTATE_Y, ROTATE_Z, ROTATE_W, SCALE_X, SCALE_Y, SCALE_Z, ANIM_IDX_NUM };
+		enum { POS_X, POS_Y, POS_Z, ROTATE_X, ROTATE_Y, ROTATE_Z, ROTATE_W, SCALE_X, SCALE_Y, SCALE_Z, ANIM_IDX_NUM };
 		std::array<Animation, ANIM_IDX_NUM>anims;
 		Matrix GetMatrix(const float& Frame, bool* FinishFlg = nullptr)const;
 	};

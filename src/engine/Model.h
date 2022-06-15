@@ -5,7 +5,7 @@
 #include"Skeleton.h"
 #include"ModelMesh.h"
 
-struct Model
+class Model
 {
 public:
 	//ヘッダ（モデル情報）

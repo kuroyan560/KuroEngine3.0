@@ -48,7 +48,7 @@ std::shared_ptr<StaticallyCubeMap>& StaticallyCubeMap::GetDefaultCubeMap()
 void StaticallyCubeMap::ResetMeshVertices()
 {
 	//頂点の順番
-	static const enum { LB, LT, RB, RT, IDX_NUM };
+	enum { LB, LT, RB, RT, IDX_NUM };
 
 	//FRONT面からのオフセット回転行列
 	static const std::array<Matrix, SURFACE_NUM>OFFSET_MAT =

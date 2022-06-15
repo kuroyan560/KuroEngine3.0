@@ -6,7 +6,7 @@ struct Angle
 	static const float RADIAN_PER_DEGREE() { return  PI() / 180.0f; }
 	static const float ROUND() { return PI() * 2; }
 	static const float ConvertToRadian(const float& Degree) { return PI() / 180.0f * Degree; }
-	static const int ConvertToDegree(const float& Radian) { return Radian / (PI() / 180.0f); }
+	static const int ConvertToDegree(const float& Radian) { return static_cast<int>(Radian / (PI() / 180.0f)); }
 
 	float radian = 0.0f;
 

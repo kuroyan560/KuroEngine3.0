@@ -193,9 +193,9 @@ void Importer::LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& 
 		int vertIdx = indices[polygonVertIdx];
 
 		//頂点座標リストから座標を取得
-		vertex.pos.x = -vertices[vertIdx][0];
-		vertex.pos.y = vertices[vertIdx][1];
-		vertex.pos.z = vertices[vertIdx][2];
+		vertex.pos.x = -(float)vertices[vertIdx][0];
+		vertex.pos.y = (float)vertices[vertIdx][1];
+		vertex.pos.z = (float)vertices[vertIdx][2];
 
 		//法線リストから法線を取得
 		vertex.normal.x = -(float)normals[polygonVertIdx][0];
@@ -537,8 +537,8 @@ void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 	if (FbxAnimCurve->GetTimeInterval(interval)) {
 		FbxLongLong start = interval.GetStart().Get();
 		FbxLongLong end = interval.GetStop().Get();
-		Animation.startFrame = start / ONE_FRAME_VALUE;
-		Animation.endFrame =  end / ONE_FRAME_VALUE;
+		Animation.startFrame = static_cast<int>(start / ONE_FRAME_VALUE);
+		Animation.endFrame =  static_cast<int>(end / ONE_FRAME_VALUE);
 	}
 
 	int lKeyCount = FbxAnimCurve->KeyGetCount();
@@ -552,7 +552,7 @@ void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 
 		KeyFrame keyFrame{};
 
-		keyFrame.frame = lKeyTime.Get() / ONE_FRAME_VALUE;
+		keyFrame.frame = static_cast<int>(lKeyTime.Get() / ONE_FRAME_VALUE);
 		keyFrame.value = lKeyValue;
 
 		Animation.keyFrames.emplace_back(keyFrame);
@@ -1313,7 +1313,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		for (auto& child : gltfNode.children)
 		{
 			auto childIdx = doc.nodes.GetIndex(child);
-			skel.bones[childIdx].parent = skel.bones.size() - 1;
+			skel.bones[childIdx].parent = static_cast<char>(skel.bones.size() - 1);
 		}
 
 		// ローカル変形行列の計算
@@ -1357,8 +1357,8 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 			//開始 / 終了フレーム
 			const auto& input = doc.accessors.Get(sampler.inputAccessorId);
-			const int startFrame = input.min[0] * 60;	//単位が秒なので 60f / 1sec としてフレームに変換
-			const int endFrame = input.max[0] * 60;	//単位が秒なので 60f / 1sec としてフレームに変換
+			const int startFrame = static_cast<int>(input.min[0] * 60);	//単位が秒なので 60f / 1sec としてフレームに変換
+			const int endFrame = static_cast<int>(input.max[0] * 60);	//単位が秒なので 60f / 1sec としてフレームに変換
 
 			//キーフレーム情報
 			auto keyFrames = resourceReader->ReadBinaryData<float>(doc, input);
@@ -1383,7 +1383,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 					{
 						anim.keyFrames.emplace_back();
 						auto& keyFrame = anim.keyFrames.back();
-						keyFrame.frame = keyFrames[keyFrameIdx];
+						keyFrame.frame = static_cast<int>(keyFrames[keyFrameIdx]);
 						keyFrame.value = values[keyFrameIdx * 4 + valueIdx];
 					}
 				}
@@ -1402,7 +1402,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 					{
 						anim.keyFrames.emplace_back();
 						auto& keyFrame = anim.keyFrames.back();
-						keyFrame.frame = keyFrames[keyFrameIdx];
+						keyFrame.frame = static_cast<int>(keyFrames[keyFrameIdx]);
 						keyFrame.value = values[keyFrameIdx * 3 + valueIdx];
 					}
 				}

@@ -18,10 +18,10 @@ struct Vec2
 	Vec2() {};
 	Vec2(T X, T Y) :x(X), y(Y) {};
 	float Length()const {
-		return sqrt(pow(x, 2) + pow(y, 2));
+		return static_cast<float>(sqrt(pow(x, 2) + pow(y, 2)));
 	};
 	float Distance(const Vec2& To)const {
-		return sqrt(pow(To.x - x, 2) + pow(To.y - y, 2));
+		return static_cast<float>(sqrt(pow(To.x - x, 2) + pow(To.y - y, 2)));
 	};
 	Vec2<float> GetNormal()const {
 		float len = Length();
@@ -63,13 +63,19 @@ struct Vec2
 		return Vec2(x * rhs.x, y * rhs.y);
 	};
 	Vec2 operator*(const float& rhs)const {
-		return Vec2(x * rhs, y * rhs);
+		Vec2<float>result;
+		result.x = static_cast<float>(x) * rhs;
+		result.y = static_cast<float>(y) * rhs;
+		return Vec2(static_cast<T>(result.x), static_cast<T>(result.y));
 	};
 	Vec2 operator/(const Vec2& rhs)const {
 		return Vec2(x / rhs.x, y / rhs.y);
 	};
 	Vec2 operator/(const float& rhs)const {
-		return Vec2(x / rhs, y / rhs);
+		Vec2<float>result;
+		result.x = static_cast<float>(x) / rhs;
+		result.y = static_cast<float>(y) / rhs;
+		return Vec2(static_cast<T>(result.x), static_cast<T>(result.y));
 	};
 	Vec2 operator%(const Vec2& rhs) const {
 		return Vec2(fmodf(x, rhs.x), fmodf(y, rhs.y));
@@ -139,16 +145,16 @@ struct Vec3
 	Vec3(T X, T Y, T Z) :x(X), y(Y), z(Z) {};
 	float Length()const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
-		return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+		return static_cast<float>(sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)));
 	};
 	Vec3(Vec2<T>XY, T Z) :x(XY.x), y(XY.y), z(Z) {};
 	float Distance(const Vec3& To)const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
-		return sqrt(pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2));
+		return static_cast<float>(sqrt(pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2)));
 	};
 	float DistanceSq(const Vec3& To)const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
-		return pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2);
+		return static_cast<float>(pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2));
 	};
 	Vec3<float> GetNormal()const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
@@ -303,6 +309,7 @@ struct Vec3
 		if (Idx == 1)return this->y;
 		if (Idx == 2)return this->z;
 		assert(0);
+		return this->x;
 	}
 	operator DirectX::XMFLOAT3()const
 	{

@@ -56,13 +56,13 @@ std::wstring KuroFunc::GetWideStrFromStr(const char* Str)
 
 std::string KuroFunc::GetExtension(const std::string& Path)
 {
-	int idx = Path.rfind('.');
+	int idx = static_cast<int>(Path.rfind('.'));
 	return Path.substr(idx + 1, Path.length() - idx - 1);
 }
 
 void KuroFunc::GetDivideStr(const std::string& Str, std::string* Dir, std::string* FileName)
 {
-	int idx = Str.rfind('/');
+	int idx = static_cast<int>(Str.rfind('/'));
 	std::string fileName = Str.substr(idx + 1, Str.length() - idx - 1);
 	if (FileName != nullptr)
 	{
@@ -219,17 +219,15 @@ int GetSelectPatternNum(int n, int k)
 
 float KuroFunc::GetBezierFromControlPoint(float t, int ControlPointNum, float* ControlPointArray)
 {
-	//ControlPointNum == n
-
-	float result = 0;
+	double result = 0;
 	for (int i = 0; i < ControlPointNum; ++i)
 	{
 		int coefficient = GetSelectPatternNum(ControlPointNum, i);	//“ñ€ŒW”
-		float a = pow(t, i);	// t ‚Ì i æ
-		float b = pow((1 - t), (ControlPointNum - i));	// (1-t) ‚Ì n-i æ
+		double a = pow(t, i);	// t ‚Ì i æ
+		double b = pow((1 - t), (ControlPointNum - i));	// (1-t) ‚Ì n-i æ
 		result += coefficient * a * b * ControlPointArray[i];		//§Œä“_‚Ìd‚Ý•t‚¯‚ð‚µ‚Ä‰ÁŽZ(ƒ°)
 	}
-	return result;
+	return static_cast<float>(result);
 }
 
 int KuroFunc::GetRand(int Min, int Max)
@@ -245,8 +243,8 @@ int KuroFunc::GetRand(int Max)
 
 float KuroFunc::GetRand(float Min, float Max)
 {
-	float result = (Max - Min) * ((double)rand() / RAND_MAX) + Min;
-	return result;
+	double result = (Max - Min) * ((double)rand() / RAND_MAX) + Min;
+	return static_cast<float>(result);
 }
 
 float KuroFunc::GetRand(float Max)

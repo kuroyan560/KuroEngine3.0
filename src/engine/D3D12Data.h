@@ -8,7 +8,7 @@
 #include"KuroFunc.h"
 #include"Color.h"
 
-static const enum DESC_HANDLE_TYPE { CBV, SRV, UAV, RTV, DSV, DESC_HANDLE_NUM };
+enum DESC_HANDLE_TYPE { CBV, SRV, UAV, RTV, DSV, DESC_HANDLE_NUM };
 
 //ディスクリプタハンドル
 class DescHandles
@@ -468,7 +468,7 @@ public:
 	const unsigned int indexNum;
 
 	IndexBuffer(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier, const D3D12_INDEX_BUFFER_VIEW& IBView, const size_t& IndexSize)
-		:resource(Buff, Barrier), ibView(IBView), indexSize(IndexSize), indexNum(IBView.SizeInBytes / IndexSize) {}
+		:resource(Buff, Barrier), ibView(IBView), indexSize(IndexSize), indexNum(static_cast<unsigned int>(IBView.SizeInBytes / IndexSize)) {}
 	void Mapping(void* SendData)
 	{
 		resource.Mapping(indexSize, indexNum, SendData);
@@ -583,7 +583,7 @@ public:
 };
 
 //アルファブレンディングモード
-static const enum AlphaBlendMode
+enum AlphaBlendMode
 {
 	AlphaBlendMode_None,	//アルファブレンディングなし(上書き)。
 	AlphaBlendMode_Trans,	//半透明合成

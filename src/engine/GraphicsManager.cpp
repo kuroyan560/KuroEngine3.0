@@ -8,24 +8,24 @@ void GraphicsManager::SetRenderTargetsCommand::Excute(const ComPtr<ID3D12Graphic
 		rtvs.emplace_back(ptr.lock()->AsRTV(CmdList));
 	}
 
-	const auto targetSize = renderTargets[0].lock()->GetGraphSize();
+	const Vec2<float> targetSize = renderTargets[0].lock()->GetGraphSize().Float();
 	//ビューポート設定
 	auto viewPort = CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y);
 	CmdList->RSSetViewports(1, &viewPort);
 
 	//シザー矩形設定
-	auto rect = CD3DX12_RECT(0, 0, targetSize.x, targetSize.y);
+	auto rect = CD3DX12_RECT(0, 0, static_cast<LONG>(targetSize.x), static_cast<LONG>(targetSize.y));
 	CmdList->RSSetScissorRects(1, &rect);
 
 	//デプスステンシルがある場合
 	if (auto ptr = depthStencil.lock())
 	{
-		CmdList->OMSetRenderTargets(rtvs.size(), &rtvs[0], FALSE, ptr->AsDSV(CmdList));
+		CmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, ptr->AsDSV(CmdList));
 	}
 	//ない場合
 	else
 	{
-		CmdList->OMSetRenderTargets(rtvs.size(), &rtvs[0], FALSE, nullptr);
+		CmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, nullptr);
 	}
 }
 

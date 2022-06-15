@@ -18,13 +18,13 @@ class SpriteMesh
 	};
 
 	//頂点インデックス
-	static const enum { LB, LT, RB, RT, IDX_NUM };
+	enum { LB, LT, RB, RT, IDX_NUM };
 
 	//メッシュ情報
 	std::shared_ptr<Mesh<Vertex_Sprite>>mesh;
 
 	//トリミングインデックス
-	static const enum { TOP, BOTTOM, LEFT, RIGHT, TRIM_IDX_NUM };
+	enum { TOP, BOTTOM, LEFT, RIGHT, TRIM_IDX_NUM };
 	//各辺のトリミング率
 	float trim[TRIM_IDX_NUM];
 

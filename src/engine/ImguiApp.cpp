@@ -146,7 +146,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 	//èëÇ´ä∑Ç¶
 	else if (Mode == REWRITE)
 	{
-		static const enum TYPE { LAMBERT, PHONG, PBR };
+		enum TYPE { LAMBERT, PHONG, PBR };
 		static const std::array<std::string, 3> TYPE_STR = { "Lambert","Phong","PBR" };
 		static int TYPE_IDX = PBR;
 		static std::string CURRENT_TYPE = TYPE_STR[TYPE_IDX];

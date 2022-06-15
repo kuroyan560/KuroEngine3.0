@@ -4,11 +4,11 @@
 #include"Angle.h"
 #include"KuroFunc.h"
 #include<cmath>
-#include<vector>
+#include<list>
 
 class Transform
 {
-	static std::vector<Transform*> TRANSFORMS;
+	static std::list<Transform*> TRANSFORMS;
 public:
 	static void DirtyReset()
 	{
@@ -38,7 +38,7 @@ public:
 		TRANSFORMS.emplace_back(this);
 	}
 	~Transform() {
-		std::remove_if(TRANSFORMS.begin(), TRANSFORMS.end(), [this](Transform* tmp) {
+		(void)TRANSFORMS.remove_if([this](Transform* tmp) {
 			return tmp == this;
 			});
 	}

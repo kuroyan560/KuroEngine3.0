@@ -6,7 +6,7 @@ class ConstantBuffer;
 class ModelAnimator;
 class Model;
 
-struct ModelObject
+class ModelObject
 {
 private:
 	std::shared_ptr<ConstantBuffer>transformBuff;

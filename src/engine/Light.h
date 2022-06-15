@@ -212,7 +212,7 @@ namespace Light
 		}
 	};
 
-	static const enum TYPE
+	enum TYPE
 	{
 		DIRECTION, POINT, SPOT, HEMISPHERE, TYPE_NUM
 	};

@@ -1,6 +1,6 @@
 #include "Transform.h"
 
-std::vector<Transform*> Transform::TRANSFORMS;
+std::list<Transform*> Transform::TRANSFORMS;
 
 const Matrix& Transform::GetMat(const Matrix& BillBoardMat)
 {

@@ -79,7 +79,7 @@ void KuroEngine::Initialize(const EngineOption& Option)
 	xaudioLib = LoadLibrary(L"XAudio2_9.dll");
 
 	//乱数取得用シード生成
-	srand(time(NULL));
+	srand(static_cast<unsigned int>(time(NULL)));
 
 	//ウィンドウアプリ生成
 	winApp = std::make_unique<WinApp>(Option.windowName, Option.windowSize, Option.iconPath);

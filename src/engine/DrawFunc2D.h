@@ -3,7 +3,7 @@
 #include"Vec.h"
 #include"Color.h"
 
-static class DrawFunc2D
+class DrawFunc2D
 {
 	//DrawLine
 	static int DRAW_LINE_COUNT;	//ŒÄ‚Î‚ê‚½‰ñ”

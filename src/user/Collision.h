@@ -94,7 +94,7 @@ public:
 	void AttachWorldTransform(Transform* World) { world = World; }
 };
 
-static class Collision
+class Collision
 {
 	static bool SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter);
 

@@ -8,7 +8,7 @@
 #include<array>
 #include<string>
 
-static const enum IMGUI_DEBUG_MODE
+enum IMGUI_DEBUG_MODE
 {
 	REFERENCE,	//QÆiŒ©‚é‚¾‚¯j
 	REWRITE,	//‘‚«Š·‚¦

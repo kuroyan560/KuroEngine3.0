@@ -30,7 +30,7 @@ void ModelMesh::Smoothing()
 		{
 			norm += mesh->vertices[vIdx].normal;
 		}
-		norm /= sameVertex.size();
+		norm /= static_cast<float>(sameVertex.size());
 		for (auto vIdx : sameVertex)
 		{
 			mesh->vertices[vIdx].normal = norm;

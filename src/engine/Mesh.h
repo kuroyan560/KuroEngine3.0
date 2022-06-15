@@ -29,10 +29,10 @@ public:
 		KuroFunc::ErrorMessage(vertices.empty(), "Mesh", "CreateBuff", "メッシュのバッファ生成をしようとしましたが、頂点が空です\n");
 
 		//頂点バッファ生成
-		if(!vertBuff)vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(VertexType), vertices.size(), &vertices[0], name.c_str());
+		if(!vertBuff)vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(VertexType), static_cast<int>(vertices.size()), &vertices[0], name.c_str());
 
 		//インデックスバッファ生成
-		if (!idxBuff && !indices.empty())idxBuff = D3D12App::Instance()->GenerateIndexBuffer(indices.size(), &indices[0], name.c_str());
+		if (!idxBuff && !indices.empty())idxBuff = D3D12App::Instance()->GenerateIndexBuffer(static_cast<int>(indices.size()), &indices[0], name.c_str());
 
 		invalid = false;
 	}

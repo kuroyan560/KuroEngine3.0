@@ -3,7 +3,7 @@
 class Primitive
 {
 public:
-	static const enum TYPE { SPHERE, PLANE, TRIANGLE, RAY };
+	enum TYPE { SPHERE, PLANE, TRIANGLE, RAY };
 	virtual TYPE GetPrimitiveType() = 0;
 };
 

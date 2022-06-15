@@ -82,7 +82,7 @@ public:
 	{
 		D3D12_CONSTANT_BUFFER_VIEW_DESC desc = {};
 		desc.BufferLocation = BuffGpuAddress;
-		desc.SizeInBytes = SizeInBytes;
+		desc.SizeInBytes = static_cast<UINT>(SizeInBytes);
 		CreateCBV(Device, desc);
 	}
 
@@ -107,7 +107,7 @@ public:
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Buffer.FirstElement = 0;
 		srvDesc.Buffer.NumElements = static_cast<UINT>(ElementNum);
-		srvDesc.Buffer.StructureByteStride = DataSize;
+		srvDesc.Buffer.StructureByteStride = static_cast<UINT>(DataSize);
 		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 		CreateSRV(Device, Buff, srvDesc);
 	}
@@ -121,7 +121,7 @@ public:
 		desc.ViewDimension = Dimension;
 		desc.Format = Format;
 		desc.Buffer.NumElements = static_cast<UINT>(ElementNum);
-		desc.Buffer.StructureByteStride = DataSize;
+		desc.Buffer.StructureByteStride = static_cast<UINT>(DataSize);
 		CreateUAV(Device, Buff, desc);
 	}
 };

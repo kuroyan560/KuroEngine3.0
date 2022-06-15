@@ -72,9 +72,9 @@ void UsersInput::Update(const HWND& Hwnd, const Vec2<float>& WinSize)
 	POINT p;
 	GetCursorPos(&p);
 	ScreenToClient(Hwnd, &p);
-	mousePos.x = p.x;
+	mousePos.x = static_cast<float>(p.x);
 	mousePos.x = std::clamp(mousePos.x, 0.0f, WinSize.x);
-	mousePos.y = p.y;
+	mousePos.y = static_cast<float>(p.y);
 	mousePos.y = std::clamp(mousePos.y, 0.0f, WinSize.y);
 
 	//コントローラー
@@ -97,13 +97,13 @@ void UsersInput::Update(const HWND& Hwnd, const Vec2<float>& WinSize)
 
 			if (shakeTimer == 0)
 			{
-				vibration.wLeftMotorSpeed = 0.0f; // use any value between 0-65535 here
-				vibration.wRightMotorSpeed = 0.0f; // use any value between 0-65535 here
+				vibration.wLeftMotorSpeed = static_cast<WORD>(0.0f); // use any value between 0-65535 here
+				vibration.wRightMotorSpeed = static_cast<WORD>(0.0f); // use any value between 0-65535 here
 			}
 			else
 			{
-				vibration.wLeftMotorSpeed = 65535.0f * shakePower[i]; // use any value between 0-65535 here
-				vibration.wRightMotorSpeed = 65535.0f * shakePower[i]; // use any value between 0-65535 here
+				vibration.wLeftMotorSpeed = static_cast<WORD>(65535.0f * shakePower[i]); // use any value between 0-65535 here
+				vibration.wRightMotorSpeed = static_cast<WORD>(65535.0f * shakePower[i]); // use any value between 0-65535 here
 			}
 			XInputSetState(dwResult, &vibration);
 		}
@@ -370,14 +370,14 @@ bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_STICK Stick
 
 Vec2<float> UsersInput::GetLeftStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate)
 {
-	Vec2<float>result(xinputState[ControllerIdx].Gamepad.sThumbLX, -xinputState[ControllerIdx].Gamepad.sThumbLY);
+	Vec2<float>result(static_cast<float>(xinputState[ControllerIdx].Gamepad.sThumbLX), static_cast<float>(-xinputState[ControllerIdx].Gamepad.sThumbLY));
 	StickInDeadZone(result, DeadRate);
 	return result.GetNormal();
 }
 
 Vec2<float> UsersInput::GetRightStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate)
 {
-	Vec2<float>result(xinputState[ControllerIdx].Gamepad.sThumbRX, -xinputState[ControllerIdx].Gamepad.sThumbRY);
+	Vec2<float>result(static_cast<float>(xinputState[ControllerIdx].Gamepad.sThumbRX), static_cast<float>(-xinputState[ControllerIdx].Gamepad.sThumbRY));
 	StickInDeadZone(result, DeadRate);
 	return result.GetNormal();
 }
