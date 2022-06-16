@@ -26,6 +26,6 @@ public:
 		}
 	}
 
-	std::vector<CollisionTriangle>GetCollisionTriangles();
+	std::vector<CollisionTriangleArray>GetCollisionTriangleArray();
 };
 

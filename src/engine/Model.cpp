@@ -1,17 +1,13 @@
 #include "Model.h"
 
-std::vector<CollisionTriangle> Model::GetCollisionTriangles()
+std::vector<CollisionTriangleArray> Model::GetCollisionTriangleArray()
 {
-    std::vector<CollisionTriangle>triangles;
+    std::vector<CollisionTriangleArray>triangleArray;
 
     for (auto& m : meshes)
     {
-        auto meshTriangles = m.GetCollisionTriangles();
-        for (auto& tri : meshTriangles)
-        {
-            triangles.emplace_back(tri);
-        }
+        triangleArray.emplace_back(m.GetCollisionTriangles());
     }
 
-    return triangles;
+    return triangleArray;
 }

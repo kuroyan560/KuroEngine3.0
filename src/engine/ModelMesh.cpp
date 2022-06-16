@@ -109,9 +109,9 @@ void ModelMesh::BuildTangentAndBiNormal()
 	}
 }
 
-std::vector<CollisionTriangle> ModelMesh::GetCollisionTriangles()
+CollisionTriangleArray ModelMesh::GetCollisionTriangles()
 {
-	std::vector<CollisionTriangle>triangles;
+	CollisionTriangleArray triangles;
 
 	for (int idx = 0; idx < mesh->indices.size(); idx += 3)
 	{

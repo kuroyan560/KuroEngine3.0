@@ -8,7 +8,7 @@ cbuffer cbuff0 : register(b0)
 cbuffer cbuff1 : register(b1)
 {
     matrix world;
-    bool hit;
+    uint hit;
 }
 
 struct VSOutput

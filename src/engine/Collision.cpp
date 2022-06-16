@@ -103,20 +103,31 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
 }
 
-void CollisionMesh::SetTriangles(const std::vector<CollisionTriangle>& Triangles)
+void CollisionMesh::SetTriangles(const std::vector<CollisionTriangleArray>& Triangles)
 {
-	triangles = Triangles;
-
-	//頂点バッファ生成
-	vertBuff.reset();
-	std::vector<Vec3<float>>vertices;
-	for (auto& t : triangles)
+	int idx = 0;
+	for (auto& triArray : Triangles)
 	{
-		vertices.emplace_back(t.p0);
-		vertices.emplace_back(t.p1);
-		vertices.emplace_back(t.p2);
+		collisionMeshes.emplace_back();
+
+		auto& collisionMesh = collisionMeshes.back();
+		collisionMesh.triangles = triArray;
+
+		std::vector<Vec3<float>>vertices;
+		for (auto& t : triArray)
+		{
+			vertices.emplace_back(t.p0);
+			vertices.emplace_back(t.p1);
+			vertices.emplace_back(t.p2);
+		}
+		collisionMesh.vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), static_cast<int>(vertices.size()), vertices.data(), 
+			("CollisionMesh - VertexBuffer - " + std::to_string(idx)).c_str());
+
+		collisionMesh.constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr,
+			("Collision_Mesh - ConstantBuffer - " + std::to_string(idx)).c_str());
+
+		idx++;
 	}
-	vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), static_cast<int>(vertices.size()), vertices.data(), "CollisionMesh - VertexBuffer");
 }
 
 void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
@@ -152,24 +163,34 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	if (!constBuff)
-	{
-		constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "Collision_Sphere - ConstantBuffer");
-	}
-
 	ConstData constData;
 	constData.world = XMMatrixMultiply(XMMatrixScaling(1.1f, 1.1f, 1.1f), GetWorldMat());
-	constData.hit = Hit;
-	constBuff->Mapping(&constData);
 
 	float z = 0.0f;
 	if (world)z = world->GetPos().z;
 
 	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
 
-	KuroEngine::Instance().Graphics().ObjectRender(
-		vertBuff,
-		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+	int idx = 0;
+	for (auto& collisionMesh : collisionMeshes)
+	{
+		if (std::find(hitMeshIdx.begin(), hitMeshIdx.end(), idx) != hitMeshIdx.end())
+		{
+			constData.hit = 1;
+		}
+		else
+		{
+			constData.hit = 0;
+		}
+		collisionMesh.constBuff->Mapping(&constData);
+
+		KuroEngine::Instance().Graphics().ObjectRender(
+			collisionMesh.vertBuff,
+			{ Cam.GetBuff(),collisionMesh.constBuff }, { CBV,CBV }, z, true);
+		idx++;
+	}
+
+	hitMeshIdx.clear();
 }
 
 
@@ -257,18 +278,25 @@ Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const Coll
 bool Collision::SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3<float>* Inter)
 {
 	const auto spCenter = KuroMath::TransformVec3(Sphere->localCenter, Sphere->GetWorldMat());
+	int meshIdx = 0;
 
-	for (auto& t : Mesh->GetTriangles())
+	for (auto& collisionMesh : Mesh->GetCollisionMeshes())
 	{
-		// 球の中心に対する最近接点である三角形上にある点pを見つける
-		Vec3<float>closest = ClosestPtPoint2Triangle(spCenter, t, Mesh->GetWorldMat());
-		Vec3<float>v = closest - spCenter;
-		float distSq = v.Dot(v);
+		for (auto& t : collisionMesh.triangles)
+		{
+			// 球の中心に対する最近接点である三角形上にある点pを見つける
+			Vec3<float>closest = ClosestPtPoint2Triangle(spCenter, t, Mesh->GetWorldMat());
+			Vec3<float>v = closest - spCenter;
+			float distSq = v.Dot(v);
 
-		if (pow(Sphere->radius, 2.0f) < distSq)continue;
+			if (pow(Sphere->radius, 2.0f) < distSq)continue;
 
-		if (Inter)*Inter = closest;
-		return true;
+			if (Inter)*Inter = closest;
+
+			Mesh->hitMeshIdx.emplace_back(meshIdx);
+			return true;
+		}
+		meshIdx++;
 	}
 
 	return false;

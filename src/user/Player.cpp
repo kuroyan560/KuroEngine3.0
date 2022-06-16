@@ -47,7 +47,7 @@ Player::Player()
 	model = std::make_shared<ModelObject>("resource/user/", "player.glb");
 
 	//コライダー生成
-	auto colSphere = std::make_shared<CollisionMesh>(model->model->GetCollisionTriangles(), &model->transform);
+	auto colSphere = std::make_shared<CollisionMesh>(model->model->GetCollisionTriangleArray(), &model->transform);
 	collider = Collider::Generate(colSphere);
 	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);

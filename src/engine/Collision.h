@@ -79,27 +79,31 @@ struct CollisionTriangle
 	}
 };
 
+typedef std::vector<CollisionTriangle> CollisionTriangleArray;
+
 class CollisionMesh : public CollisionPrimitive
 {
 private:
 	friend class Collision;
+public:
+	struct CollisionMeshInfo
+	{
+		std::shared_ptr<VertexBuffer>vertBuff;
+		std::shared_ptr<ConstantBuffer>constBuff;
+		CollisionTriangleArray triangles;
+	};
 
 private:
-	//頂点バッファ
-	std::shared_ptr<VertexBuffer>vertBuff;
+	std::vector<CollisionMeshInfo>collisionMeshes;
 
-	//定数バッファ
-	std::shared_ptr<ConstantBuffer>constBuff;
-
-	//三角メッシュ配列
-	std::vector<CollisionTriangle>triangles;
+	//当たり判定があったメッシュのインデックス
+	std::vector<int>hitMeshIdx;
 
 	//ワールドトランスフォーム
 	Transform* world = nullptr;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
-
 public:
-	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr)
+	CollisionMesh(const std::vector<CollisionTriangleArray>& Triangles, Transform* World = nullptr)
 		: CollisionPrimitive(MESH)
 	{
 		SetTriangles(Triangles);
@@ -107,7 +111,7 @@ public:
 	}
 
 	//ゲッタ
-	const std::vector<CollisionTriangle>& GetTriangles()const { return triangles; }
+	const std::vector<CollisionMeshInfo>& GetCollisionMeshes()const { return collisionMeshes; }
 	const Matrix& GetWorldMat()
 	{
 		if (!world)return XMMatrixIdentity();
@@ -115,7 +119,7 @@ public:
 	}
 
 	//セッタ
-	void SetTriangles(const std::vector<CollisionTriangle>& Triangles);
+	void SetTriangles(const std::vector<CollisionTriangleArray>& Triangles);
 	void AttachWorldTransform(Transform* World) { world = World; }
 };
 

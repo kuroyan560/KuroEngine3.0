@@ -42,6 +42,6 @@ public:
 
 	void Smoothing();
 	void BuildTangentAndBiNormal();
-	std::vector<CollisionTriangle> GetCollisionTriangles();
+	CollisionTriangleArray GetCollisionTriangles();
 };
 
