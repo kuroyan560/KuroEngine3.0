@@ -46,8 +46,8 @@ private:
 public:
 	Vec3<float>localCenter;	//中心（ローカル座標）
 	float radius;					//半径
-	CollisionSphere(const float& Radius, const Vec3<float>& CenterOffset = Vec3<float>(0, 0, 0))
-		:CollisionPrimitive(SPHERE), localCenter(CenterOffset), radius(Radius) {}
+	CollisionSphere(const float& Radius, Transform* World = nullptr, const Vec3<float>& CenterOffset = Vec3<float>(0, 0, 0))
+		:CollisionPrimitive(SPHERE), world(World), localCenter(CenterOffset), radius(Radius) {}
 
 	//ゲッタ
 	const Matrix& GetWorldMat()

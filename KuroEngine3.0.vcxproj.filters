@@ -83,11 +83,11 @@
     <Filter Include="src\user\Enemy">
       <UniqueIdentifier>{6deebad1-61c6-42c4-bffb-6efc20964ef3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\user\Collision">
-      <UniqueIdentifier>{83cfc4e3-f909-4989-a998-b2f57f6e5b3e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="HLSL\engine\CollisionPrimitive">
       <UniqueIdentifier>{73078374-eb8c-4f07-894e-481f7988d75b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\Collision">
+      <UniqueIdentifier>{226ed961-4357-402e-b741-74cace9cdbe6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -368,11 +368,11 @@
     <ClCompile Include="src\user\EnemyManager.cpp">
       <Filter>src\user\Enemy</Filter>
     </ClCompile>
-    <ClCompile Include="src\user\Collider.cpp">
-      <Filter>src\user\Collision</Filter>
+    <ClCompile Include="src\engine\Collider.cpp">
+      <Filter>src\engine\ユーザー向け\Collision</Filter>
     </ClCompile>
-    <ClCompile Include="src\user\Collision.cpp">
-      <Filter>src\user\Collision</Filter>
+    <ClCompile Include="src\engine\Collision.cpp">
+      <Filter>src\engine\ユーザー向け\Collision</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -574,11 +574,11 @@
     <ClInclude Include="src\user\EnemyManager.h">
       <Filter>src\user\Enemy</Filter>
     </ClInclude>
-    <ClInclude Include="src\user\Collider.h">
-      <Filter>src\user\Collision</Filter>
+    <ClInclude Include="src\engine\Collider.h">
+      <Filter>src\engine\ユーザー向け\Collision</Filter>
     </ClInclude>
-    <ClInclude Include="src\user\Collision.h">
-      <Filter>src\user\Collision</Filter>
+    <ClInclude Include="src\engine\Collision.h">
+      <Filter>src\engine\ユーザー向け\Collision</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

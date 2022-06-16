@@ -19,7 +19,7 @@ struct VSOutput
 
 static const float ALPHA = 0.8f;
 
-VSOutput VSmain(float4 pos : POSITION) : SV_POSITION
+VSOutput VSmain(float4 pos : POSITION)
 {
     VSOutput output;
     output.svpos = mul(world, pos); //ƒ[ƒ‹ƒh•ÏŠ·

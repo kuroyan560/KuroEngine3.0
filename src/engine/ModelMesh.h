@@ -3,6 +3,8 @@
 #include<memory>
 #include"Mesh.h"
 #include"Material.h"
+#include<vector>
+#include"Collision.h"
 
 class ModelMesh
 {
@@ -40,5 +42,6 @@ public:
 
 	void Smoothing();
 	void BuildTangentAndBiNormal();
+	std::vector<CollisionTriangle> GetCollisionTriangles();
 };
 

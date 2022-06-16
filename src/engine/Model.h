@@ -4,6 +4,7 @@
 #include"ImportHeader.h"
 #include"Skeleton.h"
 #include"ModelMesh.h"
+#include"Collision.h"
 
 class Model
 {
@@ -24,5 +25,7 @@ public:
 			m.Smoothing();
 		}
 	}
+
+	std::vector<CollisionTriangle>GetCollisionTriangles();
 };
 

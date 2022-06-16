@@ -4,6 +4,7 @@
 #include"UsersInput.h"
 #include"Collision.h"
 #include"Collider.h"
+#include"Model.h"
 
 bool Player::INSTANCED = false;
 const std::string Player::CAMERA_KEY = "PlayerCamera";
@@ -46,9 +47,7 @@ Player::Player()
 	model = std::make_shared<ModelObject>("resource/user/", "player.glb");
 
 	//コライダー生成
-	const float COLLIDER_RADIUS = 3.0f;
-	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS);
-	colSphere->AttachWorldTransform(&model->transform);
+	auto colSphere = std::make_shared<CollisionMesh>(model->model->GetCollisionTriangles(), &model->transform);
 	collider = Collider::Generate(colSphere);
 	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);

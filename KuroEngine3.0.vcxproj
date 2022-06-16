@@ -465,6 +465,8 @@
     <ClCompile Include="lib\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\engine\AudioApp.cpp" />
     <ClCompile Include="src\engine\Camera.cpp" />
+    <ClCompile Include="src\engine\Collider.cpp" />
+    <ClCompile Include="src\engine\Collision.cpp" />
     <ClCompile Include="src\engine\Common\Color.cpp" />
     <ClCompile Include="src\engine\Common\KuroFunc.cpp" />
     <ClCompile Include="src\engine\Common\KuroMath.cpp" />
@@ -507,8 +509,6 @@
     <ClCompile Include="src\engine\Swapchain.cpp" />
     <ClCompile Include="src\engine\UsersInput.cpp" />
     <ClCompile Include="src\engine\WinApp.cpp" />
-    <ClCompile Include="src\user\Collider.cpp" />
-    <ClCompile Include="src\user\Collision.cpp" />
     <ClCompile Include="src\user\Enemy.cpp" />
     <ClCompile Include="src\user\EnemyBreed.cpp" />
     <ClCompile Include="src\user\EnemyManager.cpp" />
@@ -529,6 +529,8 @@
     <ClInclude Include="src\engine\Animation.h" />
     <ClInclude Include="src\engine\AudioApp.h" />
     <ClInclude Include="src\engine\Camera.h" />
+    <ClInclude Include="src\engine\Collider.h" />
+    <ClInclude Include="src\engine\Collision.h" />
     <ClInclude Include="src\engine\Common\Angle.h" />
     <ClInclude Include="src\engine\Common\Color.h" />
     <ClInclude Include="src\engine\Common\Command.h" />
@@ -577,8 +579,6 @@
     <ClInclude Include="src\engine\Swapchain.h" />
     <ClInclude Include="src\engine\UsersInput.h" />
     <ClInclude Include="src\engine\WinApp.h" />
-    <ClInclude Include="src\user\Collider.h" />
-    <ClInclude Include="src\user\Collision.h" />
     <ClInclude Include="src\user\Enemy.h" />
     <ClInclude Include="src\user\EnemyBreed.h" />
     <ClInclude Include="src\user\EnemyManager.h" />

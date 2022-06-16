@@ -126,6 +126,7 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		PIPELINE_OPTION.wireFrame = true;
 
 		//シェーダー情報
 		static Shaders SHADERS;
@@ -157,7 +158,7 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.world = GetWorldMat();
+	constData.world = XMMatrixMultiply(XMMatrixScaling(1.1f, 1.1f, 1.1f), GetWorldMat());
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
 
@@ -269,6 +270,8 @@ bool Collision::SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3
 		if (Inter)*Inter = closest;
 		return true;
 	}
+
+	return false;
 }
 
 bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimitive* PrimitiveB, Vec3<float>* Inter)

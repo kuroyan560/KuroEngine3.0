@@ -20,9 +20,7 @@ Enemy::Enemy(const EnemyBreed& Breed, const Transform& InitTransform) : breed(Br
 
 	//コライダー生成
 	const float COLLIDER_RADIUS = 1.5f;
-	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS);
-	colSphere->AttachWorldTransform(&transform);
-	colSphere->localCenter = Vec3<float>(0.0f, 0.5f, 0.0f);
+	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS, &transform, Vec3<float>(0.0f, 0.5f, 0.0f));
 	collider = Collider::Generate(colSphere);
 	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::PLAYER);

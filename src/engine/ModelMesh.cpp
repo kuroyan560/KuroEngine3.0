@@ -1,4 +1,5 @@
 #include "ModelMesh.h"
+#include"Collision.h"
 
 void ModelMesh::Smoothing()
 {
@@ -106,4 +107,21 @@ void ModelMesh::BuildTangentAndBiNormal()
 		vert.tangent.Normalize();
 		vert.binormal.Normalize();
 	}
+}
+
+std::vector<CollisionTriangle> ModelMesh::GetCollisionTriangles()
+{
+	std::vector<CollisionTriangle>triangles;
+
+	for (int idx = 0; idx < mesh->indices.size(); idx += 3)
+	{
+		triangles.emplace_back();
+		auto& tri = triangles.back();
+		tri.p0 = mesh->vertices[mesh->indices[idx]].pos;
+		tri.p1 = mesh->vertices[mesh->indices[idx + 1]].pos;
+		tri.p2 = mesh->vertices[mesh->indices[idx + 2]].pos;
+		tri.CalculateNormal();
+	}
+
+	return triangles;
 }
