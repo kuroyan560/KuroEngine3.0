@@ -86,6 +86,9 @@
     <Filter Include="src\user\Collision">
       <UniqueIdentifier>{83cfc4e3-f909-4989-a998-b2f57f6e5b3e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HLSL\engine\CollisionPrimitive">
+      <UniqueIdentifier>{73078374-eb8c-4f07-894e-481f7988d75b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\engine\RectTexture.hlsl">
@@ -168,6 +171,12 @@
     </FxCompile>
     <FxCompile Include="resource\user\Enemy.hlsl">
       <Filter>HLSL\user</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\CollisionPrimitive\Sphere.hlsl">
+      <Filter>HLSL\engine\CollisionPrimitive</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\CollisionPrimitive\Mesh.hlsl">
+      <Filter>HLSL\engine\CollisionPrimitive</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

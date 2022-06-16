@@ -32,6 +32,7 @@ private:
 
 public:
 	static void UpdateAllColliders();
+	static void DebugDrawAllColliders(Camera& Cam);
 
 private:
 	//自身の振る舞い
@@ -60,6 +61,9 @@ public:
 
 	//当たり判定（衝突点を返す）
 	void CheckHitCollision(std::weak_ptr<Collider>& Other);
+
+	//当たり判定描画
+	void DebugDraw(Camera& Cam);
 
 	//セッタ
 	void SetCallBack(CollisionCallBack* CallBack) { callBack = CallBack; }

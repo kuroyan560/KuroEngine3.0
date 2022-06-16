@@ -24,6 +24,14 @@ void Collider::UpdateAllColliders()
 	}
 }
 
+void Collider::DebugDrawAllColliders(Camera& Cam)
+{
+	for (auto& col : COLLIDERS)
+	{
+		col.lock()->DebugDraw(Cam);
+	}
+}
+
 void Collider::CheckHitCollision(std::weak_ptr<Collider>& Other)
 {
 	auto other = Other.lock();
@@ -46,4 +54,10 @@ void Collider::CheckHitCollision(std::weak_ptr<Collider>& Other)
 		if (this->callBack)this->callBack->OnCollision(inter, (COLLIDER_ATTRIBUTE)other->myAttribute);
 		if (other->callBack)other->callBack->OnCollision(inter, (COLLIDER_ATTRIBUTE)this->myAttribute);
 	}
+}
+
+void Collider::DebugDraw(Camera& Cam)
+{
+	if (!isActive)return;
+	primitive->DebugDraw(isHit, Cam);
 }

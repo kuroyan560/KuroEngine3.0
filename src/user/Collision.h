@@ -2,20 +2,32 @@
 #include"Vec.h"
 #include<vector>
 #include"Transform.h"
-
+#include<memory>
+#include"D3D12Data.h"
+class Camera;
 class CollisionPrimitive
 {
 public:
 	enum SHAPE { SPHERE, MESH };
 
 private:
+	friend class Collider;
 	const SHAPE shape;
 	
 protected:
+	//定数バッファ用データ
+	struct ConstData
+	{
+		Matrix world = XMMatrixIdentity();
+		bool hit = false;
+		bool pad[3];
+	};
+
 	CollisionPrimitive() = delete;
 	CollisionPrimitive(CollisionPrimitive&& arg) = delete;
 	CollisionPrimitive(const CollisionPrimitive& arg) = delete;
 	CollisionPrimitive(const SHAPE& Shape) :shape(Shape) {}
+	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
 	const SHAPE& GetShape()const { return shape; }
@@ -24,9 +36,14 @@ public:
 //球
 class CollisionSphere : public CollisionPrimitive
 {
+private:
 	friend class Collision;
-	Transform* world = nullptr;	//ワールドトランスフォーム
 
+private:
+	Transform* world = nullptr;	//ワールドトランスフォーム
+	std::shared_ptr<ConstantBuffer>constBuff;
+	void DebugDraw(const bool& Hit, Camera& Cam)override;
+	
 public:
 	Vec3<float>localCenter;	//中心（ローカル座標）
 	float radius;					//半径
@@ -65,16 +82,25 @@ struct CollisionTriangle
 
 class CollisionMesh : public CollisionPrimitive
 {
+private:
 	friend class Collision;
+
+private:
+	//頂点バッファ
+	std::shared_ptr<VertexBuffer>vertBuff;
+
+	//定数バッファ
+	std::shared_ptr<ConstantBuffer>constBuff;
 
 	//三角メッシュ配列
 	std::vector<CollisionTriangle>triangles;
 
 	//ワールドトランスフォーム
 	Transform* world = nullptr;
+	void DebugDraw(const bool& Hit, Camera& Cam)override;
 
 public:
-	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr) 
+	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr)
 		: CollisionPrimitive(MESH)
 	{
 		SetTriangles(Triangles);
@@ -90,7 +116,7 @@ public:
 	}
 
 	//セッタ
-	void SetTriangles(const std::vector<CollisionTriangle>& Triangles) { triangles = Triangles; }
+	void SetTriangles(const std::vector<CollisionTriangle>& Triangles);
 	void AttachWorldTransform(Transform* World) { world = World; }
 };
 

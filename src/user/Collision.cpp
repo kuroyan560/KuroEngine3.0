@@ -1,4 +1,173 @@
 #include "Collision.h"
+#include"KuroEngine.h"
+#include"Camera.h"
+#include<map>
+
+void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
+{
+	static std::shared_ptr<VertexBuffer>VERTEX_BUFF;
+	static std::shared_ptr<IndexBuffer>INDEX_BUFF;
+	static std::shared_ptr<GraphicsPipeline>PIPELINE;
+
+	//頂点バッファとインデックスバッファはクラスで共通のものを使い回す
+	if (!VERTEX_BUFF)
+	{
+		static const int U_MAX = 24;
+		static const int V_MAX = 12;
+		static const int VERTEX_NUM = U_MAX * (V_MAX + 1);
+		static const int INDEX_NUM = 2 * V_MAX * (U_MAX + 1);
+
+		std::vector<Vec3<float>>vertices(VERTEX_NUM);
+		for (int v = 0; v < V_MAX; ++v)
+		{
+			for (int u = 0; u < U_MAX; ++u)
+			{
+				const auto theta = Angle::ConvertToRadian(180.0f * v / V_MAX);
+				const auto phi = Angle::ConvertToRadian(360.0f * u / U_MAX);
+				float fx = static_cast<float>(sin(theta) * cos(phi));
+				float fy = static_cast<float>(cos(theta));
+				float fz = static_cast<float>(sin(theta) * sin(phi));
+				vertices[U_MAX * v + u] = Vec3<float>(fx, fy, fz);
+			}
+		}
+		VERTEX_BUFF = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), VERTEX_NUM, vertices.data(), "CollisionSphere - VertexBuffer");
+
+		int i = 0;
+		std::vector<unsigned int>indices(INDEX_NUM);
+		for (int v = 0; v < V_MAX; ++v)
+		{
+			for (int u = 0; u < U_MAX; ++u)
+			{
+				if (u == U_MAX)
+				{
+					indices[i++] = v * U_MAX;
+					indices[i++] = (v + 1) * U_MAX;
+				}
+				else
+				{
+					indices[i++] = (v * U_MAX) + u;
+					indices[i++] = indices[i - 1] + U_MAX;
+				}
+			}
+		}
+		INDEX_BUFF = D3D12App::Instance()->GenerateIndexBuffer(INDEX_NUM, indices.data(), "CollisionSphere - IndexBuffer");
+
+		//パイプライン設定
+		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+		//シェーダー情報
+		static Shaders SHADERS;
+		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Sphere.hlsl", "VSmain", "vs_5_0");
+		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Sphere.hlsl", "PSmain", "ps_5_0");
+
+		//インプットレイアウト
+		static std::vector<InputLayoutParam>INPUT_LAYOUT =
+		{
+			InputLayoutParam("POS",DXGI_FORMAT_R32G32B32_FLOAT),
+		};
+
+		//ルートパラメータ
+		static std::vector<RootParam>ROOT_PARAMETER =
+		{
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ワールド行列と衝突判定"),
+		};
+
+		//レンダーターゲット描画先情報
+		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
+
+		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
+	}
+
+	if (!constBuff)
+	{
+		constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "Collision_Sphere - ConstantBuffer");
+	}
+
+	ConstData constData;
+	constData.world = GetWorldMat() * XMMatrixScaling(radius, radius, radius);
+	constData.hit = Hit;
+	constBuff->Mapping(&constData);
+
+	float z = 0.0f;
+	if (world)z = world->GetPos().z;
+
+	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+
+	KuroEngine::Instance().Graphics().ObjectRender(
+		VERTEX_BUFF,
+		INDEX_BUFF,
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+}
+
+void CollisionMesh::SetTriangles(const std::vector<CollisionTriangle>& Triangles)
+{
+	triangles = Triangles;
+
+	//頂点バッファ生成
+	vertBuff.reset();
+	std::vector<Vec3<float>>vertices;
+	for (auto& t : triangles)
+	{
+		vertices.emplace_back(t.p0);
+		vertices.emplace_back(t.p1);
+		vertices.emplace_back(t.p2);
+	}
+	vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), static_cast<int>(vertices.size()), vertices.data(), "CollisionMesh - VertexBuffer");
+}
+
+void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
+{
+	static std::shared_ptr<GraphicsPipeline>PIPELINE;
+	if (!PIPELINE)
+	{
+		//パイプライン設定
+		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		//シェーダー情報
+		static Shaders SHADERS;
+		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Mesh.hlsl", "VSmain", "vs_5_0");
+		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Mesh.hlsl", "PSmain", "ps_5_0");
+
+		//ルートパラメータ
+		static std::vector<RootParam>ROOT_PARAMETER =
+		{
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ワールド行列と衝突判定"),
+		};
+
+		//インプットレイアウト
+		static std::vector<InputLayoutParam>INPUT_LAYOUT =
+		{
+			InputLayoutParam("POS",DXGI_FORMAT_R32G32B32_FLOAT),
+		};
+
+		//レンダーターゲット描画先情報
+		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
+
+		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
+	}
+
+	if (!constBuff)
+	{
+		constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "Collision_Sphere - ConstantBuffer");
+	}
+
+	ConstData constData;
+	constData.world = GetWorldMat();
+	constData.hit = Hit;
+	constBuff->Mapping(&constData);
+
+	float z = 0.0f;
+	if (world)z = world->GetPos().z;
+
+	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+
+	KuroEngine::Instance().Graphics().ObjectRender(
+		vertBuff,
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+}
+
 
 bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter)
 {

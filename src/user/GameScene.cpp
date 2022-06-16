@@ -123,6 +123,8 @@ void GameScene::OnDraw()
 	DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
 	EnemyManager::Instance()->Draw(nowCam);
 	player.Draw(nowCam);
+
+	Collider::DebugDrawAllColliders(nowCam);
 }
 
 void GameScene::OnImguiDebug()
