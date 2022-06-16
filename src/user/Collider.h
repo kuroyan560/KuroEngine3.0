@@ -31,6 +31,7 @@ private:
 	static std::list<std::weak_ptr<Collider>>COLLIDERS;
 
 public:
+	static std::shared_ptr<Collider>Generate(const std::shared_ptr<CollisionPrimitive>& Primitive);
 	static void UpdateAllColliders();
 	static void DebugDrawAllColliders(Camera& Cam);
 
@@ -54,10 +55,7 @@ private:
 	bool isHit = false;
 
 public:
-	Collider() = delete;
-	Collider(const Collider& arg) = delete;
-	Collider(Collider&& arg) = delete;
-	Collider(const std::shared_ptr<CollisionPrimitive>& Primitive) :primitive(Primitive) { COLLIDERS.emplace_back(shared_from_this()); }
+	Collider(const std::shared_ptr<CollisionPrimitive>& Primitive) :primitive(Primitive) {  }
 
 	//“–‚½‚è”»’èiÕ“Ë“_‚ğ•Ô‚·j
 	void CheckHitCollision(std::weak_ptr<Collider>& Other);

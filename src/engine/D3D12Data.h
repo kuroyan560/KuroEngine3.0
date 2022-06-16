@@ -573,6 +573,8 @@ public:
 	DXGI_FORMAT dsvFormat = DXGI_FORMAT_D32_FLOAT;	//デプスステンシルのフォーマット
 	bool depthWriteMask = true;	//デプスの書き込み（深度テストを行う場合）
 	bool independetBlendEnable = true;		//同時レンダーターゲットで独立したブレンディングを有効にするか
+	bool frontCounterClockWise = false;	//三角形の表がどちらか決める際の向き
+
 
 	D3D12_PRIMITIVE_TOPOLOGY_TYPE primitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
 	D3D_PRIMITIVE_TOPOLOGY primitiveTopology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;	//図形の形状設定

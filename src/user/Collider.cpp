@@ -2,6 +2,13 @@
 
 std::list<std::weak_ptr<Collider>>Collider::COLLIDERS;
 
+std::shared_ptr<Collider> Collider::Generate(const std::shared_ptr<CollisionPrimitive>& Primitive)
+{
+	auto instance = std::make_shared<Collider>(Primitive);
+	COLLIDERS.emplace_back(instance);
+	return instance;
+}
+
 void Collider::UpdateAllColliders()
 {
 	//既に寿命切れのコライダーを削除
@@ -50,6 +57,8 @@ void Collider::CheckHitCollision(std::weak_ptr<Collider>& Other)
 	//衝突していたら
 	if (hit)
 	{
+		this->isHit = true;
+		other->isHit = true;
 		//コールバック関数呼び出し
 		if (this->callBack)this->callBack->OnCollision(inter, (COLLIDER_ATTRIBUTE)other->myAttribute);
 		if (other->callBack)other->callBack->OnCollision(inter, (COLLIDER_ATTRIBUTE)this->myAttribute);

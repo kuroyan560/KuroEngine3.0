@@ -4,6 +4,7 @@ class EnemyAttack;
 #include"Transform.h"
 class ModelAnimator;
 class EnemyBreed;
+class Collider;
 
 class Enemy
 {
@@ -20,6 +21,9 @@ private:
 
 	//モデルアニメータ
 	std::shared_ptr<ModelAnimator>animator;
+
+	//コライダー
+	std::shared_ptr<Collider>collider;
 
 	int hp;
 

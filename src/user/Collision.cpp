@@ -18,7 +18,7 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		static const int INDEX_NUM = 2 * V_MAX * (U_MAX + 1);
 
 		std::vector<Vec3<float>>vertices(VERTEX_NUM);
-		for (int v = 0; v < V_MAX; ++v)
+		for (int v = 0; v <= V_MAX; ++v)
 		{
 			for (int u = 0; u < U_MAX; ++u)
 			{
@@ -36,7 +36,7 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		std::vector<unsigned int>indices(INDEX_NUM);
 		for (int v = 0; v < V_MAX; ++v)
 		{
-			for (int u = 0; u < U_MAX; ++u)
+			for (int u = 0; u <= U_MAX; ++u)
 			{
 				if (u == U_MAX)
 				{
@@ -54,6 +54,8 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		PIPELINE_OPTION.wireFrame = true;
+		PIPELINE_OPTION.calling = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
@@ -63,7 +65,7 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
 		{
-			InputLayoutParam("POS",DXGI_FORMAT_R32G32B32_FLOAT),
+			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT),
 		};
 
 		//ルートパラメータ
@@ -79,13 +81,14 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
+
 	if (!constBuff)
 	{
 		constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "Collision_Sphere - ConstantBuffer");
 	}
 
 	ConstData constData;
-	constData.world = GetWorldMat() * XMMatrixScaling(radius, radius, radius);
+	constData.world = XMMatrixMultiply(XMMatrixScaling(radius, radius, radius), GetWorldMat());
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
 
@@ -139,7 +142,7 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
 		{
-			InputLayoutParam("POS",DXGI_FORMAT_R32G32B32_FLOAT),
+			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT),
 		};
 
 		//レンダーターゲット描画先情報

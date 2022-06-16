@@ -4,8 +4,7 @@
 #include<memory>
 class ModelObject;
 class Camera;
-
-
+class Collider;
 
 class Player
 {
@@ -36,6 +35,9 @@ public:
 private:
 	//モデル
 	std::shared_ptr<ModelObject>model;
+
+	//コライダー
+	std::shared_ptr<Collider>collider;
 
 	//移動処理
 	void Move();

@@ -1170,6 +1170,8 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 				desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 			}
 		}
+		//三角形の表を判断する際の向き
+		desc.RasterizerState.FrontCounterClockwise = Option.frontCounterClockWise;
 		//デプスステンシルバッファフォーマット
 		desc.DSVFormat = Option.dsvFormat;
 

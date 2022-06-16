@@ -8,7 +8,7 @@ cbuffer cbuff0 : register(b0)
 cbuffer cbuff1 : register(b1)
 {
     matrix world;
-    bool hit;
+    uint hit;
 }
 
 struct VSOutput
@@ -17,9 +17,9 @@ struct VSOutput
     float4 color : COLOR;
 };
 
-static const float ALPHA = 0.8f;
+static const float ALPHA = 0.5f;
 
-VSOutput VSmain(float4 pos : POSITION) : SV_POSITION
+VSOutput VSmain(float4 pos : POSITION)
 {
     VSOutput output;
     output.svpos = mul(world, pos); //ÉèÅ[ÉãÉhïœä∑

@@ -19,8 +19,7 @@ protected:
 	struct ConstData
 	{
 		Matrix world = XMMatrixIdentity();
-		bool hit = false;
-		bool pad[3];
+		unsigned int hit = 0;
 	};
 
 	CollisionPrimitive() = delete;

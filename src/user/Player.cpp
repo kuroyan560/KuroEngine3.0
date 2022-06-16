@@ -2,6 +2,8 @@
 #include"Object.h"
 #include"DrawFunc3D.h"
 #include"UsersInput.h"
+#include"Collision.h"
+#include"Collider.h"
 
 bool Player::INSTANCED = false;
 const std::string Player::CAMERA_KEY = "PlayerCamera";
@@ -42,6 +44,14 @@ Player::Player()
 	KuroFunc::ErrorMessage(INSTANCED, "Player", "Constructor", "Only one Player's instance can exsit.");
 	INSTANCED = true;
 	model = std::make_shared<ModelObject>("resource/user/", "player.glb");
+
+	//コライダー生成
+	const float COLLIDER_RADIUS = 3.0f;
+	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS);
+	colSphere->AttachWorldTransform(&model->transform);
+	collider = Collider::Generate(colSphere);
+	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
+	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 }
 
 void Player::Init()
