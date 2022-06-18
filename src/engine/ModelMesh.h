@@ -40,8 +40,16 @@ public:
 	std::shared_ptr<Mesh<Vertex_Model>>mesh;
 	std::shared_ptr<Material> material;
 
+	//スムージング
 	void Smoothing();
+
+	//接ベクトルと従ベクトル計算
 	void BuildTangentAndBiNormal();
-	CollisionTriangleArray GetCollisionTriangles();
+
+	//当たり判定用三角メッシュ配列取得
+	std::vector<CollisionTriangle> GetCollisionTriangles();
+
+	//各軸の頂点座標の最小値と最大値取得
+	Vec3<ValueMinMax>GetPosMinMax()const;
 };
 

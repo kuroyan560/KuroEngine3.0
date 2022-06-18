@@ -47,10 +47,19 @@ Player::Player()
 	model = std::make_shared<ModelObject>("resource/user/", "player.glb");
 
 	//コライダー生成
-	auto colSphere = std::make_shared<CollisionMesh>(model->model->GetCollisionTriangleArray(), &model->transform);
-	collider = Collider::Generate(colSphere);
-	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
+	//メッシュ
+	//for (auto& mesh : model->model->meshes)
+	//{
+	//	auto meshCol = std::make_shared<CollisionAABB>(mesh.GetPosMinMax(), &model->transform);
+	//	colliders.emplace_back(Collider::Generate(meshCol));
+	//	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
+	//	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
+	//}
+
+	auto col = std::make_shared<CollisionAABB>(model->model->GetAllMeshPosMinMax(), &model->transform);
+	colliders.emplace_back(Collider::Generate(col));
+	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
+	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 }
 
 void Player::Init()

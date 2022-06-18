@@ -172,7 +172,7 @@
     <FxCompile Include="resource\user\Enemy.hlsl">
       <Filter>HLSL\user</Filter>
     </FxCompile>
-    <FxCompile Include="resource\engine\CollisionPrimitive\Sphere.hlsl">
+    <FxCompile Include="resource\engine\CollisionPrimitive\Primitive.hlsl">
       <Filter>HLSL\engine\CollisionPrimitive</Filter>
     </FxCompile>
     <FxCompile Include="resource\engine\CollisionPrimitive\Mesh.hlsl">
@@ -373,6 +373,9 @@
     </ClCompile>
     <ClCompile Include="src\engine\Collision.cpp">
       <Filter>src\engine\ユーザー向け\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Common\ValueMinMax.cpp">
+      <Filter>src\engine\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -579,6 +582,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\Collision.h">
       <Filter>src\engine\ユーザー向け\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Common\ValueMinMax.h">
+      <Filter>src\engine\Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

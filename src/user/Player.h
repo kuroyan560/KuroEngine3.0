@@ -2,6 +2,7 @@
 #include<string>
 #include"PlayerCamera.h"
 #include<memory>
+#include<vector>
 class ModelObject;
 class Camera;
 class Collider;
@@ -37,7 +38,7 @@ private:
 	std::shared_ptr<ModelObject>model;
 
 	//コライダー
-	std::shared_ptr<Collider>collider;
+	std::vector<std::shared_ptr<Collider>>colliders;
 
 	//移動処理
 	void Move();

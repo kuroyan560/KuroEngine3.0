@@ -18,7 +18,8 @@ public:
 
 	Model(const std::string& Dir, const std::string& FileName) :header(Dir, FileName) {}
 
-	void MeshSmoothing()
+	//全メッシュをスムージング
+	void AllMeshSmoothing()
 	{
 		for (auto& m : meshes)
 		{
@@ -26,6 +27,7 @@ public:
 		}
 	}
 
-	std::vector<CollisionTriangleArray>GetCollisionTriangleArray();
+	//全メッシュにおける各軸の頂点座標の最小値最大値を取得
+	Vec3<ValueMinMax>GetAllMeshPosMinMax();
 };
 

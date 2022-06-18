@@ -3,11 +3,48 @@
 #include"Camera.h"
 #include<map>
 
+std::shared_ptr<GraphicsPipeline> CollisionPrimitive::GetPrimitivePipeline()
+{
+	static std::shared_ptr<GraphicsPipeline>PIPELINE;
+
+	if (!PIPELINE)
+	{
+		//パイプライン設定
+		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		PIPELINE_OPTION.wireFrame = true;
+		PIPELINE_OPTION.calling = false;
+
+		//シェーダー情報
+		static Shaders SHADERS;
+		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Primitive.hlsl", "VSmain", "vs_5_0");
+		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Primitive.hlsl", "PSmain", "ps_5_0");
+
+		//インプットレイアウト
+		static std::vector<InputLayoutParam>INPUT_LAYOUT =
+		{
+			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT),
+		};
+
+		//ルートパラメータ
+		static std::vector<RootParam>ROOT_PARAMETER =
+		{
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ワールド行列と衝突判定"),
+		};
+
+		//レンダーターゲット描画先情報
+		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
+
+		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
+	}
+
+	return PIPELINE;
+}
+
 void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 {
 	static std::shared_ptr<VertexBuffer>VERTEX_BUFF;
 	static std::shared_ptr<IndexBuffer>INDEX_BUFF;
-	static std::shared_ptr<GraphicsPipeline>PIPELINE;
 
 	//頂点バッファとインデックスバッファはクラスで共通のものを使い回す
 	if (!VERTEX_BUFF)
@@ -51,34 +88,6 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 			}
 		}
 		INDEX_BUFF = D3D12App::Instance()->GenerateIndexBuffer(INDEX_NUM, indices.data(), "CollisionSphere - IndexBuffer");
-
-		//パイプライン設定
-		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		PIPELINE_OPTION.wireFrame = true;
-		PIPELINE_OPTION.calling = false;
-
-		//シェーダー情報
-		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Sphere.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Sphere.hlsl", "PSmain", "ps_5_0");
-
-		//インプットレイアウト
-		static std::vector<InputLayoutParam>INPUT_LAYOUT =
-		{
-			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT),
-		};
-
-		//ルートパラメータ
-		static std::vector<RootParam>ROOT_PARAMETER =
-		{
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ワールド行列と衝突判定"),
-		};
-
-		//レンダーターゲット描画先情報
-		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
-
-		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
 
@@ -95,7 +104,7 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	float z = 0.0f;
 	if (world)z = world->GetPos().z;
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
 
 	KuroEngine::Instance().Graphics().ObjectRender(
 		VERTEX_BUFF,
@@ -103,31 +112,82 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
 }
 
-void CollisionMesh::SetTriangles(const std::vector<CollisionTriangleArray>& Triangles)
+void CollisionAABB::DebugDraw(const bool& Hit, Camera& Cam)
 {
-	int idx = 0;
-	for (auto& triArray : Triangles)
+	static std::shared_ptr<IndexBuffer>INDEX_BUFF;
+	if (!INDEX_BUFF)
 	{
-		collisionMeshes.emplace_back();
-
-		auto& collisionMesh = collisionMeshes.back();
-		collisionMesh.triangles = triArray;
-
-		std::vector<Vec3<float>>vertices;
-		for (auto& t : triArray)
+		static const int IDX_NUM = 15;
+		std::array<unsigned int, IDX_NUM>indices =
 		{
-			vertices.emplace_back(t.p0);
-			vertices.emplace_back(t.p1);
-			vertices.emplace_back(t.p2);
-		}
-		collisionMesh.vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), static_cast<int>(vertices.size()), vertices.data(), 
-			("CollisionMesh - VertexBuffer - " + std::to_string(idx)).c_str());
-
-		collisionMesh.constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr,
-			("Collision_Mesh - ConstantBuffer - " + std::to_string(idx)).c_str());
-
-		idx++;
+			LU_NZ,RU_NZ,LB_NZ,
+			RB_NZ,RB_FZ,RU_NZ,
+			RU_FZ,LU_NZ,	LU_FZ,
+			LB_NZ,LB_FZ,	RB_FZ,
+			LU_FZ,RU_FZ
+		};
+		INDEX_BUFF = D3D12App::Instance()->GenerateIndexBuffer(IDX_NUM, indices.data(), "CollisionAABB - IndexBuffer");
 	}
+
+	//描画に必要なバッファが未生成
+	if (!constBuff)
+	{
+		constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "Collision_AABB - ConstantBuffer");
+	}
+
+	ConstData constData;
+	constData.world = GetWorldMat();
+	constData.hit = Hit;
+	constBuff->Mapping(&constData);
+
+	float z = 0.0f;
+	if (world)z = world->GetPos().z;
+
+	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
+
+	KuroEngine::Instance().Graphics().ObjectRender(
+		vertBuff,
+		INDEX_BUFF,
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+}
+
+void CollisionAABB::StructBox(const Vec3<ValueMinMax>& PValues)
+{
+	pValues = PValues;
+	//大小関係がおかしいものがないか確認
+	assert(pValues.x && pValues.y && pValues.z);
+
+	if (!vertBuff)
+	{
+		vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), VERT_NUM, nullptr, "CollisionAABB - VertexBuffer");
+	}
+
+	std::array<Vec3<float>, VERT_NUM>vertices;
+	vertices[LU_NZ] = { pValues.x.min,pValues.y.max,pValues.z.min };
+	vertices[RU_NZ] = { pValues.x.max,pValues.y.max,pValues.z.min };
+	vertices[RB_NZ] = { pValues.x.max,pValues.y.min,pValues.z.min };
+	vertices[LB_NZ] = { pValues.x.min,pValues.y.min,pValues.z.min };
+	vertices[LU_FZ] = { pValues.x.min,pValues.y.max,pValues.z.max };
+	vertices[RU_FZ] = { pValues.x.max,pValues.y.max,pValues.z.max };
+	vertices[RB_FZ] = { pValues.x.max,pValues.y.min,pValues.z.max };
+	vertices[LB_FZ] = { pValues.x.min,pValues.y.min,pValues.z.max };
+	vertBuff->Mapping(vertices.data());
+}
+
+void CollisionMesh::SetTriangles(const std::vector<CollisionTriangle>& Triangles)
+{
+	triangles = Triangles;
+
+	std::vector<Vec3<float>>vertices;
+	for (auto& t : triangles)
+	{
+		vertices.emplace_back(t.p0);
+		vertices.emplace_back(t.p1);
+		vertices.emplace_back(t.p2);
+	}
+	vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), static_cast<int>(vertices.size()), vertices.data(), "CollisionMesh - VertexBuffer");
+	constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "Collision_Mesh - ConstantBuffer");
+
 }
 
 void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
@@ -165,32 +225,18 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 
 	ConstData constData;
 	constData.world = XMMatrixMultiply(XMMatrixScaling(1.1f, 1.1f, 1.1f), GetWorldMat());
+	constData.hit = Hit;
+	constBuff->Mapping(&constData);
 
 	float z = 0.0f;
 	if (world)z = world->GetPos().z;
 
 	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
 
-	int idx = 0;
-	for (auto& collisionMesh : collisionMeshes)
-	{
-		if (std::find(hitMeshIdx.begin(), hitMeshIdx.end(), idx) != hitMeshIdx.end())
-		{
-			constData.hit = 1;
-		}
-		else
-		{
-			constData.hit = 0;
-		}
-		collisionMesh.constBuff->Mapping(&constData);
 
-		KuroEngine::Instance().Graphics().ObjectRender(
-			collisionMesh.vertBuff,
-			{ Cam.GetBuff(),collisionMesh.constBuff }, { CBV,CBV }, z, true);
-		idx++;
-	}
-
-	hitMeshIdx.clear();
+	KuroEngine::Instance().Graphics().ObjectRender(
+		vertBuff,
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
 }
 
 
@@ -278,25 +324,18 @@ Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const Coll
 bool Collision::SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3<float>* Inter)
 {
 	const auto spCenter = KuroMath::TransformVec3(Sphere->localCenter, Sphere->GetWorldMat());
-	int meshIdx = 0;
 
-	for (auto& collisionMesh : Mesh->GetCollisionMeshes())
+	for (auto& t : Mesh->triangles)
 	{
-		for (auto& t : collisionMesh.triangles)
-		{
-			// 球の中心に対する最近接点である三角形上にある点pを見つける
-			Vec3<float>closest = ClosestPtPoint2Triangle(spCenter, t, Mesh->GetWorldMat());
-			Vec3<float>v = closest - spCenter;
-			float distSq = v.Dot(v);
+		// 球の中心に対する最近接点である三角形上にある点pを見つける
+		Vec3<float>closest = ClosestPtPoint2Triangle(spCenter, t, Mesh->GetWorldMat());
+		Vec3<float>v = closest - spCenter;
+		float distSq = v.Dot(v);
 
-			if (pow(Sphere->radius, 2.0f) < distSq)continue;
+		if (pow(Sphere->radius, 2.0f) < distSq)continue;
 
-			if (Inter)*Inter = closest;
-
-			Mesh->hitMeshIdx.emplace_back(meshIdx);
-			return true;
-		}
-		meshIdx++;
+		if (Inter)*Inter = closest;
+		return true;
 	}
 
 	return false;

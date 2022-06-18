@@ -179,7 +179,7 @@
       </EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="resource\engine\CollisionPrimitive\Sphere.hlsl" />
+    <FxCompile Include="resource\engine\CollisionPrimitive\Primitive.hlsl" />
     <FxCompile Include="resource\engine\CubeMap.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -474,6 +474,7 @@
     <ClCompile Include="src\engine\Common\Subject.cpp" />
     <ClCompile Include="src\engine\Common\Transform.cpp" />
     <ClCompile Include="src\engine\Common\Transform2D.cpp" />
+    <ClCompile Include="src\engine\Common\ValueMinMax.cpp" />
     <ClCompile Include="src\engine\Common\Vec.cpp" />
     <ClCompile Include="src\engine\CubeMap.cpp" />
     <ClCompile Include="src\engine\D3D12App.cpp" />
@@ -542,6 +543,7 @@
     <ClInclude Include="src\engine\Common\Subject.h" />
     <ClInclude Include="src\engine\Common\Transform.h" />
     <ClInclude Include="src\engine\Common\Transform2D.h" />
+    <ClInclude Include="src\engine\Common\ValueMinMax.h" />
     <ClInclude Include="src\engine\Common\Vec.h" />
     <ClInclude Include="src\engine\CubeMap.h" />
     <ClInclude Include="src\engine\D3D12App.h" />

@@ -41,6 +41,8 @@ void Collider::DebugDrawAllColliders(Camera& Cam)
 
 void Collider::CheckHitCollision(std::weak_ptr<Collider>& Other)
 {
+	return;
+
 	auto other = Other.lock();
 
 	//いずれかのコライダーが有効でない

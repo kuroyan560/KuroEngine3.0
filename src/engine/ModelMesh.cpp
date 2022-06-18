@@ -109,9 +109,9 @@ void ModelMesh::BuildTangentAndBiNormal()
 	}
 }
 
-CollisionTriangleArray ModelMesh::GetCollisionTriangles()
+std::vector<CollisionTriangle> ModelMesh::GetCollisionTriangles()
 {
-	CollisionTriangleArray triangles;
+	std::vector<CollisionTriangle> triangles;
 
 	for (int idx = 0; idx < mesh->indices.size(); idx += 3)
 	{
@@ -124,4 +124,23 @@ CollisionTriangleArray ModelMesh::GetCollisionTriangles()
 	}
 
 	return triangles;
+}
+
+Vec3<ValueMinMax> ModelMesh::GetPosMinMax()const
+{
+	Vec3<ValueMinMax>result;
+	result.x.Set();
+	result.y.Set();
+	result.z.Set();
+
+	for (const auto& v : mesh->vertices)
+	{
+		if (result.x.max < v.pos.x)result.x.max = v.pos.x;
+		if (v.pos.x < result.x.min)result.x.min = v.pos.x;
+		if (result.y.max < v.pos.y)result.y.max = v.pos.y;
+		if (v.pos.y < result.y.min)result.y.min = v.pos.y;
+		if (result.z.max < v.pos.z)result.z.max = v.pos.z;
+		if (v.pos.z < result.z.min)result.z.min = v.pos.z;
+	}
+	return result;
 }
