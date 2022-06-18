@@ -89,6 +89,7 @@ public:
 		:CollisionPrimitive(AABB), world(World) { StructBox(PValues);	}
 
 	//ゲッタ
+	const Vec3<ValueMinMax>& GetPtValue() { return pValues; }
 	const Matrix& GetWorldMat()
 	{
 		if (!world)return XMMatrixIdentity();
@@ -154,10 +155,14 @@ public:
 
 class Collision
 {
+	//球と球
 	static bool SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter);
-
+	//球とAABB
+	static bool SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter);
+	//球とメッシュ
 	static Vec3<float> ClosestPtPoint2Triangle(const Vec3<float>& Pt, const CollisionTriangle& Tri, const Matrix& MeshWorld);
 	static bool SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3<float>* Inter);
+
 public:
 	static bool CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimitive* PrimitiveB, Vec3<float>* Inter);
 };

@@ -254,9 +254,48 @@ bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* Spher
 	{
 		if (Inter)
 		{
-			// Aの半径が0の時座標はBの中心　Bの半径が0の時座標はAの中心　となるよう補完
-			float t = SphereB->radius / (SphereA->radius + SphereB->radius);
-			*Inter = KuroMath::Lerp(centerA, centerB, t);
+			//２つの中心間の中心点
+			*Inter = centerA.GetCenter(centerB);
+		}
+		return true;
+	}
+	return false;
+}
+
+bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter)
+{
+	//球の中心座標とAABBとの最短距離を求める
+	const auto spCenter = KuroMath::TransformVec3(SphereA->localCenter, SphereA->GetWorldMat());
+
+	//AABBの各軸の最小値最大値にワールド変換
+	const auto& ptVal = AABB->GetPtValue();
+	Vec3<float>ptMin(ptVal.x.min, ptVal.y.min, ptVal.z.min);
+	ptMin = KuroMath::TransformVec3(ptMin, AABB->GetWorldMat());
+	Vec3<float>ptMax(ptVal.x.max, ptVal.y.max, ptVal.z.max);
+	ptMax = KuroMath::TransformVec3(ptMax, AABB->GetWorldMat());
+
+	//回転によって最小・最大が入れ替わっていることがあるので調整
+	if (ptMax.x < ptMin.x)std::swap(ptMax.x, ptMin.x);
+	if (ptMax.y < ptMin.y)std::swap(ptMax.y, ptMin.y);
+	if (ptMax.z < ptMin.z)std::swap(ptMax.z, ptMin.z);
+
+	float distSq = 0.0f;
+	if (spCenter.x < ptMin.x)distSq += static_cast<float>(pow((spCenter.x - ptMin.x), 2));
+	if (ptMax.x < spCenter.x)distSq += static_cast<float>(pow((spCenter.x - ptMax.x), 2));
+
+	if (spCenter.y < ptMin.y)distSq += static_cast<float>(pow((spCenter.y - ptMin.y), 2));
+	if (ptMax.y < spCenter.y)distSq += static_cast<float>(pow((spCenter.y - ptMax.y), 2));
+
+	if (spCenter.z < ptMin.z)distSq += static_cast<float>(pow((spCenter.z - ptMin.z), 2));
+	if (ptMax.z < spCenter.z)distSq += static_cast<float>(pow((spCenter.z - ptMax.z), 2));
+
+	if (distSq <= pow(SphereA->radius, 2))
+	{
+		if (Inter)
+		{
+			//球の中心とAABBの中心間の中心点
+			Vec3<float>aabbCenter(ptVal.x.GetCenter(), ptVal.y.GetCenter(), ptVal.z.GetCenter());
+			*Inter = spCenter.GetCenter(aabbCenter);
 		}
 		return true;
 	}
@@ -356,10 +395,34 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 		{
 			return SphereAndSphere(sphereA, (CollisionSphere*)PrimitiveB, Inter);
 		}
+		//(AABB)B
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::AABB)
+		{
+			return SphereAndAABB(sphereA, (CollisionAABB*)PrimitiveB, Inter);
+		}
 		//メッシュB
 		else if (PrimitiveB->GetShape() == CollisionPrimitive::MESH)
 		{
 			return SphereAndMesh(sphereA, (CollisionMesh*)PrimitiveB, Inter);
+		}
+	}
+	//(AABB)Aと
+	else if (PrimitiveA->GetShape() == CollisionPrimitive::AABB)
+	{
+		CollisionAABB* aabbA = (CollisionAABB*)PrimitiveA;
+
+		//球B
+		if (PrimitiveB->GetShape() == CollisionPrimitive::SPHERE)
+		{
+			return SphereAndAABB((CollisionSphere*)PrimitiveB, aabbA, Inter);
+		}
+		//(AABB)B
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::AABB)
+		{
+		}
+		//メッシュB
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::MESH)
+		{
 		}
 	}
 	//メッシュAと
@@ -371,6 +434,11 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 		if (PrimitiveB->GetShape() == CollisionPrimitive::SPHERE)
 		{
 			return SphereAndMesh((CollisionSphere*)PrimitiveB, meshA, Inter);
+		}
+		//(AABB)B
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::AABB)
+		{
+
 		}
 		//メッシュB
 		else if (PrimitiveB->GetShape() == CollisionPrimitive::MESH)

@@ -269,9 +269,6 @@
     <ClCompile Include="src\engine\main.cpp">
       <Filter>src\engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\Common\Color.cpp">
-      <Filter>src\engine\Common</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\Common\KuroFunc.cpp">
       <Filter>src\engine\Common</Filter>
     </ClCompile>
@@ -288,9 +285,6 @@
       <Filter>src\engine\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\Common\Transform2D.cpp">
-      <Filter>src\engine\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Common\Vec.cpp">
       <Filter>src\engine\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\Model.cpp">
@@ -373,9 +367,6 @@
     </ClCompile>
     <ClCompile Include="src\engine\Collision.cpp">
       <Filter>src\engine\ユーザー向け\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine\Common\ValueMinMax.cpp">
-      <Filter>src\engine\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
