@@ -143,11 +143,15 @@ struct Vec3
 
 	Vec3() {};
 	Vec3(T X, T Y, T Z) :x(X), y(Y), z(Z) {};
+	Vec3(Vec2<T>XY, T Z) :x(XY.x), y(XY.y), z(Z) {};
 	float Length()const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		return static_cast<float>(sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)));
 	};
-	Vec3(Vec2<T>XY, T Z) :x(XY.x), y(XY.y), z(Z) {};
+	float LengthSq()const {
+		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
+		return static_cast<float>(pow(x, 2) + pow(y, 2) + pow(z, 2));
+	};
 	float Distance(const Vec3& To)const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		return static_cast<float>(sqrt(pow(To.x - x, 2) + pow(To.y - y, 2) + pow(To.z - z, 2)));

@@ -40,6 +40,7 @@ GameScene::GameScene()
 			EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 		}
 	}
+	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 }
 
 void GameScene::OnInitialize()

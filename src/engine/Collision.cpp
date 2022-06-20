@@ -269,6 +269,7 @@ bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec
 
 	//AABBの各軸の最小値最大値にワールド変換
 	const auto& ptVal = AABB->GetPtValue();
+
 	Vec3<float>ptMin(ptVal.x.min, ptVal.y.min, ptVal.z.min);
 	ptMin = KuroMath::TransformVec3(ptMin, AABB->GetWorldMat());
 	Vec3<float>ptMax(ptVal.x.max, ptVal.y.max, ptVal.z.max);
@@ -300,6 +301,47 @@ bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec
 		return true;
 	}
 	return false;
+
+	//Vec3<float>obbCenter(ptVal.x.GetCenter(), ptVal.y.GetCenter(), ptVal.z.GetCenter());
+	//obbCenter = KuroMath::TransformVec3(obbCenter, AABB->GetWorldMat());
+	//Vec3<float>vec(0, 0, 0);
+
+	//static const Vec3<float>DIR[3] =
+	//{
+	//	Vec3<float>(-1,0,0),
+	//	Vec3<float>(0,1,0),
+	//	Vec3<float>(0,0,1)
+	//};
+
+	////各軸についてはみ出た部分のベクトルを算術
+	//for (int i = 0; i < 3; ++i)
+	//{
+	//	const auto dir = KuroMath::TransformVec3(DIR[i], AABB->GetWorldMat()).GetNormal();
+
+	//	float len = ptVal[i].max - ptVal[i].min;
+	//	if (len <= 0)continue;
+	//	float s = (spCenter - obbCenter).Dot(dir);
+
+	//	//sの値からはみ出した部分があればそのベクトルを加算
+	//	s = fabs(s);
+	//	if (1 < s)
+	//	{
+	//		vec += dir * (1 - s) * len;
+	//	}
+	//}
+
+	//float distSq = vec.Length();
+	//if (distSq <= pow(SphereA->radius, 2))
+	//{
+	//	if (Inter)
+	//	{
+	//		//球の中心とAABBの中心間の中心点
+	//		Vec3<float>aabbCenter(ptVal.x.GetCenter(), ptVal.y.GetCenter(), ptVal.z.GetCenter());
+	//		*Inter = spCenter.GetCenter(aabbCenter);
+	//	}
+	//	return true;
+	//}
+	//return false;
 }
 
 Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const CollisionTriangle& Tri, const Matrix& MeshWorld)
