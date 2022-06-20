@@ -9,11 +9,12 @@ class Camera;
 class CollisionPrimitive
 {
 public:
-	enum SHAPE { SPHERE, AABB, MESH };
+	enum SHAPE { SPHERE, CAPSULE, AABB, MESH };
 
 private:
 	friend class Collider;
 	const SHAPE shape;
+	Transform* world = nullptr;	//ワールドトランスフォーム
 	
 protected:
 	//基本的なプリミティブ当たり判定のデバッグ描画
@@ -28,11 +29,24 @@ protected:
 	CollisionPrimitive() = delete;
 	CollisionPrimitive(CollisionPrimitive&& arg) = delete;
 	CollisionPrimitive(const CollisionPrimitive& arg) = delete;
-	CollisionPrimitive(const SHAPE& Shape) :shape(Shape) {}
+	CollisionPrimitive(const SHAPE& Shape, Transform* World = nullptr) :shape(Shape), world(World) {}
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
+	//ゲッタ
 	const SHAPE& GetShape()const { return shape; }
+	const Matrix& GetWorldMat()
+	{
+		if (!world)return XMMatrixIdentity();
+		return world->GetMat();
+	}
+	const float& GetTransformZ()
+	{
+		return world ? world->GetPos().z : 0.0f;
+	}
+
+	//セッタ
+	void AttachWorldTransform(Transform* World) { world = World; }
 };
 
 //球
@@ -42,7 +56,6 @@ private:
 	friend class Collision;
 
 private:
-	Transform* world = nullptr;	//ワールドトランスフォーム
 	std::shared_ptr<ConstantBuffer>constBuff;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 	
@@ -50,20 +63,29 @@ public:
 	Vec3<float>localCenter;	//中心（ローカル座標）
 	float radius;					//半径
 	CollisionSphere(const float& Radius, Transform* World = nullptr, const Vec3<float>& CenterOffset = Vec3<float>(0, 0, 0))
-		:CollisionPrimitive(SPHERE), world(World), localCenter(CenterOffset), radius(Radius) {}
-
-	//ゲッタ
-	const Matrix& GetWorldMat()
-	{ 
-		if (!world)return XMMatrixIdentity();
-		return world->GetMat();
-	}
-	
-	//セッタ
-	void AttachWorldTransform(Transform* World) { world = World; }
+		:CollisionPrimitive(SPHERE, World), localCenter(CenterOffset), radius(Radius) {}
 };
 
-//AABB(軸並行境界ボックス）
+//カプセル
+class CollisionCapsule : public CollisionPrimitive
+{
+private:
+	friend class Collision;
+
+private:
+	std::shared_ptr<ConstantBuffer>constBuff;
+	void DebugDraw(const bool& Hit, Camera& Cam)override;
+
+public:
+	Vec3<float>sPoint;	//始点
+	Vec3<float>ePoint;	//終点
+	float radius;
+	Vec3<float>offset;
+	CollisionCapsule(const Vec3<float>& StartPt, const Vec3<float>& EndPt, const float& Radius, Transform* World = nullptr, const Vec3<float>& Offset = Vec3<float>(0, 0, 0))
+		:CollisionPrimitive(CAPSULE, World), sPoint(StartPt), ePoint(EndPt), radius(Radius), offset(Offset) {}
+};
+
+//AABB(軸並行境界ボックス）、色んな軸で回転すると判定がだめになる
 class CollisionAABB : public CollisionPrimitive
 {
 private:
@@ -75,7 +97,6 @@ private:
 	};
 
 private:
-	Transform* world = nullptr;	//ワールドトランスフォーム
 	std::shared_ptr<ConstantBuffer>constBuff;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 
@@ -86,18 +107,12 @@ private:
 
 public:
 	CollisionAABB(const Vec3<ValueMinMax>& PValues, Transform* World = nullptr)
-		:CollisionPrimitive(AABB), world(World) { StructBox(PValues);	}
+		:CollisionPrimitive(AABB, World) { StructBox(PValues); }
 
 	//ゲッタ
 	const Vec3<ValueMinMax>& GetPtValue() { return pValues; }
-	const Matrix& GetWorldMat()
-	{
-		if (!world)return XMMatrixIdentity();
-		return world->GetMat();
-	}
 	//セッタ
 	void StructBox(const Vec3<ValueMinMax>& PValues);
-	void AttachWorldTransform(Transform* World) { world = World; }
 };
 
 //法線つき三角形（ローカル座標）
@@ -129,28 +144,19 @@ private:
 	std::shared_ptr<ConstantBuffer>constBuff;
 	std::vector<CollisionTriangle>triangles;
 
-	//ワールドトランスフォーム
-	Transform* world = nullptr;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 public:
 	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr)
-		: CollisionPrimitive(MESH)
+		: CollisionPrimitive(MESH, World)
 	{
 		SetTriangles(Triangles);
-		AttachWorldTransform(World); 
 	}
 
 	//ゲッタ
 	const std::vector<CollisionTriangle>& GetTriangles()const { return triangles; }
-	const Matrix& GetWorldMat()
-	{
-		if (!world)return XMMatrixIdentity();
-		return world->GetMat();
-	}
 
 	//セッタ
 	void SetTriangles(const std::vector<CollisionTriangle>& Triangles);
-	void AttachWorldTransform(Transform* World) { world = World; }
 };
 
 class Collision

@@ -97,19 +97,20 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.world = XMMatrixMultiply(XMMatrixScaling(radius, radius, radius), GetWorldMat());
+	constData.world = XMMatrixMultiply(XMMatrixScaling(radius, radius, radius) * XMMatrixTranslation(localCenter.x, localCenter.y, localCenter.z), GetWorldMat());
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
-
-	float z = 0.0f;
-	if (world)z = world->GetPos().z;
 
 	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
 
 	KuroEngine::Instance().Graphics().ObjectRender(
 		VERTEX_BUFF,
 		INDEX_BUFF,
-		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, GetTransformZ(), true);
+}
+
+void CollisionCapsule::DebugDraw(const bool& Hit, Camera& Cam)
+{
 }
 
 void CollisionAABB::DebugDraw(const bool& Hit, Camera& Cam)
@@ -140,15 +141,12 @@ void CollisionAABB::DebugDraw(const bool& Hit, Camera& Cam)
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
 
-	float z = 0.0f;
-	if (world)z = world->GetPos().z;
-
 	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
 
 	KuroEngine::Instance().Graphics().ObjectRender(
 		vertBuff,
 		INDEX_BUFF,
-		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, GetTransformZ(), true);
 }
 
 void CollisionAABB::StructBox(const Vec3<ValueMinMax>& PValues)
@@ -228,15 +226,12 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
 
-	float z = 0.0f;
-	if (world)z = world->GetPos().z;
-
 	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
 
 
 	KuroEngine::Instance().Graphics().ObjectRender(
 		vertBuff,
-		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, z, true);
+		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, GetTransformZ(), true);
 }
 
 
