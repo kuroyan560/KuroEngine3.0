@@ -1410,6 +1410,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 	for (auto& m : doc.materials.Elements())
 	{
 		auto material = std::make_shared<Material>();
+		material->name = m.name;
 
 		//PBR
 		const auto baseColor = m.metallicRoughness.baseColorFactor;

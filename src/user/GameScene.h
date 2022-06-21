@@ -13,7 +13,8 @@ class GaussianBlur;
 
 class GameScene : public BaseScene
 {
-	std::shared_ptr<ModelObject>animModel;
+	std::array<std::shared_ptr<ModelObject>, 2>animModel;
+	int nowModel = 0;
 
 	DebugCamera debugCam;
 	LightManager ligMgr;

@@ -12,7 +12,8 @@
 
 GameScene::GameScene()
 {
-	animModel = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
+	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
+	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.glb");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -35,63 +36,23 @@ void GameScene::OnUpdate()
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_I))
 	{
 		debugCam.Init({ 0,1,-3 }, { 0,1,0 });
-		animModel->animator->Reset();
+		animModel[0]->animator->Reset();
+		animModel[1]->animator->Reset();
 	}
 
-	//ポイントライト位置
-	static const float UINT = 0.1f;
-
-	//テストモデルの位置
-	//auto modelPos = testModel->transform.GetPos();
-	auto modelPos = ptLig.GetPos();
-	if (UsersInput::Instance()->KeyInput(DIK_E))
+	//操作モデル切り替え
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_O))
 	{
-		modelPos.y += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_Q))
-	{
-		modelPos.y -= UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_D))
-	{
-		modelPos.x += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_A))
-	{
-		modelPos.x -= UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_W))
-	{
-		modelPos.z += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_S))
-	{
-		modelPos.z -= UINT;
-	}
-
-	//testModel->transform.SetPos(modelPos);
-	ptLig.SetPos(modelPos);
-
-	//ライトのON/OFF
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_1))
-	{
-		dirLigFront.SetActive();
-	}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_2))
-	{
-		dirLigTop.SetActive();
-	}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_3))
-	{
-		hemiLig.SetActive();
+		nowModel = 1 - nowModel;
 	}
 
 	//アニメーション
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_L))
 	{
-		animModel->animator->Play("Action1", false);
+		static std::array<std::string, 2>ANIM_NAME = { "Action1","Run" };
+		animModel[nowModel]->animator->Play(ANIM_NAME[nowModel], true);
 	}
-	animModel->animator->Update();
+	animModel[nowModel]->animator->Update();
 
 	debugCam.Move();
 }
@@ -99,6 +60,8 @@ void GameScene::OnUpdate()
 
 void GameScene::OnDraw()
 {
+	static std::shared_ptr<StaticallyCubeMap>CUBE_MAP = std::make_shared<StaticallyCubeMap>("Non");
+
 	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
 
@@ -108,7 +71,8 @@ void GameScene::OnDraw()
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
-	DrawFunc3D::DrawADSShadingModel(ligMgr, animModel, debugCam);
+	DrawFunc3D::DrawADSShadingModel(ligMgr, animModel[nowModel], debugCam);
+	//DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel, debugCam, CUBE_MAP);
 }
 
 void GameScene::OnImguiDebug()
