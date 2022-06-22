@@ -82,7 +82,7 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 			//•âŠÔ‚Ìî•ñ‚ª‘µ‚Á‚½‚Ì‚ÅüŒ`•âŠÔ‚µ‚Ä‚»‚ê‚ðÌ—p
 			if (firstKeyFrame != nullptr && secondKeyFrame != nullptr)
 			{
-				getValue[i] = KuroMath::Liner(firstKeyFrame->value, secondKeyFrame->value, (Frame - firstKeyFrame->frame) / (secondKeyFrame->frame - firstKeyFrame->frame));
+				getValue[i] = KuroMath::Lerp(firstKeyFrame->value, secondKeyFrame->value, (Frame - firstKeyFrame->frame) / (secondKeyFrame->frame - firstKeyFrame->frame));
 				break;
 			}
 		}

@@ -166,7 +166,7 @@ void DrawFunc2D_Mask::DrawLine2DGraph(const Vec2<float>& FromPos, const Vec2<flo
 	Vec2<float>centerPos = FromPos + vec * distance / 2;
 
 	Vec2<float>maskSize = MaskRightBottomPos - MaskLeftUpPos;
-	Vec2<float>maskCenterPos = KuroMath::Liner(MaskLeftUpPos, MaskRightBottomPos, 0.5f);
+	Vec2<float>maskCenterPos = KuroMath::Lerp(MaskLeftUpPos, MaskRightBottomPos, 0.5f);
 
 	DrawRotaGraph2D(centerPos, expRate, KuroMath::GetAngle(vec), Tex, maskCenterPos,maskSize, { 0.5f,0.5f }, Mirror);
 }
