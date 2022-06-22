@@ -232,7 +232,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 	DRAW_ADS_SHADING_COUNT++;
 }
 
-void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const std::shared_ptr<CubeMap>CubeMap, const AlphaBlendMode& BlendMode)
+void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator, std::shared_ptr<CubeMap>AttachCubeMap, const AlphaBlendMode& BlendMode)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE[AlphaBlendModeNum];
 	static std::vector<std::shared_ptr<ConstantBuffer>>TRANSFORM_BUFF;
@@ -259,6 +259,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "天球ライト情報 (構造化バッファ)"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "キューブマップ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ボーン行列バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ベースカラーテクスチャ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"メタルネステクスチャ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ノーマルマップ"),
@@ -282,7 +283,15 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 
 	TRANSFORM_BUFF[DRAW_PBR_SHADING_COUNT]->Mapping(&Transform.GetMat());
 
+
+	//ボーン行列バッファ取得（アニメーターがnullptrなら空）
 	auto model = Model.lock();
+	std::shared_ptr<ConstantBuffer>boneBuff;
+	if (Animator)boneBuff = Animator->GetBoneMatBuff();
+
+	//キューブマップ（nullptrならデフォルトの静的キューブマップ）
+	std::shared_ptr<CubeMap>cubeMap = StaticallyCubeMap::GetDefaultCubeMap();
+	if (AttachCubeMap)cubeMap = AttachCubeMap;
 
 	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
 	{
@@ -297,15 +306,16 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 				LigManager.GetLigInfo(Light::POINT),
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
-				CubeMap->GetCubeMapTex(),
+				cubeMap->GetCubeMapTex(),
 				TRANSFORM_BUFF[DRAW_PBR_SHADING_COUNT],
+				boneBuff,
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[METALNESS_TEX],
 				mesh.material->texBuff[NORMAL_TEX],
 				mesh.material->texBuff[ROUGHNESS_TEX],
 				mesh.material->buff,
 			},
-			{ CBV,CBV,SRV,SRV,SRV,SRV,SRV,CBV,SRV,SRV,SRV,SRV,CBV },
+			{ CBV,CBV,SRV,SRV,SRV,SRV,SRV,CBV,CBV,SRV,SRV,SRV,SRV,CBV },
 			Transform.GetPos().z,
 			true);
 	}

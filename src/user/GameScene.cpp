@@ -14,6 +14,7 @@ GameScene::GameScene()
 {
 	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
 	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.glb");
+	axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.glb");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -60,8 +61,6 @@ void GameScene::OnUpdate()
 
 void GameScene::OnDraw()
 {
-	static std::shared_ptr<StaticallyCubeMap>CUBE_MAP = std::make_shared<StaticallyCubeMap>("Non");
-
 	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
 
@@ -71,8 +70,9 @@ void GameScene::OnDraw()
 	//•W€•`‰æ
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
-	DrawFunc3D::DrawADSShadingModel(ligMgr, animModel[nowModel], debugCam);
-	//DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel, debugCam, CUBE_MAP);
+	//DrawFunc3D::DrawADSShadingModel(ligMgr, animModel[nowModel], debugCam);
+	//DrawFunc3D::DrawADSShadingModel(ligMgr, axisModel, debugCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
 }
 
 void GameScene::OnImguiDebug()

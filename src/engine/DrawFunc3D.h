@@ -56,11 +56,11 @@ public:
 		DrawADSShadingModel(LigManager, obj->model, obj->transform, Cam, obj->animator.get(), BlendMode);
 	}
 	//影つき描画(PBR)
-	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, const std::shared_ptr<CubeMap>CubeMap, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
-	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, const std::shared_ptr<CubeMap>CubeMap, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
+	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator = nullptr, std::shared_ptr<CubeMap>AttachCubeMap = nullptr, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
+	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap = nullptr, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
-		DrawPBRShadingModel(LigManager, obj->model, obj->transform, Cam, CubeMap, BlendMode);
+		DrawPBRShadingModel(LigManager, obj->model, obj->transform, Cam, obj->animator, AttachCubeMap, BlendMode);
 	}
 	//トゥーンシェーディング
 	static void DrawToonModel(const std::weak_ptr<TextureBuffer>ToonTex, LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
