@@ -72,7 +72,9 @@ void GameScene::OnDraw()
 
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, animModel[nowModel], debugCam);
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, axisModel, debugCam);
+	StaticallyCubeMap::GetDefaultCubeMap()->Draw(debugCam);
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, axisModel, debugCam);
 }
 
 void GameScene::OnImguiDebug()

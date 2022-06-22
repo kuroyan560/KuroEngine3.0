@@ -176,7 +176,7 @@ float3 BRDF(float3 LigDirection, float3 LigColor, float3 WorldNormal, float3 Wor
     float3 V = normalize(EyePos - WorldPos);
     float NdotL = dot(WorldNormal, L);
     float NdotV = dot(WorldNormal, V);
-    if (NdotL < 0 || NdotV < 0)
+    if (NdotL <= 0 || NdotV <= 0)
     {
         return float3(0, 0, 0);
     }
