@@ -110,6 +110,13 @@ StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideL
 			EDGE, EDGE, 6, 1, 1, 0,
 			D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
+		D3D12_CLEAR_VALUE clearTexValue;
+		clearTexValue.Format = texFormat;
+		clearTexValue.Color[0] = DEFAULT_COLOR.r;
+		clearTexValue.Color[1] = DEFAULT_COLOR.g;
+		clearTexValue.Color[2] = DEFAULT_COLOR.b;
+		clearTexValue.Color[3] = DEFAULT_COLOR.a;
+
 		const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 		auto texBarrier = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -120,7 +127,7 @@ StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideL
 			D3D12_HEAP_FLAG_NONE,
 			&texDesc,
 			texBarrier,
-			nullptr,
+			&clearTexValue,
 			IID_PPV_ARGS(&buff));
 
 		std::wstring name = L"StaticallyCubeMapTex - Default";
