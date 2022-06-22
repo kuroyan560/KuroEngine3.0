@@ -14,7 +14,8 @@ GameScene::GameScene()
 {
 	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
 	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.glb");
-	axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.glb");
+	//axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.glb");
+	axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -47,13 +48,30 @@ void GameScene::OnUpdate()
 		nowModel = 1 - nowModel;
 	}
 
-	//アニメーション
+	//アニメーション（通常モデル）
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_L))
 	{
 		static std::array<std::string, 2>ANIM_NAME = { "Action1","Run" };
 		animModel[nowModel]->animator->Play(ANIM_NAME[nowModel], true);
 	}
+
+	//軸モデル
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_S))
+	{
+		axisModel->animator->Play("Scaling", false);
+	}
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_R))
+	{
+		axisModel->animator->Play("Rotation", false);
+	}
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_T))
+	{
+		axisModel->animator->Play("Translation", false);
+	}
+
+
 	animModel[nowModel]->animator->Update();
+	axisModel->animator->Update();
 
 	debugCam.Move();
 }
@@ -73,7 +91,7 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, animModel[nowModel], debugCam);
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, axisModel, debugCam);
 	StaticallyCubeMap::GetDefaultCubeMap()->Draw(debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
+	//DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, axisModel, debugCam);
 }
 
