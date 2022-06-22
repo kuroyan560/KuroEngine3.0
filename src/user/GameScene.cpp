@@ -12,10 +12,11 @@
 
 GameScene::GameScene()
 {
+	axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
+
 	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
 	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.glb");
 	//axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.glb");
-	axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));

@@ -42,55 +42,146 @@ int Skeleton::GetIndex(const std::string& BoneName)
 	return boneIdxTable[BoneName];
 }
 
+Matrix Skeleton::BoneAnimation::CalculateMat(const ANIM_TYPE& Type, const float& Frame, bool& FinishFlg)const
+{
+	Matrix result = XMMatrixIdentity();
+
+	//Translation
+	if (Type == TRANSLATION)
+	{
+		//キーフレーム情報なし
+		if (posAnim.keyFrames.empty())return XMMatrixIdentity();
+
+		//結果の格納先
+		Vec3<float>translation;
+
+		if (Frame < posAnim.startFrame)translation = posAnim.keyFrames.front().value;		//範囲外：一番手前を採用
+		else if (posAnim.endFrame < Frame)translation = posAnim.keyFrames.back().value;	//範囲外：一番最後を採用
+		else
+		{
+			FinishFlg = false;	//フレーム範囲内なのでアニメーションは終了していない
+
+			const KeyFrame<Vec3<float>>* firstKey = nullptr;
+			const KeyFrame<Vec3<float>>* secondKey = nullptr;
+			for (auto& key : posAnim.keyFrames)
+			{
+				//同じフレーム数の物があったらそれを採用
+				if (key.frame == Frame)
+				{
+					translation = key.value;
+					break;
+				}
+
+				if (key.frame < Frame)firstKey = &key;	//補間の開始キーフレーム
+				if (secondKey == nullptr && Frame < key.frame)secondKey = &key;	//補間の終了キーフレーム
+
+				//補間の情報が揃ったので線形補間してそれを採用
+				if (firstKey != nullptr && secondKey != nullptr)
+				{
+					translation = KuroMath::Lerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					break;
+				}
+			}
+		}
+
+		//結果を行列に変換
+		result = XMMatrixTranslation(translation.x, translation.y, translation.z);
+	}
+	//Rotation
+	else if (Type == ROTATION)
+	{
+		//キーフレーム情報なし
+		if (rotateAnim.keyFrames.empty())return XMMatrixIdentity();
+
+		//結果の格納先
+		XMVECTOR rotation;
+
+		if (Frame < rotateAnim.startFrame)rotation = rotateAnim.keyFrames.front().value;		//範囲外：一番手前を採用
+		else if (rotateAnim.endFrame < Frame)rotation = rotateAnim.keyFrames.back().value;	//範囲外：一番最後を採用
+		else
+		{
+			FinishFlg = false;	//フレーム範囲内なのでアニメーションは終了していない
+
+			const KeyFrame<XMVECTOR>* firstKey = nullptr;
+			const KeyFrame<XMVECTOR>* secondKey = nullptr;
+			for (auto& key : rotateAnim.keyFrames)
+			{
+				//同じフレーム数の物があったらそれを採用
+				if (key.frame == Frame)
+				{
+					rotation = key.value;
+					break;
+				}
+
+				if (key.frame < Frame)firstKey = &key;	//補間の開始キーフレーム
+				if (secondKey == nullptr && Frame < key.frame)secondKey = &key;	//補間の終了キーフレーム
+
+				//補間の情報が揃ったので線形補間してそれを採用
+				if (firstKey != nullptr && secondKey != nullptr)
+				{
+					rotation = XMQuaternionSlerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					break;
+				}
+			}
+		}
+		//結果を行列に変換
+		result = XMMatrixRotationQuaternion(rotation);
+	}
+	//Scaling
+	else if (Type == SCALING)
+	{
+		//キーフレーム情報なし
+		if (scaleAnim.keyFrames.empty())return XMMatrixIdentity();
+
+		//結果の格納先
+		Vec3<float>scale;
+
+		if (Frame < scaleAnim.startFrame)scale = scaleAnim.keyFrames.front().value;		//範囲外：一番手前を採用
+		else if (scaleAnim.endFrame < Frame)scale = scaleAnim.keyFrames.back().value;	//範囲外：一番最後を採用
+		else
+		{
+			FinishFlg = false;	//フレーム範囲内なのでアニメーションは終了していない
+
+			const KeyFrame<Vec3<float>>* firstKey = nullptr;
+			const KeyFrame<Vec3<float>>* secondKey = nullptr;
+			for (auto& key : scaleAnim.keyFrames)
+			{
+				//同じフレーム数の物があったらそれを採用
+				if (key.frame == Frame)
+				{
+					scale = key.value;
+					break;
+				}
+
+				if (key.frame < Frame)firstKey = &key;	//補間の開始キーフレーム
+				if (secondKey == nullptr && Frame < key.frame)secondKey = &key;	//補間の終了キーフレーム
+
+				//補間の情報が揃ったので線形補間してそれを採用
+				if (firstKey != nullptr && secondKey != nullptr)
+				{
+					scale = KuroMath::Lerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					break;
+				}
+			}
+		}
+		//結果を行列に変換
+		result = XMMatrixScaling(scale.x, scale.y, scale.z);
+	}
+	else assert(0);
+
+	return result;
+}
+
 Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)const
 {
 	Matrix result = XMMatrixIdentity();
 	bool finish = true;
 
-	std::array<float, ANIM_IDX_NUM>getValue = { 0 };
-	for (int i = 0; i < ANIM_IDX_NUM; ++i)
-	{
-		if (anims[i].keyFrames.empty())continue;		//キーフレーム情報なし
-		if (Frame < anims[i].startFrame)
-		{
-			getValue[i] = anims[i].keyFrames.front().value;	//範囲外：一番手前を採用
-			continue;
-		}
-		if (anims[i].endFrame < Frame)
-		{
-			getValue[i] = anims[i].keyFrames.back().value;	//範囲外：一番最後を採用
-			continue;
-		}
+	Matrix translation = CalculateMat(TRANSLATION, Frame, finish);
+	Matrix rotation = CalculateMat(ROTATION, Frame, finish);
+	Matrix scaling = CalculateMat(SCALING, Frame, finish);
 
-		//範囲内なのでアニメーション終了していない
-		finish = false;
-
-		const KeyFrame* firstKeyFrame = nullptr;
-		const KeyFrame* secondKeyFrame = nullptr;
-		for (auto& key : anims[i].keyFrames)
-		{
-			//同じフレーム数の物があったらそれを採用
-			if (key.frame == Frame)
-			{
-				getValue[i] = key.value;
-				break;
-			}
-
-			if (key.frame < Frame)firstKeyFrame = &key;	//補間の開始キーフレーム
-			if (secondKeyFrame == nullptr && Frame < key.frame)secondKeyFrame = &key;	//補間の終了キーフレーム
-
-			//補間の情報が揃ったので線形補間してそれを採用
-			if (firstKeyFrame != nullptr && secondKeyFrame != nullptr)
-			{
-				getValue[i] = KuroMath::Lerp(firstKeyFrame->value, secondKeyFrame->value, (Frame - firstKeyFrame->frame) / (secondKeyFrame->frame - firstKeyFrame->frame));
-				break;
-			}
-		}
-	}
-
-	result *= XMMatrixTranslation(getValue[POS_X], getValue[POS_Y], getValue[POS_Z])
-		* XMMatrixRotationQuaternion(XMVectorSet(getValue[ROTATE_X], getValue[ROTATE_Y], getValue[ROTATE_Z], getValue[ROTATE_W]))
-		* XMMatrixScaling(getValue[SCALE_X], getValue[SCALE_Y], getValue[SCALE_Z]);
+	result *= translation * rotation * scaling;
 
 	if (FinishFlg)*FinishFlg = finish;
 

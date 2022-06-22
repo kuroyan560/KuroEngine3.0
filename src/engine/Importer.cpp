@@ -475,58 +475,62 @@ void Importer::LoadFbxMaterial(const std::string& Dir, ModelMesh& ModelMesh, Fbx
 
 void Importer::LoadBoneAnim(const LoadFbxNode& BoneNode, Skeleton::ModelAnimation& ModelAnimation, FbxAnimLayer* FbxAnimLayer)
 {
+	//FBXでのアニメーション読み込み防止
+	assert(0);
+
 	//ボーン単位アニメーション取得
 	auto& boneAnim = ModelAnimation.boneAnim[BoneNode.name];
 	auto fbxNode = BoneNode.fbxNode;
 
 	FbxAnimCurve* animCurve;
 
-	//座標
-	animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-	if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_X]);
+	////座標
+	//animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+	//if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_X]);
 
-	animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Y]);
+	//animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Y]);
 
-	animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Z]);
+	//animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Z]);
 
-	//DirectXの座標軸に合わせる
-	for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::POS_X].keyFrames)
-	{
-		key.value = -key.value;
-	}
+	////DirectXの座標軸に合わせる
+	//for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::POS_X].keyFrames)
+	//{
+	//	key.value = -key.value;
+	//}
 
-	//回転
-	animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-	if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X]);
+	////回転
+	//animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+	//if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X]);
 
-	animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Y]);
+	//animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Y]);
 
-	animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Z]);
+	//animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Z]);
 
-	//回転のみ弧度法なのでラジアンに変換
-	for (int i = 0; i < 3; ++i)
-	{
-		for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + i].keyFrames)
-		{
-			key.value = Angle::ConvertToRadian(key.value);
-		}
-	}
+	////回転のみ弧度法なのでラジアンに変換
+	//for (int i = 0; i < 3; ++i)
+	//{
+	//	for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + i].keyFrames)
+	//	{
+	//		key.value = Angle::ConvertToRadian(key.value);
+	//	}
+	//}
 
-	//スケール
-	animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-	if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_X]);
+	////スケール
+	//animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+	//if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_X]);
 
-	animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Y]);
+	//animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Y]);
 
-	animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Z]);
+	//animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Z]);
 }
 
+/*
 void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 {
 	FbxTimeSpan interval;
@@ -558,6 +562,7 @@ void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 		Animation.keyFrames.emplace_back(keyFrame);
 	}
 }
+*/
 
 void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::MeshPrimitive& GLTFPrimitive, const Microsoft::glTF::Skin* GLTFSkin, const Microsoft::glTF::GLTFResourceReader& Reader, const Microsoft::glTF::Document& Doc)
 {
@@ -1361,45 +1366,40 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			ErrorMessage("LoadGLTFModel",
 				path == Microsoft::glTF::TARGET_WEIGHTS || path == Microsoft::glTF::TARGET_UNKNOWN, "This anim's target path is unsupported.");
 
+			//Rotation(Quaternion)
 			if (path == Microsoft::glTF::TARGET_ROTATION)
 			{
-				for (int valueIdx = 0; valueIdx < 4; ++valueIdx)
-				{
-					auto& anim = boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + valueIdx];
-					anim.startFrame = startFrame;
-					anim.endFrame = endFrame;
+				boneAnim.rotateAnim.startFrame = startFrame;
+				boneAnim.rotateAnim.endFrame = endFrame;
 
-					for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
-					{
-						anim.keyFrames.emplace_back();
-						auto& keyFrame = anim.keyFrames.back();
-						keyFrame.frame = keyFrames[keyFrameIdx];
-						keyFrame.value = values[keyFrameIdx * 4 + valueIdx];
-					}
+				for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
+				{
+					boneAnim.rotateAnim.keyFrames.emplace_back();
+					auto& keyFrame = boneAnim.rotateAnim.keyFrames.back();
+					keyFrame.frame = keyFrames[keyFrameIdx];
+					int offset = keyFrameIdx * 4;	//インデックスのオフセット
+					keyFrame.value = XMVectorSet(values[offset], values[offset + 1], values[offset + 2], values[offset + 3]);
 				}
 			}
-			else if(path == Microsoft::glTF::TARGET_TRANSLATION || Microsoft::glTF::TARGET_SCALE)
+			//TranslationかScale
+			else
 			{
-				int valudIdxOffset = (path == Microsoft::glTF::TARGET_TRANSLATION ? Skeleton::BoneAnimation::POS_X : Skeleton::BoneAnimation::SCALE_X);
+				Animation<Vec3<float>>* animPtr = &boneAnim.posAnim;
+				if (path == Microsoft::glTF::TARGET_SCALE) { animPtr = &boneAnim.scaleAnim; }
 
-				for (int valueIdx = 0; valueIdx < 3; ++valueIdx)
+				animPtr->startFrame = startFrame;
+				animPtr->endFrame = endFrame;
+
+				for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
 				{
-					auto& anim = boneAnim.anims[valudIdxOffset + valueIdx];
-					anim.startFrame = startFrame;
-					anim.endFrame = endFrame;
-
-					for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
-					{
-						anim.keyFrames.emplace_back();
-						auto& keyFrame = anim.keyFrames.back();
-						keyFrame.frame = keyFrames[keyFrameIdx];
-						keyFrame.value = values[keyFrameIdx * 3 + valueIdx];
-					}
+					animPtr->keyFrames.emplace_back();
+					auto& keyFrame = animPtr->keyFrames.back();
+					keyFrame.frame = keyFrames[keyFrameIdx];
+					int offset = keyFrameIdx * 3;	//インデックスのオフセット
+					keyFrame.value = { values[offset], values[offset + 1], values[offset + 2] };
 				}
 			}
-
 		}
-
 	}
 
 	skel.CreateBoneTree();
