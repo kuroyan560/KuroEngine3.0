@@ -607,8 +607,8 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 		int jid0 = 4 * vertIdx, jid1 = 4 * vertIdx + 1, jid2 = 4 * vertIdx + 2, jid3 = 4 * vertIdx + 3;
 
 		ModelMesh::Vertex_Model vertex;
-		vertex.pos = { vertPos[vid0],vertPos[vid1],vertPos[vid2] };
-		vertex.normal = { vertNrm[vid0],vertNrm[vid1],vertNrm[vid2] };
+		vertex.pos = { -vertPos[vid0],vertPos[vid1],vertPos[vid2] };
+		vertex.normal = { -vertNrm[vid0],vertNrm[vid1],vertNrm[vid2] };
 		vertex.uv = { vertUV[tid0],vertUV[tid1] };
 
 		if (!vertWeight.empty())
@@ -652,9 +652,12 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 
 	// インデックスデータ
 	std::vector<uint16_t>indices = Reader.ReadBinaryData<uint16_t>(Doc, accIndex);
-	for (const auto& index : indices)
+	auto idxCount = accIndex.count;
+	for (int i = 0; i < idxCount; i += 3)
 	{
-		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(index));
+		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(indices[i]));
+		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(indices[i + 2]));
+		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(indices[i + 1]));
 	}
 }
 
@@ -1312,9 +1315,9 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		}
 
 		// ローカル変形行列の計算
-		XMVECTOR rotation = { gltfNode.rotation.x, gltfNode.rotation.y, gltfNode.rotation.z, gltfNode.rotation.w };
-		XMVECTOR scaling = { gltfNode.scale.x, gltfNode.scale.y, gltfNode.scale.z, 0.0f };
-		XMVECTOR translation = { gltfNode.translation.x, gltfNode.translation.y, gltfNode.translation.z, 1.0f };
+		XMVECTOR rotation = { gltfNode.rotation.x, -gltfNode.rotation.y, -gltfNode.rotation.z, gltfNode.rotation.w };
+		XMVECTOR scaling = { gltfNode.scale.x, gltfNode.scale.y, gltfNode.scale.z, 1.0f };
+		XMVECTOR translation = { -gltfNode.translation.x, gltfNode.translation.y, gltfNode.translation.z, 1.0f };
 
 		XMMATRIX matScaling, matRotation, matTranslation;
 		matScaling = XMMatrixScalingFromVector(scaling);
@@ -1378,7 +1381,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 					auto& keyFrame = boneAnim.rotateAnim.keyFrames.back();
 					keyFrame.frame = keyFrames[keyFrameIdx];
 					int offset = keyFrameIdx * 4;	//インデックスのオフセット
-					keyFrame.value = XMVectorSet(values[offset], values[offset + 1], values[offset + 2], values[offset + 3]);
+					keyFrame.value = XMVectorSet(values[offset], -values[offset + 1], -values[offset + 2], values[offset + 3]);
 				}
 			}
 			//TranslationかScale
@@ -1396,7 +1399,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 					auto& keyFrame = animPtr->keyFrames.back();
 					keyFrame.frame = keyFrames[keyFrameIdx];
 					int offset = keyFrameIdx * 3;	//インデックスのオフセット
-					keyFrame.value = { values[offset], values[offset + 1], values[offset + 2] };
+					keyFrame.value = { values[offset] * (path == Microsoft::glTF::TARGET_SCALE ? 1 : -1), values[offset + 1], values[offset + 2] };
 				}
 			}
 		}
