@@ -52,12 +52,15 @@ void GameScene::OnUpdate()
 	}
 
 	//アニメーション（通常モデル）
+	static std::array<std::string, 2>ANIM_NAME = { "Action1","Run" };
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_L))
 	{
-		static std::array<std::string, 2>ANIM_NAME = { "Action1","Run" };
 		animModel[nowModel]->animator->Play(ANIM_NAME[nowModel], true);
 	}
-
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_S))
+	{
+		animModel[nowModel]->animator->stop = !animModel[nowModel]->animator->stop;
+	}
 
 	animModel[nowModel]->animator->Update();
 	axisModels[nowAxis]->animator->Update();

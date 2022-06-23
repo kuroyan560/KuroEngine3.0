@@ -81,6 +81,7 @@ void ModelAnimator::Update()
 	auto skel = attachSkelton.lock();
 	if (!skel)return;	//スケルトンがアタッチされていない
 	if (playAnimations.empty())return;	//アニメーション再生中でない
+	if (stop)return;	//停止フラグ
 
 	//単位行列で埋めてリセット
 	std::fill(boneMatricies.begin(), boneMatricies.end(), XMMatrixIdentity());
@@ -94,23 +95,11 @@ void ModelAnimator::Update()
 		//アニメーションが終了しているかのフラグ
 		bool animFinish = true;
 
-		////ボーン単位のアニメーション
-		//for (auto& boneAnim : anim.boneAnim)
-		//{
-		//	int boneIdx = skel->boneIdxTable[boneAnim.first];
-
-		//	//オフセット行列
-		//	boneMatricies[boneIdx] = skel->bones[boneIdx].invOffsetMat;
-		//	//ボーンアニメーションから行列取得
-		//	auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
-		//	boneMatricies[boneIdx] *= boneAnimMat;
-		//}
-
-		////全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
+		//ボーン行列を再帰的に計算
 		BoneMatrixRecursive(skel->bones.size() - 1, XMMatrixIdentity(), playAnim.past, &animFinish, anim);
 
 		//フレーム経過
-		playAnim.past++;
+		playAnim.past += speed;
 		//アニメーションの終了情報記録
 		playAnim.finish = animFinish;
 	}

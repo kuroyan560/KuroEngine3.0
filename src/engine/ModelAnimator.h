@@ -34,11 +34,16 @@ class ModelAnimator
 	void BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const int& Past, bool* Finish, Skeleton::ModelAnimation& Anim);
 
 public:
+	float speed = 1.0f;
+	bool stop = false;
+
 	ModelAnimator() {}
 	ModelAnimator(std::weak_ptr<Model>Model);
 	void Attach(std::weak_ptr<Model>Model);
 
 	void Reset();
+
+	//アニメーション再生
 	void Play(const std::string& AnimationName, const bool& Loop);
 	void Update();
 	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
