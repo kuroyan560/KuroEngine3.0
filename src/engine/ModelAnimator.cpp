@@ -98,11 +98,11 @@ void ModelAnimator::Update()
 		{
 			int boneIdx = skel->boneIdxTable[boneAnim.first];
 
+			//オフセット行列
+			boneMatricies[boneIdx] = skel->bones[boneIdx].invOffsetMat;
 			//ボーンアニメーションから行列取得
 			auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
-			boneMatricies[boneIdx] = boneAnimMat;
-			//オフセット行列
-			boneMatricies[boneIdx] *= skel->bones[boneIdx].invOffsetMat;
+			boneMatricies[boneIdx] *= boneAnimMat;
 		}
 
 		//全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
