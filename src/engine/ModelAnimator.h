@@ -4,9 +4,10 @@
 #include<list>
 #include<array>
 #include"KuroMath.h"
-class ConstantBuffer;
-class Skeleton;
+#include"Skeleton.h"
 class Model;
+class ConstantBuffer;
+
 class ModelAnimator
 {
 	static const int MAX_BONE_NUM = 256;
@@ -30,7 +31,7 @@ class ModelAnimator
 
 	std::list<PlayAnimation>playAnimations;
 
-	void BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix);
+	void BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const int& Past, bool* Finish, Skeleton::ModelAnimation& Anim);
 
 public:
 	ModelAnimator() {}

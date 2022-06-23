@@ -2,18 +2,19 @@
 #include"KuroEngine.h"
 #include"Model.h"
 
-void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix)
+void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const int& Past, bool* Finish, Skeleton::ModelAnimation& Anim)
 {
 	auto skel = attachSkelton.lock();
 	const auto& bone = skel->bones[BoneIdx];
+	const auto& boneAnim = Anim.boneAnim[bone.name];
 
-	//親の行列を適用
-	boneMatricies[BoneIdx] *= ParentMatrix;
+	auto jointMat = boneAnim.GetMatrix(Past, *Finish ? Finish : nullptr) * ParentMatrix;
+	boneMatricies[BoneIdx] =  skel->bones[BoneIdx].invOffsetMat * jointMat;
 
 	//子を呼び出して再帰的に計算
 	for (auto& child : bone.children)
 	{
-		BoneMatrixRecursive(child, boneMatricies[BoneIdx]);
+		BoneMatrixRecursive(child, jointMat, Past, Finish, Anim);
 	}
 }
 
@@ -88,25 +89,25 @@ void ModelAnimator::Update()
 	for (auto& playAnim : playAnimations)
 	{
 		//アニメーション情報取得
-		const auto& anim = skel->animations[playAnim.name];
+		auto& anim = skel->animations[playAnim.name];
 
 		//アニメーションが終了しているかのフラグ
 		bool animFinish = true;
 
-		//ボーン単位のアニメーション
-		for (auto& boneAnim : anim.boneAnim)
-		{
-			int boneIdx = skel->boneIdxTable[boneAnim.first];
+		////ボーン単位のアニメーション
+		//for (auto& boneAnim : anim.boneAnim)
+		//{
+		//	int boneIdx = skel->boneIdxTable[boneAnim.first];
 
-			//オフセット行列
-			boneMatricies[boneIdx] = skel->bones[boneIdx].invOffsetMat;
-			//ボーンアニメーションから行列取得
-			auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
-			boneMatricies[boneIdx] *= boneAnimMat;
-		}
+		//	//オフセット行列
+		//	boneMatricies[boneIdx] = skel->bones[boneIdx].invOffsetMat;
+		//	//ボーンアニメーションから行列取得
+		//	auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
+		//	boneMatricies[boneIdx] *= boneAnimMat;
+		//}
 
-		//全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
-		BoneMatrixRecursive(skel->bones.size() - 1, XMMatrixIdentity());
+		////全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
+		BoneMatrixRecursive(skel->bones.size() - 1, XMMatrixIdentity(), playAnim.past, &animFinish, anim);
 
 		//フレーム経過
 		playAnim.past++;

@@ -181,7 +181,7 @@ Matrix Skeleton::BoneAnimation::GetMatrix(const float& Frame, bool* FinishFlg)co
 	Matrix rotation = CalculateMat(ROTATION, Frame, finish);
 	Matrix scaling = CalculateMat(SCALING, Frame, finish);
 
-	result *= translation * rotation * scaling;
+	result *= scaling * rotation * translation;
 
 	if (FinishFlg)*FinishFlg = finish;
 

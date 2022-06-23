@@ -16,7 +16,7 @@ GameScene::GameScene()
 	axisModels[1] = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
 
 	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
-	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.glb");
+	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 	//axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.glb");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
@@ -80,7 +80,7 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, animModel[nowModel], debugCam);
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, axisModel, debugCam);
 	StaticallyCubeMap::GetDefaultCubeMap()->Draw(debugCam);
-	//DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, axisModels[nowAxis], debugCam);
 }
 
