@@ -15,7 +15,8 @@ class GameScene : public BaseScene
 {
 	std::array<std::shared_ptr<ModelObject>, 2>animModel;
 	int nowModel = 0;
-	std::shared_ptr<ModelObject>axisModel;
+	std::array<std::shared_ptr<ModelObject>, 2>axisModels;
+	int nowAxis = 0;
 
 	DebugCamera debugCam;
 	LightManager ligMgr;

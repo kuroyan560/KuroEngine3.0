@@ -12,7 +12,8 @@
 
 GameScene::GameScene()
 {
-	axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
+	axisModels[0] = std::make_shared<ModelObject>("resource/user/", "Axis_NonYUp.gltf");
+	axisModels[1] = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
 
 	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
 	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.glb");
@@ -32,6 +33,7 @@ GameScene::GameScene()
 void GameScene::OnInitialize()
 {
 	debugCam.Init({ 0,1,-3 }, { 0,1,0 });
+	animModel[nowModel]->transform.SetPos({ 0,0,3 });
 }
 
 void GameScene::OnUpdate()
@@ -56,23 +58,9 @@ void GameScene::OnUpdate()
 		animModel[nowModel]->animator->Play(ANIM_NAME[nowModel], true);
 	}
 
-	//Ž²ƒ‚ƒfƒ‹
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_S))
-	{
-		axisModel->animator->Play("Scaling", false);
-	}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_R))
-	{
-		axisModel->animator->Play("Rotation", false);
-	}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_T))
-	{
-		axisModel->animator->Play("Translation", false);
-	}
-
 
 	animModel[nowModel]->animator->Update();
-	axisModel->animator->Update();
+	axisModels[nowAxis]->animator->Update();
 
 	debugCam.Move();
 }
@@ -93,12 +81,25 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawADSShadingModel(ligMgr, axisModel, debugCam);
 	StaticallyCubeMap::GetDefaultCubeMap()->Draw(debugCam);
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, animModel[nowModel], debugCam);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, axisModel, debugCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, axisModels[nowAxis], debugCam);
 }
 
 void GameScene::OnImguiDebug()
 {
 	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
+
+	static bool NOW_Y_UP_AXIS = false;
+	ImGui::Begin("Debug");
+	if (ImGui::Checkbox("NowAxis is Y-Up Setting.", &NOW_Y_UP_AXIS))
+	{
+		nowAxis = 1 - nowAxis;
+	}
+	ImGui::Separator();
+	ImGui::Text("- Play animation -");
+	if (ImGui::Button("Translation"))axisModels[nowAxis]->animator->Play("Translation", false);
+	if (ImGui::Button("Rotation"))axisModels[nowAxis]->animator->Play("Rotation", false);
+	if (ImGui::Button("Scaling"))axisModels[nowAxis]->animator->Play("Scaling", false);
+	ImGui::End();
 }
 
 void GameScene::OnFinalize()
