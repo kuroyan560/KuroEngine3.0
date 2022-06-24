@@ -12,11 +12,11 @@
 
 GameScene::GameScene()
 {
+	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 	axisModels[0] = std::make_shared<ModelObject>("resource/user/", "Axis_NonYUp.gltf");
 	axisModels[1] = std::make_shared<ModelObject>("resource/user/", "Axis.gltf");
 
 	animModel[0] = std::make_shared<ModelObject>("resource/user/player_anim_test/", "player_anim_test.glb");
-	animModel[1] = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 	//axisModel = std::make_shared<ModelObject>("resource/user/", "Axis.glb");
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
@@ -99,9 +99,21 @@ void GameScene::OnImguiDebug()
 	}
 	ImGui::Separator();
 	ImGui::Text("- Play animation -");
-	if (ImGui::Button("Translation"))axisModels[nowAxis]->animator->Play("Translation", false);
-	if (ImGui::Button("Rotation"))axisModels[nowAxis]->animator->Play("Rotation", false);
-	if (ImGui::Button("Scaling"))axisModels[nowAxis]->animator->Play("Scaling", false);
+	if (ImGui::Button("Translation"))
+	{
+		axisModels[nowAxis]->animator->Reset();
+		axisModels[nowAxis]->animator->Play("Translation", true);
+	}
+	if (ImGui::Button("Rotation"))
+	{
+		axisModels[nowAxis]->animator->Reset();
+		axisModels[nowAxis]->animator->Play("Rotation", true);
+	}
+	if (ImGui::Button("Scaling"))
+	{
+		axisModels[nowAxis]->animator->Reset();
+		axisModels[nowAxis]->animator->Play("Scaling", true);
+	}
 	ImGui::End();
 }
 

@@ -55,12 +55,13 @@ Matrix Skeleton::BoneAnimation::CalculateMat(const ANIM_TYPE& Type, const float&
 		//結果の格納先
 		Vec3<float>translation;
 
+		//終了フレームより前なので、アニメーションは終了していない
+		if (Frame < posAnim.endFrame)FinishFlg = false;
+
 		if (Frame < posAnim.startFrame)translation = posAnim.keyFrames.front().value;		//範囲外：一番手前を採用
 		else if (posAnim.endFrame < Frame)translation = posAnim.keyFrames.back().value;	//範囲外：一番最後を採用
 		else
 		{
-			FinishFlg = false;	//フレーム範囲内なのでアニメーションは終了していない
-
 			const KeyFrame<Vec3<float>>* firstKey = nullptr;
 			const KeyFrame<Vec3<float>>* secondKey = nullptr;
 			for (auto& key : posAnim.keyFrames)
@@ -94,14 +95,15 @@ Matrix Skeleton::BoneAnimation::CalculateMat(const ANIM_TYPE& Type, const float&
 		if (rotateAnim.keyFrames.empty())return XMMatrixIdentity();
 
 		//結果の格納先
-		XMVECTOR rotation;
+		XMVECTOR rotation{};
+
+		//終了フレームより前なので、アニメーションは終了していない
+		if (Frame < rotateAnim.endFrame)FinishFlg = false;
 
 		if (Frame < rotateAnim.startFrame)rotation = rotateAnim.keyFrames.front().value;		//範囲外：一番手前を採用
 		else if (rotateAnim.endFrame < Frame)rotation = rotateAnim.keyFrames.back().value;	//範囲外：一番最後を採用
 		else
 		{
-			FinishFlg = false;	//フレーム範囲内なのでアニメーションは終了していない
-
 			const KeyFrame<XMVECTOR>* firstKey = nullptr;
 			const KeyFrame<XMVECTOR>* secondKey = nullptr;
 			for (auto& key : rotateAnim.keyFrames)
@@ -119,7 +121,9 @@ Matrix Skeleton::BoneAnimation::CalculateMat(const ANIM_TYPE& Type, const float&
 				//補間の情報が揃ったので線形補間してそれを採用
 				if (firstKey != nullptr && secondKey != nullptr)
 				{
-					rotation = XMQuaternionSlerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					float rate = (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame);
+					//rotation = XMQuaternionSlerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					rotation = XMQuaternionSlerpV(firstKey->value, secondKey->value, XMVectorSet(rate, rate, rate, rate));
 					break;
 				}
 			}
@@ -136,12 +140,13 @@ Matrix Skeleton::BoneAnimation::CalculateMat(const ANIM_TYPE& Type, const float&
 		//結果の格納先
 		Vec3<float>scale;
 
+		//終了フレームより前なので、アニメーションは終了していない
+		if (Frame < scaleAnim.endFrame)FinishFlg = false;
+
 		if (Frame < scaleAnim.startFrame)scale = scaleAnim.keyFrames.front().value;		//範囲外：一番手前を採用
 		else if (scaleAnim.endFrame < Frame)scale = scaleAnim.keyFrames.back().value;	//範囲外：一番最後を採用
 		else
 		{
-			FinishFlg = false;	//フレーム範囲内なのでアニメーションは終了していない
-
 			const KeyFrame<Vec3<float>>* firstKey = nullptr;
 			const KeyFrame<Vec3<float>>* secondKey = nullptr;
 			for (auto& key : scaleAnim.keyFrames)
