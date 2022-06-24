@@ -36,42 +36,15 @@ void Player::Move()
 
 		//方向転換
 		const auto up = model->transform.GetUp();
-		model->transform.SetRotate(up, KuroMath::GetAngle(stickL) + Angle(90));
-		//model->transform.SetLookAtRotate(pos + moveVec);
+		model->transform.SetLookAtRotate(pos + moveVec);
 	}
-
-	/*static Angle ANGLE_X(0);
-	const auto right = model->transform.GetRight();
-	if (UsersInput::Instance()->ControllerInput(0, XBOX_BUTTON::RT))
-	{
-		ANGLE_X += Angle(1);
-		model->transform.SetRotate(right, ANGLE_X);
-	}
-	else if (UsersInput::Instance()->ControllerInput(0, XBOX_BUTTON::RB))
-	{
-		ANGLE_X -= Angle(1);
-		model->transform.SetRotate(right, ANGLE_X);
-	}
-
-	static Angle ANGLE_Z(0);
-	const auto front = model->transform.GetFront();
-	if (UsersInput::Instance()->ControllerInput(0, XBOX_BUTTON::LT))
-	{
-		ANGLE_Z += Angle(1);
-		model->transform.SetRotate(front, ANGLE_Z);
-	}
-	else if (UsersInput::Instance()->ControllerInput(0, XBOX_BUTTON::LB))
-	{
-		ANGLE_Z -= Angle(1);
-		model->transform.SetRotate(front, ANGLE_Z);
-	}*/
 }
 
 Player::Player()
 {
 	KuroFunc::ErrorMessage(INSTANCED, "Player", "Constructor", "Only one Player's instance can exsit.");
 	INSTANCED = true;
-	model = std::make_shared<ModelObject>("resource/user/", "player.glb");
+	model = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 
 	//コライダー生成
 	//メッシュ

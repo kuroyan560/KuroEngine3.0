@@ -93,7 +93,7 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 	DRAW_LINE_COUNT++;
 }
 
-void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode)
+void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator, const AlphaBlendMode& BlendMode)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE[AlphaBlendModeNum];
 	static std::vector<std::shared_ptr<ConstantBuffer>>TRANSFORM_BUFF;
@@ -114,7 +114,9 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 		{
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ボーン行列バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"カラーテクスチャ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"マテリアル基本情報バッファ"),
 		};
 
 		//レンダーターゲット描画先情報
@@ -133,6 +135,8 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 	TRANSFORM_BUFF[DRAW_NON_SHADING_COUNT]->Mapping(&Transform.GetMat());
 
 	auto model = Model.lock();
+	std::shared_ptr<ConstantBuffer>boneBuff;
+	if (Animator)boneBuff = Animator->GetBoneMatBuff();
 
 	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
 	{
@@ -143,9 +147,11 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 			{
 				Cam.GetBuff(),
 				TRANSFORM_BUFF[DRAW_NON_SHADING_COUNT],
+				boneBuff,
 				mesh.material->texBuff[COLOR_TEX],
+				mesh.material->buff
 			},
-			{ CBV,CBV,SRV },
+			{ CBV,CBV,CBV,SRV,CBV },
 			Transform.GetPos().z,
 			true);
 	}
