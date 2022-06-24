@@ -2,18 +2,19 @@
 #include"KuroEngine.h"
 #include"Model.h"
 
-void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix)
+void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const int& Past, bool* Finish, Skeleton::ModelAnimation& Anim)
 {
 	auto skel = attachSkelton.lock();
 	const auto& bone = skel->bones[BoneIdx];
+	const auto& boneAnim = Anim.boneAnim[bone.name];
 
-	//親の行列を適用
-	boneMatricies[BoneIdx] *= ParentMatrix;
+	auto jointMat = boneAnim.GetMatrix(Past, *Finish ? Finish : nullptr) * ParentMatrix;
+	boneMatricies[BoneIdx] =  skel->bones[BoneIdx].invOffsetMat * jointMat;
 
 	//子を呼び出して再帰的に計算
 	for (auto& child : bone.children)
 	{
-		BoneMatrixRecursive(child, boneMatricies[BoneIdx]);
+		BoneMatrixRecursive(child, jointMat, Past, Finish, Anim);
 	}
 }
 
@@ -26,7 +27,16 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 {
 	auto model = Model.lock();
 	auto skel = model->skelton;
-	boneMatricies.resize(skel->bones.size());
+	KuroFunc::ErrorMessage(MAX_BONE_NUM < skel->bones.size(), "ModelAnimator", "AttachSkeleton", "The bone's number is over than limit.");
+
+	//バッファ未生成
+	if (!boneBuff)
+	{
+		boneBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), MAX_BONE_NUM);
+	}
+	
+	//バッファのリネーム
+	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->header.GetModelName())).c_str());
 
 	Reset();
 
@@ -36,6 +46,11 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 
 void ModelAnimator::Reset()
 {
+	//単位行列で埋めてリセット
+	std::array<Matrix, MAX_BONE_NUM>initMat;
+	initMat.fill(XMMatrixIdentity());
+	boneBuff->Mapping(initMat.data());
+
 	//再生中アニメーション名リセット
 	playAnimations.clear();
 }
@@ -66,6 +81,7 @@ void ModelAnimator::Update()
 	auto skel = attachSkelton.lock();
 	if (!skel)return;	//スケルトンがアタッチされていない
 	if (playAnimations.empty())return;	//アニメーション再生中でない
+	if (stop)return;	//停止フラグ
 
 	//単位行列で埋めてリセット
 	std::fill(boneMatricies.begin(), boneMatricies.end(), XMMatrixIdentity());
@@ -74,28 +90,16 @@ void ModelAnimator::Update()
 	for (auto& playAnim : playAnimations)
 	{
 		//アニメーション情報取得
-		const auto& anim = skel->animations[playAnim.name];
+		auto& anim = skel->animations[playAnim.name];
 
 		//アニメーションが終了しているかのフラグ
 		bool animFinish = true;
 
-		//ボーン単位のアニメーション
-		for (auto& boneAnim : anim.boneAnim)
-		{
-			int boneIdx = skel->boneIdxTable[boneAnim.first];
-
-			//ボーンアニメーションから行列取得
-			auto boneAnimMat = boneAnim.second.GetMatrix(playAnim.past, animFinish ? &animFinish : nullptr);
-			boneMatricies[boneIdx] = boneAnimMat;
-			//オフセット行列
-			boneMatricies[boneIdx] *= skel->bones[boneIdx].invOffsetMat;
-		}
-
-		//全ての親は一番後ろののボーン、再帰的に計算して親のトランスフォームを適用
-		BoneMatrixRecursive(static_cast<int>(skel->bones.size() - 1), XMMatrixIdentity());
+		//ボーン行列を再帰的に計算
+		BoneMatrixRecursive(skel->bones.size() - 1, XMMatrixIdentity(), playAnim.past, &animFinish, anim);
 
 		//フレーム経過
-		playAnim.past++;
+		playAnim.past += speed;
 		//アニメーションの終了情報記録
 		playAnim.finish = animFinish;
 	}
@@ -110,4 +114,7 @@ void ModelAnimator::Update()
 		//終了しているので削除
 		itr = playAnimations.erase(itr);
 	}
+
+	//バッファにデータ転送
+	boneBuff->Mapping(boneMatricies.data());
 }

@@ -30,17 +30,3 @@ const std::shared_ptr<ConstantBuffer>& ModelObject::GetTransformBuff()
 
 	return transformBuff;
 }
-
-const std::shared_ptr<ConstantBuffer>& ModelObject::GetBoneMatBuff()
-{
-	if (animator)
-	{
-		if (!boneBuff)
-		{
-			const int boneNum = static_cast<int>(model->skelton->bones.size());
-			boneBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), boneNum, nullptr, (model->header.fileName + " - ModelObject - BoneMat").c_str());
-		}
-		boneBuff->Mapping(animator->GetBoneMatricies().data());
-	}
-	return boneBuff;
-}

@@ -110,36 +110,6 @@ public:
         return Lerp(Min, Max, T / TotalTime);
     }
 
-    static float Liner(float Min, float Max, float Rate);
-    static Vec2<float> Liner(Vec2<float> Min, Vec2<float> Max, float Rate);
-    static Vec3<float> Liner(Vec3<float> Min, Vec3<float> Max, float Rate);
-    static Vec4<float> Liner(Vec4<float> Min, Vec4<float> Max, float Rate);
-
-    static float Liner(float Min, float Max, float T, float TotalTime)
-    {
-        if (T < 0)T = 0;
-        if (TotalTime < T)T = TotalTime;
-        return Liner(Min, Max, T / TotalTime);
-    }
-    static Vec2<float> Liner(Vec2<float> Min, Vec2<float> Max,  float T, float TotalTime)
-    {
-        if (T < 0)T = 0;
-        if (TotalTime < T)T = TotalTime;
-        return Liner(Min, Max, T / TotalTime);
-    }
-    static Vec3<float> Liner(Vec3<float> Min, Vec3<float> Max,  float T, float TotalTime)
-    {
-        if (T < 0)T = 0;
-        if (TotalTime < T)T = TotalTime;
-        return Liner(Min, Max, T / TotalTime);
-    }
-    static Vec4<float> Liner(Vec4<float> Min, Vec4<float> Max,  float T, float TotalTime)
-    {
-        if (T < 0)T = 0;
-        if (TotalTime < T)T = TotalTime;
-        return Liner(Min, Max, T / TotalTime);
-    }
-
     static float GetSpline(const float& T, const int& P1Idx, const std::vector<float>& Array, bool Loop = false);
     static float GetSpline(const int& Timer, const int& TotalTime, const int& P1Idx, const std::vector<float>& Array, bool Loop = false);
     static Vec2<float> GetSpline(const float& T, const int& P1Idx, const std::vector<Vec2<float>>& Array, bool Loop = false);

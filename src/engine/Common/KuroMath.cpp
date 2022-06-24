@@ -425,39 +425,6 @@ Vec4<float> KuroMath::Lerp(Vec4<float> Min, Vec4<float> Max, float Rate)
 }
 #pragma endregion
 
-#pragma region Liner
-
-float KuroMath::Liner(float Min, float Max, float Rate)
-{
-    if (Min == Max)return Min;
-    return (Max - Min) * Rate + Min;
-}
-
-Vec2<float> KuroMath::Liner(Vec2<float> Min, Vec2<float> Max, float Rate)
-{
-    return Vec2<float>(
-        Liner(Min.x, Max.x, Rate),
-        Liner(Min.y, Max.y, Rate));
-}
-
-Vec3<float> KuroMath::Liner(Vec3<float> Min, Vec3<float> Max, float Rate)
-{
-    return Vec3<float>(
-        Liner(Min.x, Max.x, Rate),
-        Liner(Min.y, Max.y, Rate),
-        Liner(Min.z, Max.z, Rate));
-}
-
-Vec4<float> KuroMath::Liner(Vec4<float> Min, Vec4<float> Max, float Rate)
-{
-    return Vec4<float>(
-        Liner(Min.x, Max.x, Rate),
-        Liner(Min.y, Max.y, Rate),
-        Liner(Min.z, Max.z, Rate),
-        Liner(Min.w, Max.w, Rate));
-}
-#pragma endregion
-
 #pragma region Spline
 
 float KuroMath::GetSplineSection(const float& p0, const float& p1, const float& p2, const float& p3, const float& t)

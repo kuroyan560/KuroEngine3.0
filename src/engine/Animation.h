@@ -1,14 +1,17 @@
 #pragma once
 #include<vector>
+
+template<typename T>
 struct KeyFrame
 {
 	int frame;
-	float value;
+	T value;
 };
 
+template<typename T>
 struct Animation
 {
 	int startFrame;
 	int endFrame;
-	std::vector<KeyFrame>keyFrames;
+	std::vector<KeyFrame<T>>keyFrames;
 };

@@ -27,8 +27,14 @@ class Skeleton
 public:
 	struct BoneAnimation
 	{
-		enum { POS_X, POS_Y, POS_Z, ROTATE_X, ROTATE_Y, ROTATE_Z, ROTATE_W, SCALE_X, SCALE_Y, SCALE_Z, ANIM_IDX_NUM };
-		std::array<Animation, ANIM_IDX_NUM>anims;
+	private:
+		enum ANIM_TYPE { TRANSLATION, ROTATION, SCALING };
+		Matrix CalculateMat(const ANIM_TYPE& Type, const float& Frame, bool& FinishFlg)const;
+
+	public:
+		Animation<Vec3<float>>posAnim;
+		Animation<XMVECTOR>rotateAnim;
+		Animation<Vec3<float>>scaleAnim;
 		Matrix GetMatrix(const float& Frame, bool* FinishFlg = nullptr)const;
 	};
 	struct ModelAnimation

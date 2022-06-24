@@ -93,9 +93,74 @@ void StaticallyCubeMap::ResetMeshVertices()
 
 StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideLength) : name(Name), sideLength(SideLength)
 {
-	//デフォルトのテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	//デフォルトのカラー
+	static Color DEFAULT_COLOR(0.4f, 0.4f, 0.4f, 1.0f);
 
+	//デフォルトのテクスチャ
+	static std::shared_ptr<TextureBuffer>DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(DEFAULT_COLOR);
+
+	//デフォルトのキューブマップのテクスチャ
+	static std::shared_ptr<TextureBuffer>DEFAULT_CUBE_MAP_TEX;
+	if (!DEFAULT_CUBE_MAP_TEX)
+	{
+		static const int EDGE = 512;
+		auto texFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		auto texDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+			texFormat,
+			EDGE, EDGE, 6, 1, 1, 0,
+			D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+
+		D3D12_CLEAR_VALUE clearTexValue;
+		clearTexValue.Format = texFormat;
+		clearTexValue.Color[0] = DEFAULT_COLOR.r;
+		clearTexValue.Color[1] = DEFAULT_COLOR.g;
+		clearTexValue.Color[2] = DEFAULT_COLOR.b;
+		clearTexValue.Color[3] = DEFAULT_COLOR.a;
+
+		const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+		auto texBarrier = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+		Microsoft::WRL::ComPtr<ID3D12Resource1>buff;
+		HRESULT hr = D3D12App::Instance()->GetDevice()->CreateCommittedResource(
+			&heapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&texDesc,
+			texBarrier,
+			&clearTexValue,
+			IID_PPV_ARGS(&buff));
+
+		std::wstring name = L"StaticallyCubeMapTex - Default";
+		buff->SetName(name.c_str());
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC cubeMapSrvDesc{};
+		cubeMapSrvDesc.Format = texFormat;
+		cubeMapSrvDesc.TextureCube.MipLevels = 1;
+		cubeMapSrvDesc.TextureCube.MostDetailedMip = 0;
+		cubeMapSrvDesc.TextureCube.ResourceMinLODClamp = 0;
+		cubeMapSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		cubeMapSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, cubeMapSrvDesc);
+
+		//キューブマップ用のレンダーターゲットビュー
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+		rtvDesc.Format = texDesc.Format;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtvDesc.Texture2DArray.ArraySize = 6;
+		rtvDesc.Texture2DArray.FirstArraySlice = 0;
+		auto rtvDescHandles = D3D12App::Instance()->CreateRTV(buff, &rtvDesc);
+
+		//単色塗りつぶし
+		float clearVal[4] = { DEFAULT_COLOR.r,DEFAULT_COLOR.g,DEFAULT_COLOR.b,DEFAULT_COLOR.a };
+		D3D12App::Instance()->GetCmdList()->ClearRenderTargetView(rtvDescHandles, clearVal, 0, nullptr);
+
+		DEFAULT_CUBE_MAP_TEX = std::make_shared<TextureBuffer>(buff, texBarrier, srvDescHandles, texDesc);
+	}
+
+	//デフォルトキューブマップ割当
+	cubeMap = DEFAULT_CUBE_MAP_TEX;
+
+	//メッシュ情報の構築
 	ResetMeshVertices();
 
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)

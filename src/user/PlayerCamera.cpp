@@ -29,7 +29,7 @@ void PlayerCamera::CalculatePos(const Transform& Player)
 
 	float rate = (dist - DISTANCE_MIN) / (DISTANCE_MAX - DISTANCE_MIN);
 	float lerpRate = 0.0f;
-	lerpRate = KuroMath::Liner(LERP_RATE_MAX, LERP_RATE_MIN, rate);
+	lerpRate = KuroMath::Lerp(LERP_RATE_MAX, LERP_RATE_MIN, rate);
 	result = KuroMath::Lerp(cam->GetPos(), result, lerpRate);
 
 	cam->SetPos(result);

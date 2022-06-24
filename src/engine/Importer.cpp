@@ -193,9 +193,9 @@ void Importer::LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& 
 		int vertIdx = indices[polygonVertIdx];
 
 		//頂点座標リストから座標を取得
-		vertex.pos.x = -(float)vertices[vertIdx][0];
-		vertex.pos.y = (float)vertices[vertIdx][1];
-		vertex.pos.z = (float)vertices[vertIdx][2];
+		vertex.pos.x = -vertices[vertIdx][0];
+		vertex.pos.y = vertices[vertIdx][1];
+		vertex.pos.z = vertices[vertIdx][2];
 
 		//法線リストから法線を取得
 		vertex.normal.x = -(float)normals[polygonVertIdx][0];
@@ -475,58 +475,62 @@ void Importer::LoadFbxMaterial(const std::string& Dir, ModelMesh& ModelMesh, Fbx
 
 void Importer::LoadBoneAnim(const LoadFbxNode& BoneNode, Skeleton::ModelAnimation& ModelAnimation, FbxAnimLayer* FbxAnimLayer)
 {
+	//FBXでのアニメーション読み込み防止
+	assert(0);
+
 	//ボーン単位アニメーション取得
 	auto& boneAnim = ModelAnimation.boneAnim[BoneNode.name];
 	auto fbxNode = BoneNode.fbxNode;
 
 	FbxAnimCurve* animCurve;
 
-	//座標
-	animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-	if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_X]);
+	////座標
+	//animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+	//if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_X]);
 
-	animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Y]);
+	//animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Y]);
 
-	animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Z]);
+	//animCurve = fbxNode->LclTranslation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::POS_Z]);
 
-	//DirectXの座標軸に合わせる
-	for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::POS_X].keyFrames)
-	{
-		key.value = -key.value;
-	}
+	////DirectXの座標軸に合わせる
+	//for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::POS_X].keyFrames)
+	//{
+	//	key.value = -key.value;
+	//}
 
-	//回転
-	animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-	if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X]);
+	////回転
+	//animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+	//if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X]);
 
-	animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Y]);
+	//animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Y]);
 
-	animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Z]);
+	//animCurve = fbxNode->LclRotation.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::ROTATE_Z]);
 
-	//回転のみ弧度法なのでラジアンに変換
-	for (int i = 0; i < 3; ++i)
-	{
-		for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + i].keyFrames)
-		{
-			key.value = Angle::ConvertToRadian(key.value);
-		}
-	}
+	////回転のみ弧度法なのでラジアンに変換
+	//for (int i = 0; i < 3; ++i)
+	//{
+	//	for (auto& key : boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + i].keyFrames)
+	//	{
+	//		key.value = Angle::ConvertToRadian(key.value);
+	//	}
+	//}
 
-	//スケール
-	animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-	if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_X]);
+	////スケール
+	//animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+	//if (animCurve)LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_X]);
 
-	animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Y]);
+	//animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Y]);
 
-	animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-	if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Z]);
+	//animCurve = fbxNode->LclScaling.GetCurve(FbxAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+	//if (animCurve)	LoadAnimCurve(animCurve, boneAnim.anims[Skeleton::BoneAnimation::SCALE_Z]);
 }
 
+/*
 void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 {
 	FbxTimeSpan interval;
@@ -537,8 +541,8 @@ void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 	if (FbxAnimCurve->GetTimeInterval(interval)) {
 		FbxLongLong start = interval.GetStart().Get();
 		FbxLongLong end = interval.GetStop().Get();
-		Animation.startFrame = static_cast<int>(start / ONE_FRAME_VALUE);
-		Animation.endFrame =  static_cast<int>(end / ONE_FRAME_VALUE);
+		Animation.startFrame = start / ONE_FRAME_VALUE;
+		Animation.endFrame =  end / ONE_FRAME_VALUE;
 	}
 
 	int lKeyCount = FbxAnimCurve->KeyGetCount();
@@ -552,12 +556,13 @@ void Importer::LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation)
 
 		KeyFrame keyFrame{};
 
-		keyFrame.frame = static_cast<int>(lKeyTime.Get() / ONE_FRAME_VALUE);
+		keyFrame.frame = lKeyTime.Get() / ONE_FRAME_VALUE;
 		keyFrame.value = lKeyValue;
 
 		Animation.keyFrames.emplace_back(keyFrame);
 	}
 }
+*/
 
 void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::MeshPrimitive& GLTFPrimitive, const Microsoft::glTF::Skin* GLTFSkin, const Microsoft::glTF::GLTFResourceReader& Reader, const Microsoft::glTF::Document& Doc)
 {
@@ -647,9 +652,12 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 
 	// インデックスデータ
 	std::vector<uint16_t>indices = Reader.ReadBinaryData<uint16_t>(Doc, accIndex);
-	for (const auto& index : indices)
+	auto idxCount = accIndex.count;
+	for (int i = 0; i < idxCount; i += 3)
 	{
-		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(index));
+		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(indices[i]));
+		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(indices[i + 1]));
+		ModelMesh.mesh->indices.emplace_back(static_cast<unsigned int>(indices[i + 2]));
 	}
 }
 
@@ -1212,17 +1220,7 @@ void Importer::LoadGLTFMaterial(const MATERIAL_TEX_TYPE& Type, std::weak_ptr<Mat
 		auto imageBufferView = Doc.bufferViews.Get(Img.bufferViewId);
 		auto imageData = Reader.ReadBinaryData<char>(Doc, imageBufferView);
 		std::string path = "glTF - Load (" + Img.mimeType + ") - " + Img.name;
-		
-		//gltfではメタリックがRチャンネル、ラフネスがGチャンネルで割り当てられている
-		if (Type == ROUGHNESS_TEX)
-		{
-			material->texBuff[METALNESS_TEX] = D3D12App::Instance()->GenerateTextureBuffer(imageData, 0);	//R
-			material->texBuff[ROUGHNESS_TEX] = D3D12App::Instance()->GenerateTextureBuffer(imageData, 1);	//G
-		}
-		else
-		{
-			material->texBuff[Type] = D3D12App::Instance()->GenerateTextureBuffer(imageData);
-		}
+		material->texBuff[Type] = D3D12App::Instance()->GenerateTextureBuffer(imageData);
 	}
 }
 
@@ -1296,6 +1294,19 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 	std::vector<Microsoft::glTF::Node>skinNodes;	//後に使うためスキンノードを格納する配列
 	for (const auto& gltfNode : doc.nodes.Elements())
 	{
+		// ローカル変形行列の計算
+		XMVECTOR rotation = { gltfNode.rotation.x, gltfNode.rotation.y, gltfNode.rotation.z, gltfNode.rotation.w };
+		XMVECTOR scaling = { gltfNode.scale.x, gltfNode.scale.y, gltfNode.scale.z, 1.0f };
+		XMVECTOR translation = { gltfNode.translation.x, gltfNode.translation.y, gltfNode.translation.z, 1.0f };
+
+		XMMATRIX matScaling, matRotation, matTranslation;
+		matScaling = XMMatrixScalingFromVector(scaling);
+		matRotation = XMMatrixRotationQuaternion(rotation);
+		matTranslation = XMMatrixTranslationFromVector(translation);
+
+		auto nodeTransform = XMMatrixIdentity();
+		nodeTransform *= matScaling * matRotation * matTranslation;
+
 		//スキン情報
 		if (!gltfNode.skinId.empty())
 		{
@@ -1313,24 +1324,31 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		for (auto& child : gltfNode.children)
 		{
 			auto childIdx = doc.nodes.GetIndex(child);
-			skel.bones[childIdx].parent = static_cast<char>(skel.bones.size() - 1);
+			skel.bones[childIdx].parent = skel.bones.size() - 1;
 		}
 
-		// ローカル変形行列の計算
-		XMVECTOR rotation = { gltfNode.rotation.x, gltfNode.rotation.y, gltfNode.rotation.z, gltfNode.rotation.w };
-		XMVECTOR scaling = { gltfNode.scale.x, gltfNode.scale.y, gltfNode.scale.z, 0.0f };
-		XMVECTOR translation = { gltfNode.translation.x, gltfNode.translation.y, gltfNode.translation.z, 1.0f };
+		bone.invOffsetMat = XMMatrixInverse(nullptr, nodeTransform);
 
-		XMMATRIX matScaling, matRotation, matTranslation;
-		matScaling = XMMatrixScalingFromVector(scaling);
-		//matRotation = XMMatrixRotationRollPitchYawFromVector(rotation);
-		matRotation = XMMatrixRotationQuaternion(rotation);
-		matTranslation = XMMatrixTranslationFromVector(translation);
+	}
 
-		auto transform = XMMatrixIdentity();
-		transform *= matTranslation * matRotation * matScaling;
-		bone.invOffsetMat = XMMatrixInverse(nullptr, transform);
+	//スキン読み込み
+	for (const auto& gltfSkin : doc.skins.Elements())
+	{
+		auto invMatAcc = doc.accessors.Get(gltfSkin.inverseBindMatricesAccessorId);
 
+		auto data = resourceReader->ReadFloatData(doc, invMatAcc);
+		for (int matIdx = 0; matIdx < invMatAcc.count; ++matIdx)
+		{
+			int offset = matIdx * 16;
+			Matrix invBindMat = XMMatrixSet(
+				data[offset], data[offset + 1], data[offset + 2], data[offset + 3],
+				data[offset + 4], data[offset + 5], data[offset + 6], data[offset + 7],
+				data[offset + 8], data[offset + 9], data[offset + 10], data[offset + 11],
+				data[offset + 12], data[offset + 13], data[offset + 14], data[offset + 15]);
+
+			int boneIdx = std::atoi(gltfSkin.jointIds[matIdx].c_str());
+			skel.bones[boneIdx].invOffsetMat = invBindMat/* * skel.bones[boneIdx].invOffsetMat*/;
+		}
 	}
 
 	//アニメーション
@@ -1357,8 +1375,8 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 
 			//開始 / 終了フレーム
 			const auto& input = doc.accessors.Get(sampler.inputAccessorId);
-			const int startFrame = static_cast<int>(input.min[0] * 60);	//単位が秒なので 60f / 1sec としてフレームに変換
-			const int endFrame = static_cast<int>(input.max[0] * 60);	//単位が秒なので 60f / 1sec としてフレームに変換
+			const int startFrame = input.min[0] * 60;	//単位が秒なので 60f / 1sec としてフレームに変換
+			const int endFrame = input.max[0] * 60;	//単位が秒なので 60f / 1sec としてフレームに変換
 
 			//キーフレーム情報
 			auto keyFrames = resourceReader->ReadBinaryData<float>(doc, input);
@@ -1371,45 +1389,40 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			ErrorMessage("LoadGLTFModel",
 				path == Microsoft::glTF::TARGET_WEIGHTS || path == Microsoft::glTF::TARGET_UNKNOWN, "This anim's target path is unsupported.");
 
+			//Rotation(Quaternion)
 			if (path == Microsoft::glTF::TARGET_ROTATION)
 			{
-				for (int valueIdx = 0; valueIdx < 4; ++valueIdx)
-				{
-					auto& anim = boneAnim.anims[Skeleton::BoneAnimation::ROTATE_X + valueIdx];
-					anim.startFrame = startFrame;
-					anim.endFrame = endFrame;
+				boneAnim.rotateAnim.startFrame = startFrame;
+				boneAnim.rotateAnim.endFrame = endFrame;
 
-					for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
-					{
-						anim.keyFrames.emplace_back();
-						auto& keyFrame = anim.keyFrames.back();
-						keyFrame.frame = static_cast<int>(keyFrames[keyFrameIdx]);
-						keyFrame.value = values[keyFrameIdx * 4 + valueIdx];
-					}
+				for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
+				{
+					boneAnim.rotateAnim.keyFrames.emplace_back();
+					auto& keyFrame = boneAnim.rotateAnim.keyFrames.back();
+					keyFrame.frame = keyFrames[keyFrameIdx];
+					int offset = keyFrameIdx * 4;	//インデックスのオフセット
+					keyFrame.value = XMVectorSet(values[offset], values[offset + 1], values[offset + 2], values[offset + 3]);
 				}
 			}
-			else if(path == Microsoft::glTF::TARGET_TRANSLATION || Microsoft::glTF::TARGET_SCALE)
+			//TranslationかScale
+			else
 			{
-				int valudIdxOffset = (path == Microsoft::glTF::TARGET_TRANSLATION ? Skeleton::BoneAnimation::POS_X : Skeleton::BoneAnimation::SCALE_X);
+				Animation<Vec3<float>>* animPtr = &boneAnim.posAnim;
+				if (path == Microsoft::glTF::TARGET_SCALE) { animPtr = &boneAnim.scaleAnim; }
 
-				for (int valueIdx = 0; valueIdx < 3; ++valueIdx)
+				animPtr->startFrame = startFrame;
+				animPtr->endFrame = endFrame;
+
+				for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
 				{
-					auto& anim = boneAnim.anims[valudIdxOffset + valueIdx];
-					anim.startFrame = startFrame;
-					anim.endFrame = endFrame;
-
-					for (int keyFrameIdx = 0; keyFrameIdx < keyFrames.size(); ++keyFrameIdx)
-					{
-						anim.keyFrames.emplace_back();
-						auto& keyFrame = anim.keyFrames.back();
-						keyFrame.frame = static_cast<int>(keyFrames[keyFrameIdx]);
-						keyFrame.value = values[keyFrameIdx * 3 + valueIdx];
-					}
+					animPtr->keyFrames.emplace_back();
+					auto& keyFrame = animPtr->keyFrames.back();
+					keyFrame.frame = keyFrames[keyFrameIdx];
+					int offset = keyFrameIdx * 3;	//インデックスのオフセット
+					keyFrame.value = { values[offset], values[offset + 1], values[offset + 2] };
 				}
 			}
-
 		}
-
 	}
 
 	skel.CreateBoneTree();
@@ -1420,9 +1433,15 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 	for (auto& m : doc.materials.Elements())
 	{
 		auto material = std::make_shared<Material>();
+		material->name = m.name;
 
 		//PBR
 		const auto baseColor = m.metallicRoughness.baseColorFactor;
+		material->constData.pbr.baseColor.x = baseColor.r;
+		material->constData.pbr.baseColor.y = baseColor.g;
+		material->constData.pbr.baseColor.z = baseColor.b;
+		material->constData.pbr.metalness = m.metallicRoughness.metallicFactor;
+		material->constData.pbr.roughness = m.metallicRoughness.roughnessFactor;
 
 		//カラーテクスチャ
 		auto textureId = m.metallicRoughness.baseColorTexture.textureId;
@@ -1431,12 +1450,6 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			auto& texture = doc.textures.Get(textureId);
 			auto& image = doc.images.Get(texture.imageId);
 			LoadGLTFMaterial(COLOR_TEX, material, image, Dir, *resourceReader, doc);
-		}
-		else
-		{
-			material->constData.pbr.baseColor.x = 1.0f;
-			material->constData.pbr.baseColor.y = 1.0f;
-			material->constData.pbr.baseColor.z = 1.0f;
 		}
 		//エミッシブ
 		textureId = m.emissiveTexture.textureId;
@@ -1454,7 +1467,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			auto& image = doc.images.Get(texture.imageId);
 			LoadGLTFMaterial(NORMAL_TEX, material, image, Dir, *resourceReader, doc);
 		}
-		//メタルネスラフネス
+		//ラフネス
 		textureId = m.metallicRoughness.metallicRoughnessTexture.textureId;
 		if (!textureId.empty())
 		{

@@ -68,7 +68,7 @@ class Importer : public Singleton<Importer>
 	std::string GetFileName(std::string FbxRelativeFileName);
 	void LoadFbxMaterial(const std::string& Dir, ModelMesh& ModelMesh, FbxMesh* FbxMesh);
 	//アニメーションレイヤーの追跡
-	void LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation);
+	//void LoadAnimCurve(FbxAnimCurve* FbxAnimCurve, Animation& Animation);
 	void LoadBoneAnim(const LoadFbxNode& BoneNode, Skeleton::ModelAnimation& ModelAnimation, FbxAnimLayer* FbxAnimLayer);
 
 #pragma endregion

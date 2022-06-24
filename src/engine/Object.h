@@ -22,5 +22,4 @@ public:
 	ModelObject(const std::shared_ptr<Model>& Model) { AttachModel(Model); }
 
 	const std::shared_ptr<ConstantBuffer>&GetTransformBuff();
-	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff();
 };
