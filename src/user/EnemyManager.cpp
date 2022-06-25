@@ -74,6 +74,9 @@ void EnemyManager::Update()
 	{
 		EnemyArray& enemyArray = enemys[enemyType];
 
+		//存在しないならスルー
+		if (enemyArray.empty())continue;
+
 		//更新
 		for (auto& enemy : enemyArray)
 		{
@@ -94,11 +97,15 @@ void EnemyManager::Draw(Camera& Cam)
 
 	for (int enemyType = 0; enemyType < ENEMY_TYPE_NUM; ++enemyType)
 	{
+		//敵配列取得
+		EnemyArray& enemyArray = enemys[enemyType];
+
+		//存在しないならスルー
+		if (enemyArray.empty())continue;
+
 		//モデル取得
 		auto& model = breeds[enemyType]->GetModel();
 
-		//敵配列取得
-		EnemyArray& enemyArray = enemys[enemyType];
 
 		//ワールド行列類更新
 		std::vector<Matrix>worldMatricies;

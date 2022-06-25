@@ -3,6 +3,7 @@
 #include"LightManager.h"
 #include"Player.h"
 #include"GameManager.h"
+#include"ShadowMapDevice.h"
 
 class Model;
 class ModelObject;
@@ -11,6 +12,7 @@ class Enemy;
 
 class GameScene : public BaseScene
 {
+	ShadowMapDevice shadowMapDevice;
 	std::shared_ptr<ModelObject>floorModel;
 
 	LightManager ligMgr;

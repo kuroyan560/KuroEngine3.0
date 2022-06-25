@@ -159,3 +159,15 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 		}
 	}
 }
+
+void ShadowMapDevice::SetHeight(const float& Height)
+{
+	auto pos = lightCamera.GetPos();
+	pos.y = Height;
+	lightCamera.SetPos(pos);
+}
+
+void ShadowMapDevice::SetBlurPower(const float& BlurPower)
+{
+	gaussianBlur->SetBlurPower(BlurPower);
+}

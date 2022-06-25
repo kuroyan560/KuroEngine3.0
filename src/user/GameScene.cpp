@@ -16,7 +16,11 @@ GameScene::GameScene()
 {
 	floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
 	floorModel->transform.SetPos({ 0,-1,0 });
-	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer(Color());
+	floorModel->transform.SetScale({ 20.0f,0.0f,20.0f });
+	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
+
+	shadowMapDevice.SetHeight(100.0f);
+	shadowMapDevice.SetBlurPower(2.0f);
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -31,6 +35,7 @@ GameScene::GameScene()
 	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
 
 	Transform initSandBagPos;
+	/*
 	const float offset = 4.0f;
 	for (int x = 0; x < 10; ++x)
 	{
@@ -40,7 +45,8 @@ GameScene::GameScene()
 			EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 		}
 	}
-	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
+	*/
+	EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 }
 
 void GameScene::OnInitialize()
@@ -116,12 +122,16 @@ void GameScene::OnDraw()
 
 	dsv->Clear(D3D12App::Instance()->GetCmdList());
 
+	shadowMapDevice.DrawShadowMap({ player.GetModelObj() });
+
 	//動的キューブマップに書き込み
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
-	DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
+	//DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
+	shadowMapDevice.DrawShadowReceiver({ floorModel }, nowCam);
+
 	EnemyManager::Instance()->Draw(nowCam);
 	player.Draw(nowCam);
 

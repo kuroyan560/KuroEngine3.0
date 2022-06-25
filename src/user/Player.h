@@ -61,5 +61,6 @@ public:
 	void Init();
 	void Update();
 	void Draw(Camera& Cam);
+	std::weak_ptr<ModelObject>GetModelObj() { return model; }
 };
 
