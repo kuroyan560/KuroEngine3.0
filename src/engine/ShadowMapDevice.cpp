@@ -3,6 +3,7 @@
 #include"GaussianBlur.h"
 #include"Object.h"
 #include"Model.h"
+#include"ModelAnimator.h"
 
 ShadowMapDevice::ShadowMapDevice() :lightCamera("LightCamera")
 {
@@ -38,7 +39,7 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 		{
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ライトカメラ情報バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
-
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"ボーン行列バッファ"),
 		};
 
 		//レンダーターゲット描画先情報
@@ -63,6 +64,8 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 	for (int i = 0; i < Models.size(); ++i)
 	{
 		auto obj = Models[i].lock();
+		std::shared_ptr<ConstantBuffer>boneBuff;
+		if (obj->animator)boneBuff = obj->animator->GetBoneMatBuff();
 
 		TRANSFORM_BUFF[i]->Mapping(&obj->transform.GetMat());
 
@@ -75,8 +78,9 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 				{
 					lightCamera.GetBuff(),
 					TRANSFORM_BUFF[i],
+					boneBuff,
 				},
-				{ CBV,CBV },
+				{ CBV,CBV,CBV },
 				obj->transform.GetPos().z,
 				true);
 		}

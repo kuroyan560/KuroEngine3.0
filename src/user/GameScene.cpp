@@ -20,7 +20,7 @@ GameScene::GameScene()
 	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
 
 	shadowMapDevice.SetHeight(100.0f);
-	shadowMapDevice.SetBlurPower(2.0f);
+	shadowMapDevice.SetBlurPower(4.0f);
 
 	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
 	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
@@ -35,7 +35,7 @@ GameScene::GameScene()
 	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
 
 	Transform initSandBagPos;
-	/*
+	
 	const float offset = 4.0f;
 	for (int x = 0; x < 10; ++x)
 	{
@@ -45,8 +45,8 @@ GameScene::GameScene()
 			EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 		}
 	}
-	*/
-	EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
+	
+	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 }
 
 void GameScene::OnInitialize()
@@ -133,9 +133,15 @@ void GameScene::OnDraw()
 	shadowMapDevice.DrawShadowReceiver({ floorModel }, nowCam);
 
 	EnemyManager::Instance()->Draw(nowCam);
-	player.Draw(nowCam);
+	//player.Draw(nowCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam);
 
-	Collider::DebugDrawAllColliders(nowCam);
+	static bool COLLIDER_DEBUG = false;
+	if (COLLIDER_DEBUG)
+	{
+		Collider::DebugDrawAllColliders(nowCam);
+	}
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_RETURN))COLLIDER_DEBUG = !COLLIDER_DEBUG;
 }
 
 void GameScene::OnImguiDebug()
