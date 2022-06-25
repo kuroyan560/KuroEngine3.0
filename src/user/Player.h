@@ -10,10 +10,14 @@ class Collider;
 class Player
 {
 private:
-	static bool INSTANCED;	//インスタンス生成を１個に制限するためのフラグ
+	//インスタンス生成を１個に制限するためのフラグ
+	static bool INSTANCED;
 
-	//プレイヤー操作カメラ
+	//プレイヤー操作カメラ（プレイヤーが作り変えられる度に、カメラを生成しなくて済むように）
 	static std::unique_ptr<PlayerCamera> CAMERA;
+
+	//ステータス
+	enum STATUS { WAIT, RUN, STATUS_NUM };
 
 public:
 	//カメラキー
@@ -34,6 +38,11 @@ public:
 	static CanInput CAN_INPUT;
 
 private:
+	//ステータス
+	STATUS status = WAIT;
+	STATUS oldStatus = WAIT;	//１フレーム前の状態（トリガー判定用）
+	bool StatusTrigger(const STATUS& Status) { return status == Status && oldStatus != Status; }	//ステータスのトリガー判定
+
 	//モデル
 	std::shared_ptr<ModelObject>model;
 
@@ -42,6 +51,9 @@ private:
 
 	//移動処理
 	void Move();
+
+	//アニメーション切り替え
+	void AnimationSwitch();
 
 public:
 	Player();

@@ -55,8 +55,10 @@ void ModelAnimator::Reset()
 	playAnimations.clear();
 }
 
-void ModelAnimator::Play(const std::string& AnimationName, const bool& Loop)
+void ModelAnimator::Play(const std::string& AnimationName, const bool& Loop, const bool& Blend)
 {
+	if (!Blend)Reset();
+
 	auto skel = attachSkelton.lock();
 	KuroFunc::ErrorMessage(!skel, "ModelAnimator", "Play", "Any skeleton doesn't be attached.");
 	KuroFunc::ErrorMessage(!skel->animations.contains(AnimationName), "ModelAnimator", "Play", "That animation wasn't found.");

@@ -5,6 +5,7 @@
 #include"Collision.h"
 #include"Collider.h"
 #include"Model.h"
+#include"ModelAnimator.h"
 
 bool Player::INSTANCED = false;
 const std::string Player::CAMERA_KEY = "PlayerCamera";
@@ -19,6 +20,9 @@ void Player::Move()
 	//左スティック入力あり
 	if (!stickL.IsZero())
 	{
+		//走り状態
+		status = RUN;
+
 		//移動方向
 		Vec3<float>moveVec = { stickL.x,0.0f,-stickL.y };
 
@@ -37,6 +41,23 @@ void Player::Move()
 		//方向転換
 		const auto up = model->transform.GetUp();
 		model->transform.SetLookAtRotate(pos + moveVec);
+	}
+	else
+	{
+		//待機状態
+		status = WAIT;
+	}
+}
+
+void Player::AnimationSwitch()
+{
+	if (StatusTrigger(WAIT))	//待機モーション
+	{
+		model->animator->Play("Wait", true, false);
+	}
+	else if (StatusTrigger(RUN))
+	{
+		model->animator->Play("Run", true, false);
 	}
 }
 
@@ -64,11 +85,15 @@ Player::Player()
 
 void Player::Init()
 {
+	status = RUN;
+	oldStatus = RUN;
+
 	static Vec3<float>INIT_POS = { 0,0,0 };
 	model->transform.SetPos(INIT_POS);
 	model->transform.SetRotate(XMMatrixIdentity());
 
 	CAMERA->Init(model->transform);
+	model->animator->Play("Wait", true, false);
 }
 
 void Player::Update()
@@ -84,6 +109,15 @@ void Player::Update()
 	{
 		CAMERA->Update(model->transform);
 	}
+	
+	//アニメーション切り替え
+	AnimationSwitch();
+
+	//アニメーション更新
+	model->animator->Update();
+
+	//ステータスを記録
+	oldStatus = status;
 }
 
 void Player::Draw(Camera& Cam)

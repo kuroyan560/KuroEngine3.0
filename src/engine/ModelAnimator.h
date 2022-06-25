@@ -44,7 +44,16 @@ public:
 	void Reset();
 
 	//アニメーション再生
-	void Play(const std::string& AnimationName, const bool& Loop);
+	void Play(const std::string& AnimationName, const bool& Loop, const bool& Blend);
+	//指定のアニメーションが現在再生中か
+	bool IsPlay(const std::string& AnimationName)
+	{
+		auto result = std::find_if(playAnimations.begin(), playAnimations.end(), [AnimationName](PlayAnimation& Anim)
+			{
+				return AnimationName.compare(Anim.name) == 0;
+			});
+		return result != playAnimations.end();
+	}
 	void Update();
 	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
 };
