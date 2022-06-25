@@ -121,7 +121,7 @@ void GameScene::OnDraw()
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
-	//DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
+	DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
 	EnemyManager::Instance()->Draw(nowCam);
 	player.Draw(nowCam);
 
