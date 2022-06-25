@@ -1,6 +1,7 @@
 #include "KuroEngine.h"
 #include<ctime>
 #include"Fps.h"
+#include"ImguiDebugInterface.h"
 
 void BaseScene::Initialize()
 {
@@ -48,6 +49,8 @@ void KuroEngine::Render()
 	ImGui::Begin("Fps");
 	ImGui::Text("fps : %.5f", fps->GetNowFps());
 	ImGui::End();
+
+	ImguiDebugInterface::DrawImguiDebugger();
 
 	imguiApp->EndImgui(d3d12App->GetCmdList());
 }

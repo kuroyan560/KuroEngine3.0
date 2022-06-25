@@ -1,9 +1,11 @@
 #pragma once
 #include"Angle.h"
 #include<memory>
+#include"ImguiDebugInterface.h"
+
 class Camera;
 class Transform;
-struct PlayerCamera
+struct PlayerCamera : public ImguiDebugInterface
 {
 private:
 	void CalculatePos(const Transform& Player);
@@ -22,5 +24,7 @@ public:
 	PlayerCamera();
 	void Init(const Transform& Player);
 	void Update(const Transform& Player);
+
+	void OnImguiDebug()override;
 };
 

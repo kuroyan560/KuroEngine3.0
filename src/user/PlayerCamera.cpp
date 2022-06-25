@@ -3,18 +3,34 @@
 #include"Transform.h"
 #include"UsersInput.h"
 
+/*
 //カメラ位置高さ制限
-static const float HEIGHT_MIN = 0.1f;
-static const int HEIGHT_DEFAULT = 4.0f;
-static const float HEIGHT_MAX = 10.0f;
+static float HEIGHT_MIN = 0.1f;
+static float HEIGHT_DEFAULT = 4.0f;
+static float HEIGHT_MAX = 10.0f;
 
 //プレイヤーとの距離制限
-static const float DISTANCE_MIN = 3.0f;
-static const float DISTANCE_MAX = 10.0f;
-static const float DISTANCE_DEFAULT = DISTANCE_MAX;
+static float DISTANCE_MIN = 3.0f;
+static float DISTANCE_MAX = 10.0f;
+static float DISTANCE_DEFAULT = DISTANCE_MAX;
 
 //実際のプレイヤーの位置とロックオンする位置の高さオフセット
-static const float ROCK_ON_HEIGHT_OFFSET = 2.0f;
+static float ROCK_ON_HEIGHT_OFFSET = 2.0f;
+*/
+
+//カメラ位置高さ制限
+static float HEIGHT_MIN = 3.63f;
+static float HEIGHT_DEFAULT = 11.397f;
+static float HEIGHT_MAX = 17.495f;
+
+//プレイヤーとの距離制限
+static float DISTANCE_MIN = 4.040f;
+static float DISTANCE_MAX = 15.791f;
+static float DISTANCE_DEFAULT = DISTANCE_MAX;
+
+//実際のプレイヤーの位置とロックオンする位置のオフセット
+static float TARGET_DIST_OFFSET = 7.363f;
+static float TARGET_HEIGHT_OFFSET = 10.549f;
 
 void PlayerCamera::CalculatePos(const Transform& Player)
 {
@@ -36,7 +52,9 @@ void PlayerCamera::CalculatePos(const Transform& Player)
 
 	//プレイヤーをロックオン
 	auto rockOnPlayerPos = Player.GetPos();
-	rockOnPlayerPos.y += ROCK_ON_HEIGHT_OFFSET;
+	auto forward = cam->GetForward();
+	rockOnPlayerPos += forward * TARGET_DIST_OFFSET;
+	rockOnPlayerPos.y += TARGET_HEIGHT_OFFSET;
 	cam->SetTarget(rockOnPlayerPos);
 }
 
@@ -104,4 +122,27 @@ void PlayerCamera::Update(const Transform& Player)
 	CalculatePos(Player);
 
 
+}
+
+#include"imguiApp.h"
+void PlayerCamera::OnImguiDebug()
+{
+	ImGui::Begin("PlayerCamera");
+
+	ImGui::Text("Height");
+	ImGui::SliderFloat("h_min", &HEIGHT_MIN, 0.1f, HEIGHT_DEFAULT);
+	ImGui::SliderFloat("h_default", &HEIGHT_DEFAULT, HEIGHT_MIN, HEIGHT_MAX);
+	ImGui::SliderFloat("h_max", &HEIGHT_MAX, HEIGHT_DEFAULT, 20.0f);
+	ImGui::Separator();
+
+	ImGui::Text("Distance");
+	ImGui::SliderFloat("d_min", &DISTANCE_MIN, 0.1f, DISTANCE_MAX);
+	if (ImGui::SliderFloat("d_max", &DISTANCE_MAX, DISTANCE_MIN, 20.0f))DISTANCE_DEFAULT = DISTANCE_MAX;
+	ImGui::Separator();
+
+	ImGui::Text("TargetOffset");
+	ImGui::SliderFloat("t_distance", &TARGET_DIST_OFFSET, 0.0f, 20.0f);
+	ImGui::SliderFloat("t_height", &TARGET_HEIGHT_OFFSET, 0.0f, 20.0f);
+
+	ImGui::End();
 }

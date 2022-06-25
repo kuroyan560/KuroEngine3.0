@@ -368,6 +368,9 @@
     <ClCompile Include="src\engine\Collision.cpp">
       <Filter>src\engine\ユーザー向け\Collision</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\ImguiDebugInterface.cpp">
+      <Filter>src\engine\ユーザー向け</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -576,6 +579,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\Common\ValueMinMax.h">
       <Filter>src\engine\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ImguiDebugInterface.h">
+      <Filter>src\engine\ユーザー向け</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

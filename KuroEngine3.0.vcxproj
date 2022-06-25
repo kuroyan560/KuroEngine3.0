@@ -488,6 +488,7 @@
     <ClCompile Include="src\engine\GaussianBlur.cpp" />
     <ClCompile Include="src\engine\GraphicsManager.cpp" />
     <ClCompile Include="src\engine\ImguiApp.cpp" />
+    <ClCompile Include="src\engine\ImguiDebugInterface.cpp" />
     <ClCompile Include="src\engine\Importer.cpp" />
     <ClCompile Include="src\engine\KuroEngine.cpp" />
     <ClCompile Include="src\engine\Light.cpp" />
@@ -557,6 +558,7 @@
     <ClInclude Include="src\engine\GaussianBlur.h" />
     <ClInclude Include="src\engine\GraphicsManager.h" />
     <ClInclude Include="src\engine\ImguiApp.h" />
+    <ClInclude Include="src\engine\ImguiDebugInterface.h" />
     <ClInclude Include="src\engine\Importer.h" />
     <ClInclude Include="src\engine\ImportHeader.h" />
     <ClInclude Include="src\engine\KuroEngine.h" />
