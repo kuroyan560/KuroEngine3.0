@@ -33,7 +33,7 @@ void Player::Move()
 		moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -CAMERA->posAngle + ANGLE_OFFSET)).GetNormal();
 
 		//ˆÚ“®
-		const float moveSpeed = 0.3f;
+		const float moveSpeed = 0.6f;
 		auto pos = model->transform.GetPos();
 		pos += moveVec * moveSpeed;
 		model->transform.SetPos(pos);
@@ -53,10 +53,12 @@ void Player::AnimationSwitch()
 {
 	if (StatusTrigger(WAIT))	//‘Ò‹@ƒ‚[ƒVƒ‡ƒ“
 	{
+		model->animator->speed = 1.0f;
 		model->animator->Play("Wait", true, false);
 	}
 	else if (StatusTrigger(RUN))
 	{
+		model->animator->speed = 1.5f;
 		model->animator->Play("Run", true, false);
 	}
 }
