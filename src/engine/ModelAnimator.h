@@ -31,7 +31,9 @@ class ModelAnimator
 
 	std::list<PlayAnimation>playAnimations;
 
-	void BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const int& Past, bool* Finish, Skeleton::ModelAnimation& Anim);
+	enum ANIM_TYPE { TRANSLATION, ROTATION, SCALING };
+	Matrix CalculateMat(const Skeleton::BoneAnimation& BoneAnim, const ANIM_TYPE& Type, const float& Frame, bool& FinishFlg)const;
+	void BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const float& Past, bool* Finish, Skeleton::ModelAnimation& Anim);
 
 public:
 	float speed = 1.0f;
