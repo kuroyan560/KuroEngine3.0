@@ -2,13 +2,159 @@
 #include"KuroEngine.h"
 #include"Model.h"
 
-void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const int& Past, bool* Finish, Skeleton::ModelAnimation& Anim)
+Matrix ModelAnimator::CalculateMat(const Skeleton::BoneAnimation& BoneAnim, const ANIM_TYPE& Type, const float& Frame, bool& FinishFlg) const
+{
+	Matrix result = XMMatrixIdentity();
+
+	//Translation
+	if (Type == TRANSLATION)
+	{
+		//キーフレーム情報なし
+		if (BoneAnim.posAnim.keyFrames.empty())return XMMatrixIdentity();
+
+		//結果の格納先
+		Vec3<float>translation;
+
+		//終了フレームより前なので、アニメーションは終了していない
+		if (Frame < BoneAnim.posAnim.endFrame)FinishFlg = false;
+
+		if (Frame < BoneAnim.posAnim.startFrame)translation = BoneAnim.posAnim.keyFrames.front().value;		//範囲外：一番手前を採用
+		else if (BoneAnim.posAnim.endFrame < Frame)translation = BoneAnim.posAnim.keyFrames.back().value;	//範囲外：一番最後を採用
+		else
+		{
+			const KeyFrame<Vec3<float>>* firstKey = nullptr;
+			const KeyFrame<Vec3<float>>* secondKey = nullptr;
+			for (auto& key : BoneAnim.posAnim.keyFrames)
+			{
+				//同じフレーム数の物があったらそれを採用
+				if (key.frame == Frame)
+				{
+					translation = key.value;
+					break;
+				}
+
+				if (key.frame < Frame)firstKey = &key;	//補間の開始キーフレーム
+				if (secondKey == nullptr && Frame < key.frame)secondKey = &key;	//補間の終了キーフレーム
+
+				//補間の情報が揃ったので線形補間してそれを採用
+				if (firstKey != nullptr && secondKey != nullptr)
+				{
+					translation = KuroMath::Lerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					break;
+				}
+			}
+		}
+
+		//結果を行列に変換
+		result = XMMatrixTranslation(translation.x, translation.y, translation.z);
+	}
+	//Rotation
+	else if (Type == ROTATION)
+	{
+		//キーフレーム情報なし
+		if (BoneAnim.rotateAnim.keyFrames.empty())return XMMatrixIdentity();
+
+		//結果の格納先
+		XMVECTOR rotation{};
+
+		//終了フレームより前なので、アニメーションは終了していない
+		if (Frame < BoneAnim.rotateAnim.endFrame)FinishFlg = false;
+
+		if (Frame < BoneAnim.rotateAnim.startFrame)rotation = BoneAnim.rotateAnim.keyFrames.front().value;		//範囲外：一番手前を採用
+		else if (BoneAnim.rotateAnim.endFrame < Frame)rotation = BoneAnim.rotateAnim.keyFrames.back().value;	//範囲外：一番最後を採用
+		else
+		{
+			const KeyFrame<XMVECTOR>* firstKey = nullptr;
+			const KeyFrame<XMVECTOR>* secondKey = nullptr;
+			for (auto& key : BoneAnim.rotateAnim.keyFrames)
+			{
+				//同じフレーム数の物があったらそれを採用
+				if (key.frame == Frame)
+				{
+					rotation = key.value;
+					break;
+				}
+
+				if (key.frame < Frame)firstKey = &key;	//補間の開始キーフレーム
+				if (secondKey == nullptr && Frame < key.frame)secondKey = &key;	//補間の終了キーフレーム
+
+				//補間の情報が揃ったので線形補間してそれを採用
+				if (firstKey != nullptr && secondKey != nullptr)
+				{
+					float rate = (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame);
+					//rotation = XMQuaternionSlerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					rotation = XMQuaternionSlerpV(firstKey->value, secondKey->value, XMVectorSet(rate, rate, rate, rate));
+					break;
+				}
+			}
+		}
+		//結果を行列に変換
+		result = XMMatrixRotationQuaternion(rotation);
+	}
+	//Scaling
+	else if (Type == SCALING)
+	{
+		//キーフレーム情報なし
+		if (BoneAnim.scaleAnim.keyFrames.empty())return XMMatrixIdentity();
+
+		//結果の格納先
+		Vec3<float>scale;
+
+		//終了フレームより前なので、アニメーションは終了していない
+		if (Frame < BoneAnim.scaleAnim.endFrame)FinishFlg = false;
+
+		if (Frame < BoneAnim.scaleAnim.startFrame)scale = BoneAnim.scaleAnim.keyFrames.front().value;		//範囲外：一番手前を採用
+		else if (BoneAnim.scaleAnim.endFrame < Frame)scale = BoneAnim.scaleAnim.keyFrames.back().value;	//範囲外：一番最後を採用
+		else
+		{
+			const KeyFrame<Vec3<float>>* firstKey = nullptr;
+			const KeyFrame<Vec3<float>>* secondKey = nullptr;
+			for (auto& key : BoneAnim.scaleAnim.keyFrames)
+			{
+				//同じフレーム数の物があったらそれを採用
+				if (key.frame == Frame)
+				{
+					scale = key.value;
+					break;
+				}
+
+				if (key.frame < Frame)firstKey = &key;	//補間の開始キーフレーム
+				if (secondKey == nullptr && Frame < key.frame)secondKey = &key;	//補間の終了キーフレーム
+
+				//補間の情報が揃ったので線形補間してそれを採用
+				if (firstKey != nullptr && secondKey != nullptr)
+				{
+					scale = KuroMath::Lerp(firstKey->value, secondKey->value, (Frame - firstKey->frame) / (secondKey->frame - firstKey->frame));
+					break;
+				}
+			}
+		}
+		//結果を行列に変換
+		result = XMMatrixScaling(scale.x, scale.y, scale.z);
+	}
+	else assert(0);
+
+	return result;
+}
+
+void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& ParentMatrix, const float& Past, bool* Finish, Skeleton::ModelAnimation& Anim)
 {
 	auto skel = attachSkelton.lock();
 	const auto& bone = skel->bones[BoneIdx];
 	const auto& boneAnim = Anim.boneAnim[bone.name];
 
-	auto jointMat = boneAnim.GetMatrix(Past, *Finish ? Finish : nullptr) * ParentMatrix;
+	//ボーンアニメーション行列の計算
+	auto boneAnimMat = XMMatrixIdentity();
+	bool finish = true;
+	auto translation = CalculateMat(boneAnim, TRANSLATION, Past, finish);
+	auto rotation = CalculateMat(boneAnim, ROTATION, Past, finish);
+	auto scaling = CalculateMat(boneAnim, SCALING, Past, finish);
+	boneAnimMat *= scaling * rotation * translation;
+
+	//アニメーションは終了していない
+	if (*Finish && !finish)*Finish = false;
+
+	auto jointMat = boneAnimMat * ParentMatrix;
 	boneMatricies[BoneIdx] =  skel->bones[BoneIdx].invOffsetMat * jointMat;
 
 	//子を呼び出して再帰的に計算

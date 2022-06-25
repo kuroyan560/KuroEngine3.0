@@ -33,7 +33,7 @@ GameScene::GameScene()
 void GameScene::OnInitialize()
 {
 	debugCam.Init({ 0,1,-3 }, { 0,1,0 });
-	animModel[nowModel]->transform.SetPos({ 0,0,3 });
+	//animModel[nowModel]->transform.SetPos({ 0,0,3 });
 }
 
 void GameScene::OnUpdate()
