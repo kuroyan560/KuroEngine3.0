@@ -1,6 +1,8 @@
 #include "Skeleton.h"
 #include"KuroFunc.h"
 
+const std::string Skeleton::DEFINE_PARENT_BONE_NAME = "Defined_Parent";
+
 void Skeleton::CreateBoneTree()
 {
 	//ボーンがないなら無視
@@ -9,7 +11,7 @@ void Skeleton::CreateBoneTree()
 	//全ての親となるボーンを追加
 	int parentBoneIdx = bones.size();
 	bones.emplace_back();
-	bones.back().name = "Parent";
+	bones.back().name = "Defined_Parent";
 
 	//ボーンノードマップを作る
 	for (int idx = 0; idx < bones.size(); ++idx)

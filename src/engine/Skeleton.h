@@ -25,6 +25,7 @@ public:
 class Skeleton
 {
 public:
+	static const std::string DEFINE_PARENT_BONE_NAME;
 	struct BoneAnimation
 	{
 	public:
