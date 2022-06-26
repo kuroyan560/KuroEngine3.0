@@ -19,7 +19,7 @@ public:
 	std::vector<char>children;	//子ボーン
 	int transLayer = 0;	//変形階層
 	Vec3<float> pos = { 0.0f,0.0f,0.0f };
-	Matrix invOffsetMat = DirectX::XMMatrixIdentity();
+	Matrix invBindMat = DirectX::XMMatrixIdentity();
 };
 
 class Skeleton
