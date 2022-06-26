@@ -17,7 +17,6 @@ class GameScene : public BaseScene
 
 	LightManager ligMgr;
 	Light::Direction dirLigTop;
-	Light::Direction dirLigFront;
 	Light::HemiSphere hemiLig;
 	Light::Point ptLig;
 	

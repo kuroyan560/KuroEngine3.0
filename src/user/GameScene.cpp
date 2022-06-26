@@ -22,11 +22,8 @@ GameScene::GameScene()
 	shadowMapDevice.SetHeight(100.0f);
 	shadowMapDevice.SetBlurPower(4.0f);
 
-	//dirLig.SetDir(Vec3<Angle>(50, -30, 0));
-	dirLigTop.SetDir(Vec3<float>(0, 0, -1));
-	dirLigFront.SetDir(Vec3<float>(0, 0, 1));
-	ligMgr.RegisterDirLight(&dirLigTop);
-	ligMgr.RegisterDirLight(&dirLigFront);
+	dirLig.SetDir(Vec3<float>(0, 0, -1));
+	ligMgr.RegisterDirLight(&dirLig);
 	ligMgr.RegisterPointLight(&ptLig);
 	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
@@ -91,14 +88,9 @@ void GameScene::OnUpdate()
 	//testModel->transform.SetPos(modelPos);
 	ptLig.SetPos(modelPos);
 
-	//ƒ‰ƒCƒg‚ÌON/OFF
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_1))
-	{
-		dirLigFront.SetActive();
-	}
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_2))
 	{
-		dirLigTop.SetActive();
+		dirLig.SetActive();
 	}
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_3))
 	{
