@@ -58,7 +58,4 @@ public:
 	}
 	void Update();
 	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
-
-	//ƒ{[ƒ“s—ñæ“¾
-	const Matrix& GetBoneMat(const int& BoneIdx) { return boneMatricies[BoneIdx]; }
 };
