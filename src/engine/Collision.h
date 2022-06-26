@@ -24,6 +24,7 @@ protected:
 	{
 		Matrix world = XMMatrixIdentity();
 		unsigned int hit = 0;
+		Vec3<float>offset = { 0,0,0 };
 	};
 
 	CollisionPrimitive() = delete;
@@ -33,6 +34,8 @@ protected:
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
+	Vec3<float>offset = { 0,0,0 };
+
 	//ゲッタ
 	const SHAPE& GetShape()const { return shape; }
 	const Matrix& GetWorldMat()
@@ -60,10 +63,9 @@ private:
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 	
 public:
-	Vec3<float>localCenter;	//中心（ローカル座標）
 	float radius;					//半径
-	CollisionSphere(const float& Radius, Transform* World = nullptr, const Vec3<float>& CenterOffset = Vec3<float>(0, 0, 0))
-		:CollisionPrimitive(SPHERE, World), localCenter(CenterOffset), radius(Radius) {}
+	CollisionSphere(const float& Radius, Transform* World = nullptr)
+		:CollisionPrimitive(SPHERE, World), radius(Radius) {}
 };
 
 //カプセル

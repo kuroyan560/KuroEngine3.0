@@ -97,8 +97,9 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.world = XMMatrixMultiply(XMMatrixScaling(radius, radius, radius) * XMMatrixTranslation(localCenter.x, localCenter.y, localCenter.z), GetWorldMat());
+	constData.world = XMMatrixScaling(radius, radius, radius) * GetWorldMat();
 	constData.hit = Hit;
+	constData.offset = offset;
 	constBuff->Mapping(&constData);
 
 	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
@@ -139,6 +140,7 @@ void CollisionAABB::DebugDraw(const bool& Hit, Camera& Cam)
 	ConstData constData;
 	constData.world = GetWorldMat();
 	constData.hit = Hit;
+	constData.offset = offset;
 	constBuff->Mapping(&constData);
 
 	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
@@ -224,6 +226,7 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	ConstData constData;
 	constData.world = XMMatrixMultiply(XMMatrixScaling(1.1f, 1.1f, 1.1f), GetWorldMat());
 	constData.hit = Hit;
+	constData.offset = offset;
 	constBuff->Mapping(&constData);
 
 	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
@@ -238,8 +241,8 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter)
 {
 	//２つの球のワールド中心座標を求める
-	const auto centerA = KuroMath::TransformVec3(SphereA->localCenter, SphereA->GetWorldMat());
-	const auto centerB = KuroMath::TransformVec3(SphereB->localCenter, SphereB->GetWorldMat());
+	const auto centerA = KuroMath::TransformVec3(SphereA->offset, SphereA->GetWorldMat());
+	const auto centerB = KuroMath::TransformVec3(SphereB->offset, SphereB->GetWorldMat());
 
 	// 中心点の距離の２乗 <= 半径の和の２乗なら交差
 	const float distSq = centerA.DistanceSq(centerB);
@@ -260,7 +263,7 @@ bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* Spher
 bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter)
 {
 	//球の中心座標とAABBとの最短距離を求める
-	const auto spCenter = KuroMath::TransformVec3(SphereA->localCenter, SphereA->GetWorldMat());
+	const auto spCenter = KuroMath::TransformVec3(SphereA->offset, SphereA->GetWorldMat());
 
 	//AABBの各軸の最小値最大値にワールド変換
 	const auto& ptVal = AABB->GetPtValue();
@@ -399,7 +402,7 @@ Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const Coll
 
 bool Collision::SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3<float>* Inter)
 {
-	const auto spCenter = KuroMath::TransformVec3(Sphere->localCenter, Sphere->GetWorldMat());
+	const auto spCenter = KuroMath::TransformVec3(Sphere->offset, Sphere->GetWorldMat());
 
 	for (auto& t : Mesh->triangles)
 	{
