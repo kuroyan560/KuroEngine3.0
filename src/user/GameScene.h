@@ -16,7 +16,7 @@ class GameScene : public BaseScene
 	std::shared_ptr<ModelObject>floorModel;
 
 	LightManager ligMgr;
-	Light::Direction dirLigTop;
+	Light::Direction dirLig;
 	Light::HemiSphere hemiLig;
 	Light::Point ptLig;
 	

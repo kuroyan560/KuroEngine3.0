@@ -1122,7 +1122,7 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 
 		//î•ñŽæ“¾
 		newBone.name = itr->name;
-		newBone.invOffsetMat = XMMatrixInverse(nullptr, itr->transform);
+		newBone.invBindMat = XMMatrixInverse(nullptr, itr->transform);
 
 		//e‚ª‚¢‚È‚¢‚È‚çƒXƒ‹[
 		if (!itr->parent)continue;
@@ -1327,7 +1327,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			skel.bones[childIdx].parent = skel.bones.size() - 1;
 		}
 
-		bone.invOffsetMat = XMMatrixInverse(nullptr, nodeTransform);
+		bone.invBindMat = XMMatrixInverse(nullptr, nodeTransform);
 
 	}
 
@@ -1347,7 +1347,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 				data[offset + 12], data[offset + 13], data[offset + 14], data[offset + 15]);
 
 			int boneIdx = std::atoi(gltfSkin.jointIds[matIdx].c_str());
-			skel.bones[boneIdx].invOffsetMat = invBindMat/* * skel.bones[boneIdx].invOffsetMat*/;
+			skel.bones[boneIdx].invBindMat = invBindMat/* * skel.bones[boneIdx].invOffsetMat*/;
 		}
 	}
 

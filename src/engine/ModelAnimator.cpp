@@ -155,7 +155,7 @@ void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& Parent
 	if (*Finish && !finish)*Finish = false;
 
 	auto jointMat = boneAnimMat * ParentMatrix;
-	boneMatricies[BoneIdx] =  skel->bones[BoneIdx].invOffsetMat * jointMat;
+	boneMatricies[BoneIdx] =  skel->bones[BoneIdx].invBindMat * jointMat;
 
 	//子を呼び出して再帰的に計算
 	for (auto& child : bone.children)

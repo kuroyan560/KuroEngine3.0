@@ -128,12 +128,7 @@ void GameScene::OnDraw()
 	//player.Draw(nowCam);
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam);
 
-	static bool COLLIDER_DEBUG = false;
-	if (COLLIDER_DEBUG)
-	{
-		Collider::DebugDrawAllColliders(nowCam);
-	}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_RETURN))COLLIDER_DEBUG = !COLLIDER_DEBUG;
+	Collider::DebugDrawAllColliders(nowCam);
 }
 
 void GameScene::OnImguiDebug()

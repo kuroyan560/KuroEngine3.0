@@ -14,7 +14,8 @@ public:
 private:
 	friend class Collider;
 	const SHAPE shape;
-	Transform* world = nullptr;	//ワールドトランスフォーム
+	Transform* attachTransform = nullptr;	//トランスフォーム
+	const Matrix* attachOffsetMat = nullptr;
 	
 protected:
 	//基本的なプリミティブ当たり判定のデバッグ描画
@@ -29,7 +30,7 @@ protected:
 	CollisionPrimitive() = delete;
 	CollisionPrimitive(CollisionPrimitive&& arg) = delete;
 	CollisionPrimitive(const CollisionPrimitive& arg) = delete;
-	CollisionPrimitive(const SHAPE& Shape, Transform* World = nullptr) :shape(Shape), world(World) {}
+	CollisionPrimitive(const SHAPE& Shape, Transform* World = nullptr) :shape(Shape), attachTransform(World) {}
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
@@ -37,16 +38,19 @@ public:
 	const SHAPE& GetShape()const { return shape; }
 	const Matrix& GetWorldMat()
 	{
-		if (!world)return XMMatrixIdentity();
-		return world->GetMat();
+		if (attachTransform && attachOffsetMat)return *attachOffsetMat * attachTransform->GetMat();
+		if (attachTransform)return attachTransform->GetMat();
+		if (attachOffsetMat)return *attachOffsetMat;
+		return XMMatrixIdentity();
 	}
 	const float& GetTransformZ()
 	{
-		return world ? world->GetPos().z : 0.0f;
+		return attachTransform ? attachTransform->GetPos().z : 0.0f;
 	}
 
 	//セッタ
-	void AttachWorldTransform(Transform* World) { world = World; }
+	void AttachTransform(Transform* World) { attachTransform = World; }
+	void AttachOffsetMatrix(const Matrix* World) { attachOffsetMat = World; }
 };
 
 //球
