@@ -35,6 +35,7 @@ void Collider::DebugDrawAllColliders(Camera& Cam)
 {
 	for (auto& col : COLLIDERS)
 	{
+		if (!col.lock()->isActive)continue;
 		col.lock()->DebugDraw(Cam);
 	}
 }

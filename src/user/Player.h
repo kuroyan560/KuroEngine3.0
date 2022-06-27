@@ -3,6 +3,7 @@
 #include"PlayerCamera.h"
 #include<memory>
 #include<vector>
+#include"PlayerAttack.h"
 class ModelObject;
 class Camera;
 class Collider;
@@ -17,7 +18,7 @@ private:
 	static std::unique_ptr<PlayerCamera> CAMERA;
 
 	//ステータス
-	enum STATUS { WAIT, RUN, STATUS_NUM };
+	enum STATUS { WAIT, RUN, ATTACK, STATUS_NUM };
 
 public:
 	//カメラキー
@@ -48,6 +49,9 @@ private:
 
 	//コライダー
 	std::vector<std::shared_ptr<Collider>>colliders;
+
+	//攻撃処理クラス
+	PlayerAttack attack;
 
 	//移動処理
 	void Move();

@@ -371,6 +371,9 @@
     <ClCompile Include="src\engine\ImguiDebugInterface.cpp">
       <Filter>src\engine\ユーザー向け</Filter>
     </ClCompile>
+    <ClCompile Include="src\user\PlayerAttack.cpp">
+      <Filter>src\user\Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -582,6 +585,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\ImguiDebugInterface.h">
       <Filter>src\engine\ユーザー向け</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\PlayerAttack.h">
+      <Filter>src\user\Player</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

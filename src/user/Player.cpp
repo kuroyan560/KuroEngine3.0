@@ -17,6 +17,9 @@ void Player::Move()
 	//左スティック入力レート
 	auto stickL = UsersInput::Instance()->GetLeftStickVec(0);
 
+	//攻撃ボタン
+	auto attackInput = UsersInput::Instance()->ControllerInput(0, XBOX_BUTTON::RB);
+
 	//左スティック入力あり
 	if (!stickL.IsZero())
 	{
@@ -42,6 +45,11 @@ void Player::Move()
 		const auto up = model->transform.GetUp();
 		model->transform.SetLookAtRotate(pos + moveVec);
 	}
+	else if (attackInput)
+	{
+		//攻撃状態
+		status = ATTACK;
+	}
 	else
 	{
 		//待機状態
@@ -56,10 +64,15 @@ void Player::AnimationSwitch()
 		model->animator->speed = 1.0f;
 		model->animator->Play("Wait", true, false);
 	}
-	else if (StatusTrigger(RUN))
+	else if (StatusTrigger(RUN))	//走りモーション
 	{
 		model->animator->speed = 1.5f;
 		model->animator->Play("Run", true, false);
+	}
+	else if (StatusTrigger(ATTACK))	//攻撃モーション
+	{
+		model->animator->speed = 3.0f;
+		attack.Start();	//攻撃処理開始
 	}
 }
 
@@ -82,19 +95,23 @@ Player::Player()
 	auto col = std::make_shared<CollisionAABB>(model->model->GetAllMeshPosMinMax(), &model->transform);
 	colliders.emplace_back(Collider::Generate(col));
 
-	auto boneCol_L = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
-	boneCol_L->offset = { 0,-0.5f,0.7f };
-	colliders.emplace_back(Collider::Generate(boneCol_L));
+	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
+	boneCol_R_Sphere->offset = { 0,-0.5f,0.7f };
+	auto boneCol_R = Collider::Generate(boneCol_R_Sphere);
+	colliders.emplace_back(boneCol_R);
 
-	auto boneCol_R = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_R"));
-	boneCol_R->offset = { 0,-0.5f,0.7f };
-	colliders.emplace_back(Collider::Generate(boneCol_R));
+	auto boneCol_L_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_R"));
+	boneCol_L_Sphere->offset = { 0,-0.5f,0.7f };
+	auto boneCol_L = Collider::Generate(boneCol_L_Sphere);
+	colliders.emplace_back(boneCol_L);
 
 	for (auto& col : colliders)
 	{
 		col->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 		col->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	}
+
+	attack.Attach(model->animator, boneCol_L, boneCol_R);
 }
 
 void Player::Init()
@@ -108,6 +125,8 @@ void Player::Init()
 
 	CAMERA->Init(model->transform);
 	model->animator->Play("Wait", true, false);
+
+	attack.Init();
 }
 
 void Player::Update()
@@ -123,6 +142,10 @@ void Player::Update()
 	{
 		CAMERA->Update(model->transform);
 	}
+
+	//攻撃処理更新
+	attack.Update();
+	if (status != ATTACK)attack.Stop();
 	
 	//アニメーション切り替え
 	AnimationSwitch();
