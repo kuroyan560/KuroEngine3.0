@@ -81,14 +81,20 @@ Player::Player()
 
 	auto col = std::make_shared<CollisionAABB>(model->model->GetAllMeshPosMinMax(), &model->transform);
 	colliders.emplace_back(Collider::Generate(col));
-	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 
-	auto boneCol = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
-	boneCol->offset = { 2,3,0 };
-	colliders.emplace_back(Collider::Generate(boneCol));
-	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
+	auto boneCol_L = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
+	boneCol_L->offset = { 0,-0.5f,0.7f };
+	colliders.emplace_back(Collider::Generate(boneCol_L));
+
+	auto boneCol_R = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_R"));
+	boneCol_R->offset = { 0,-0.5f,0.7f };
+	colliders.emplace_back(Collider::Generate(boneCol_R));
+
+	for (auto& col : colliders)
+	{
+		col->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
+		col->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
+	}
 }
 
 void Player::Init()
