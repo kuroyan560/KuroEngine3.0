@@ -269,3 +269,9 @@ void ModelAnimator::Update()
 	//バッファにデータ転送
 	boneBuff->Mapping(boneMatricies.data());
 }
+
+Matrix& ModelAnimator::GetBoneLocalMat(const std::string& BoneName)
+{
+	assert(attachSkelton.lock()->boneIdxTable.contains(BoneName));
+	return boneLocalMatricies[attachSkelton.lock()->boneIdxTable[BoneName]];
+}

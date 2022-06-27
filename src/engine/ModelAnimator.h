@@ -61,10 +61,5 @@ public:
 	void Update();
 
 	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
-	Matrix& GetBoneLocalMat(const int& BoneIdx)
-	{
-		assert(0 <= BoneIdx && BoneIdx < boneLocalMatricies.size());
-		return boneLocalMatricies[BoneIdx];
-	}
-
+	Matrix& GetBoneLocalMat(const std::string& BoneName);
 };

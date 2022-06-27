@@ -84,7 +84,8 @@ Player::Player()
 	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 
-	auto boneCol = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat(model->model->skelton->boneIdxTable["Hand_L"]));
+	auto boneCol = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
+	boneCol->offset = { 2,3,0 };
 	colliders.emplace_back(Collider::Generate(boneCol));
 	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
