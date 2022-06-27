@@ -155,6 +155,7 @@ void ModelAnimator::BoneMatrixRecursive(const int& BoneIdx, const Matrix& Parent
 	if (*Finish && !finish)*Finish = false;
 
 	auto jointMat = boneAnimMat * ParentMatrix;
+	boneLocalMatricies[BoneIdx] = jointMat;
 	boneMatricies[BoneIdx] =  skel->bones[BoneIdx].invBindMat * jointMat;
 
 	//子を呼び出して再帰的に計算
@@ -188,6 +189,8 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 
 	//スケルトンをアタッチ
 	attachSkelton = skel;
+
+	boneLocalMatricies.resize(skel->bones.size());
 }
 
 void ModelAnimator::Reset()

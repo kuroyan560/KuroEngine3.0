@@ -15,7 +15,8 @@ private:
 	friend class Collider;
 	const SHAPE shape;
 	Transform* world = nullptr;	//ワールドトランスフォーム
-	
+	Matrix* local = nullptr;
+
 protected:
 	//基本的なプリミティブ当たり判定のデバッグ描画
 	static std::shared_ptr<GraphicsPipeline>GetPrimitivePipeline();
@@ -24,13 +25,12 @@ protected:
 	{
 		Matrix world = XMMatrixIdentity();
 		unsigned int hit = 0;
-		Vec3<float>offset = { 0,0,0 };
 	};
 
 	CollisionPrimitive() = delete;
 	CollisionPrimitive(CollisionPrimitive&& arg) = delete;
 	CollisionPrimitive(const CollisionPrimitive& arg) = delete;
-	CollisionPrimitive(const SHAPE& Shape, Transform* World = nullptr) :shape(Shape), world(World) {}
+	CollisionPrimitive(const SHAPE& Shape, Transform* World, Matrix* Local) :shape(Shape), world(World), local(Local) {}
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
@@ -43,6 +43,11 @@ public:
 		if (!world)return XMMatrixIdentity();
 		return world->GetMat();
 	}
+	const Matrix& GetLocalMat()
+	{
+		if (!local)return XMMatrixIdentity();
+		return *local;
+	}
 	const float& GetTransformZ()
 	{
 		return world ? world->GetPos().z : 0.0f;
@@ -50,6 +55,7 @@ public:
 
 	//セッタ
 	void AttachWorldTransform(Transform* World) { world = World; }
+	void AttachLocalMatrix(Matrix* Local) { local = Local; }
 };
 
 //球
@@ -64,8 +70,8 @@ private:
 	
 public:
 	float radius;					//半径
-	CollisionSphere(const float& Radius, Transform* World = nullptr)
-		:CollisionPrimitive(SPHERE, World), radius(Radius) {}
+	CollisionSphere(const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr)
+		:CollisionPrimitive(SPHERE, World, Local), radius(Radius) {}
 };
 
 //カプセル
@@ -83,8 +89,8 @@ public:
 	Vec3<float>ePoint;	//終点
 	float radius;
 	Vec3<float>offset;
-	CollisionCapsule(const Vec3<float>& StartPt, const Vec3<float>& EndPt, const float& Radius, Transform* World = nullptr, const Vec3<float>& Offset = Vec3<float>(0, 0, 0))
-		:CollisionPrimitive(CAPSULE, World), sPoint(StartPt), ePoint(EndPt), radius(Radius), offset(Offset) {}
+	CollisionCapsule(const Vec3<float>& StartPt, const Vec3<float>& EndPt, const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr, const Vec3<float>& Offset = Vec3<float>(0, 0, 0))
+		:CollisionPrimitive(CAPSULE, World, Local), sPoint(StartPt), ePoint(EndPt), radius(Radius), offset(Offset) {}
 };
 
 //AABB(軸並行境界ボックス）、色んな軸で回転すると判定がだめになる
@@ -108,8 +114,8 @@ private:
 	Vec3<ValueMinMax>pValues;
 
 public:
-	CollisionAABB(const Vec3<ValueMinMax>& PValues, Transform* World = nullptr)
-		:CollisionPrimitive(AABB, World) { StructBox(PValues); }
+	CollisionAABB(const Vec3<ValueMinMax>& PValues, Transform* World = nullptr, Matrix* Local = nullptr)
+		:CollisionPrimitive(AABB, World, Local) { StructBox(PValues); }
 
 	//ゲッタ
 	const Vec3<ValueMinMax>& GetPtValue() { return pValues; }
@@ -148,8 +154,8 @@ private:
 
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 public:
-	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr)
-		: CollisionPrimitive(MESH, World)
+	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr, Matrix* Local = nullptr)
+		: CollisionPrimitive(MESH, World, Local)
 	{
 		SetTriangles(Triangles);
 	}

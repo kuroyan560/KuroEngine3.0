@@ -5,6 +5,7 @@
 #include<array>
 #include"KuroMath.h"
 #include"Skeleton.h"
+#include<vector>
 class Model;
 class ConstantBuffer;
 
@@ -18,6 +19,7 @@ class ModelAnimator
 	std::shared_ptr<ConstantBuffer>boneBuff;
 	//É{Å[ÉìçsóÒ
 	std::array<Matrix, MAX_BONE_NUM>boneMatricies;
+	std::vector<Matrix>boneLocalMatricies;
 
 	struct PlayAnimation
 	{
@@ -57,5 +59,12 @@ public:
 		return result != playAnimations.end();
 	}
 	void Update();
+
 	const std::shared_ptr<ConstantBuffer>& GetBoneMatBuff() { return boneBuff; }
+	Matrix& GetBoneLocalMat(const int& BoneIdx)
+	{
+		assert(0 <= BoneIdx && BoneIdx < boneLocalMatricies.size());
+		return boneLocalMatricies[BoneIdx];
+	}
+
 };

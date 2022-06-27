@@ -97,9 +97,8 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.world = XMMatrixScaling(radius, radius, radius) * GetWorldMat();
+	constData.world = XMMatrixScaling(radius, radius, radius) * XMMatrixTranslation(offset.x, offset.y, offset.z) * GetLocalMat() * GetWorldMat();
 	constData.hit = Hit;
-	constData.offset = offset;
 	constBuff->Mapping(&constData);
 
 	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
@@ -140,7 +139,6 @@ void CollisionAABB::DebugDraw(const bool& Hit, Camera& Cam)
 	ConstData constData;
 	constData.world = GetWorldMat();
 	constData.hit = Hit;
-	constData.offset = offset;
 	constBuff->Mapping(&constData);
 
 	KuroEngine::Instance().Graphics().SetPipeline(CollisionPrimitive::GetPrimitivePipeline());
@@ -226,11 +224,9 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	ConstData constData;
 	constData.world = XMMatrixMultiply(XMMatrixScaling(1.1f, 1.1f, 1.1f), GetWorldMat());
 	constData.hit = Hit;
-	constData.offset = offset;
 	constBuff->Mapping(&constData);
 
 	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
-
 
 	KuroEngine::Instance().Graphics().ObjectRender(
 		vertBuff,
