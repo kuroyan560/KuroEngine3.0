@@ -23,6 +23,8 @@ class GameScene : public BaseScene
 	Player player;
 
 	std::shared_ptr<TextureBuffer>noise;
+	int split = 8;
+	Vec2<int>noiseSize = { 256,256 };
 
 public:
 	GameScene();

@@ -127,6 +127,7 @@ void PlayerCamera::Update(const Transform& Player)
 #include"imguiApp.h"
 void PlayerCamera::OnImguiDebug()
 {
+	return;
 	ImGui::Begin("PlayerCamera");
 
 	ImGui::Text("Height");

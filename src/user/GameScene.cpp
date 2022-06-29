@@ -45,7 +45,7 @@ GameScene::GameScene()
 	}
 
 	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
-	noise = NoiseGenerator::PerlinNoise({ 128 * 2,128 * 2 }, 8);
+	noise = NoiseGenerator::PerlinNoise(noiseSize, split);
 }
 
 void GameScene::OnInitialize()
@@ -135,7 +135,7 @@ void GameScene::OnDraw()
 	if (UsersInput::Instance()->KeyInput(DIK_SPACE))
 	{
 		noise.reset();
-		noise = NoiseGenerator::PerlinNoise({ 128 * 2,128 * 2 }, 16);
+		noise = NoiseGenerator::PerlinNoise(noiseSize, split);
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise);
 }
@@ -143,7 +143,15 @@ void GameScene::OnDraw()
 void GameScene::OnImguiDebug()
 {
 	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
-	GameManager::Instance()->ImGuiDebug();
+	ImGui::Begin("Noise");
+	if (ImGui::SliderInt("Split", &split, 1, 256))
+	{
+		noise.reset();
+		noise = NoiseGenerator::PerlinNoise(noiseSize, split);
+	}
+
+	ImGui::End();
+	//GameManager::Instance()->ImGuiDebug();
 }
 
 void GameScene::OnFinalize()
