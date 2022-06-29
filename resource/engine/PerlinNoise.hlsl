@@ -8,7 +8,7 @@ RWTexture2D<float4> pixels : register(u0);
 
 float Wavelet(float t)
 {
-    return 1 - 3 * pow(t, 2) + 2 * pow(abs(t), 3);
+    return 1 - (6 * abs(pow(t, 5)) - 15 * pow(t, 4) + 10 * abs(pow(t, 3)));
 }
 
 //勾配を設定したウェーブレット関数
@@ -37,16 +37,21 @@ void CSmain( uint2 DTid : SV_DispatchThreadID )
     float2 grad_RB = grads[y1Idx * (split + 1) + x1Idx];
     
     //自身が所属する矩形の各角の座標取得
-    int x0Pos = x0Idx * rectLength.x;
-    int x1Pos = x1Idx * rectLength.x;
-    int y0Pos = y0Idx * rectLength.y;
-    int y1Pos = y1Idx * rectLength.y;
+    float x0Pos = x0Idx * rectLength.x;
+    float x1Pos = x1Idx * rectLength.x;
+    float y0Pos = y0Idx * rectLength.y;
+    float y1Pos = y1Idx * rectLength.y;
     
     //各角に対しての相対座標
-    float2 uv_LU = (myPixelIdx - int2(x0Pos, y0Pos)) / rectLength;
-    float2 uv_RU = (myPixelIdx - int2(x1Pos, y0Pos)) / rectLength;
-    float2 uv_LB = (myPixelIdx - int2(x0Pos, y1Pos)) / rectLength;
-    float2 uv_RB = (myPixelIdx - int2(x1Pos, y1Pos)) / rectLength;
+    float2 uv_LU = (myPixelIdx - float2(x0Pos, y0Pos)) / rectLength;
+    float2 uv_RU = (myPixelIdx - float2(x1Pos, y0Pos)) / rectLength;
+    float2 uv_LB = (myPixelIdx - float2(x0Pos, y1Pos)) / rectLength;
+    float2 uv_RB = (myPixelIdx - float2(x1Pos, y1Pos)) / rectLength;
+    
+    uv_LU = clamp(uv_LU, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
+    uv_RU = clamp(uv_RU, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
+    uv_LB = clamp(uv_LB, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
+    uv_RB = clamp(uv_RB, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
     
     //自身が所属する矩形上での相対座標(左上基準）
     float2 uvOnSplit = uv_LU;
@@ -64,5 +69,7 @@ void CSmain( uint2 DTid : SV_DispatchThreadID )
     //Y軸方向に補間
     float result = lerp(w_U, w_B, uvOnSplit.y);
     
+    result = result * 2.0f + 0.5f;
+    
     pixels[DTid] = float4(result, result, result, 1.0f);
-}
+};

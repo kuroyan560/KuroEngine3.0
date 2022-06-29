@@ -45,7 +45,7 @@ GameScene::GameScene()
 	}
 
 	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
-	noise = NoiseGenerator::PerlinNoise({ 128 * 2,128 * 2 }, 2);
+	noise = NoiseGenerator::PerlinNoise({ 128 * 2,128 * 2 }, 8);
 }
 
 void GameScene::OnInitialize()
@@ -135,7 +135,7 @@ void GameScene::OnDraw()
 	if (UsersInput::Instance()->KeyInput(DIK_SPACE))
 	{
 		noise.reset();
-		noise = NoiseGenerator::PerlinNoise({ 128 * 2,128 * 2 }, 8);
+		noise = NoiseGenerator::PerlinNoise({ 128 * 2,128 * 2 }, 16);
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise);
 }
