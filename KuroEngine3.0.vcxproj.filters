@@ -178,6 +178,9 @@
     <FxCompile Include="resource\engine\CollisionPrimitive\Mesh.hlsl">
       <Filter>HLSL\engine\CollisionPrimitive</Filter>
     </FxCompile>
+    <FxCompile Include="resource\engine\PerlinNoise.hlsl">
+      <Filter>HLSL\engine</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\engine\LightInfo.hlsli">
@@ -373,6 +376,9 @@
     </ClCompile>
     <ClCompile Include="src\user\PlayerAttack.cpp">
       <Filter>src\user\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\NoiseGenerator.cpp">
+      <Filter>src\engine\フレームワーク</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -588,6 +594,9 @@
     </ClInclude>
     <ClInclude Include="src\user\PlayerAttack.h">
       <Filter>src\user\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\NoiseGenerator.h">
+      <Filter>src\engine\フレームワーク</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

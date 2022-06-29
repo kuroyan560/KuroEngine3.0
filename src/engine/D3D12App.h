@@ -126,6 +126,18 @@ public:
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::string& LoadImgFilePath, const bool& SRVAsCube = false);	//画像ファイル
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Vec2<int>&Size,const DXGI_FORMAT& Format,const char* Name = nullptr);	//コンピュートシェーダーでの描き込み先用（UAVも作成する）
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::vector<char>& ImgData, const int& Channel = -1);	//Channelで特定のチャンネルのみRチャンネルに出力
+	//テクスチャを分割してテクスチャ生成
+	void GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name);
+	/// <summary>
+	/// 画像を読み込んで分割 (LoadDivGraph)
+	/// </summary>
+	/// <param name="Array">分割した画像の書き込み先画像配列</param>
+	/// <param name="LoadImgFilePath">画像ファイルパス</param>
+	/// <param name="AllNum">総分割数</param>
+	/// <param name="SplitNum">縦横の分割数</param>
+	/// <param name="SplitSize">分割後のサイズ</param>
+	/// <returns></returns>
+	void GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum);
 
 	//SRV作成（D3D12App経由）
 	DescHandles CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc);
@@ -134,19 +146,9 @@ public:
 	//DSV作成（D3D12App経由）
 	DescHandles CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc = nullptr);
 
-	/// <summary>
-	/// 画像を読み込んで分割 (LoadDivGraph)
-	/// </summary>
-	/// <param name="LoadImgFilePath">画像ファイルパス</param>
-	/// <param name="AllNum">総分割数</param>
-	/// <param name="SplitNum">縦横の分割数</param>
-	/// <param name="SplitSize">分割後のサイズ</param>
-	/// <returns></returns>
-	std::vector<std::shared_ptr<TextureBuffer>>GenerateTextureBuffer(const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum);
-	void GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum);
 	//レンダーターゲット生成
 	std::shared_ptr<RenderTarget>GenerateRenderTarget(const DXGI_FORMAT& Format, const Color& ClearValue, const Vec2<int>Size,
-		const wchar_t* TargetName = nullptr, D3D12_RESOURCE_STATES InitState = D3D12_RESOURCE_STATE_RENDER_TARGET, int MipLevel = 1, int ArraySize = 1);
+	const wchar_t* TargetName = nullptr, D3D12_RESOURCE_STATES InitState = D3D12_RESOURCE_STATE_RENDER_TARGET, int MipLevel = 1, int ArraySize = 1);
 	//デプスステンシル作成
 	std::shared_ptr<DepthStencil>GenerateDepthStencil(const Vec2<int>& Size, const DXGI_FORMAT& Format = DXGI_FORMAT_D32_FLOAT, const float& ClearValue = 1.0f);
 
@@ -179,8 +181,4 @@ public:
 
 	//バックバッファレンダーターゲットをセット
 	void SetBackBufferRenderTarget();
-
-	//テクスチャを分割する
-	void SplitTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name);
-	std::vector<std::shared_ptr<TextureBuffer>>SplitTextureBuffer(const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name);
 };

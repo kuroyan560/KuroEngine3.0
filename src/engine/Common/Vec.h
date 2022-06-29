@@ -80,6 +80,12 @@ struct Vec2
 	Vec2 operator%(const Vec2& rhs) const {
 		return Vec2(fmodf(x, rhs.x), fmodf(y, rhs.y));
 	};
+	Vec2 operator%(const float& rhs)const{
+		Vec2<float>result;
+		result.x = static_cast<float>(x) % rhs;
+		result.y = static_cast<float>(y) % rhs;
+		return Vec2(static_cast<T>(result.x), static_cast<T>(result.y));
+	}
 	void operator=(const Vec2& rhs) {
 		x = rhs.x;
 		y = rhs.y;

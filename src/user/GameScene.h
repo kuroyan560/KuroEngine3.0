@@ -22,6 +22,8 @@ class GameScene : public BaseScene
 	
 	Player player;
 
+	std::shared_ptr<TextureBuffer>noise;
+
 public:
 	GameScene();
 	void OnInitialize()override;

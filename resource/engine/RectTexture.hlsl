@@ -11,9 +11,6 @@ RWTexture2D<float4> splitPixels : register(u0);
 [numthreads(8, 8, 1)]
 void CSmain( uint2 DTid : SV_DispatchThreadID )
 {
-    //uint2 uv = imgNum * splitSize;
-    
     uint2 offset = imgNum * splitSize + DTid;
     splitPixels[DTid] = sourceImg[offset];
-    //splitPixels[DTid] = sourceImg[DTid];
 }

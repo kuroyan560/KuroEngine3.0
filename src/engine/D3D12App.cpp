@@ -795,6 +795,68 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 	return result;
 }
 
+void D3D12App::GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name)
+{
+	//ディスクリプタヒープをセット
+	ID3D12DescriptorHeap* heaps[] = { descHeapCBV_SRV_UAV->GetHeap().Get() };
+	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+	splitImgPipeline->SetPipeline(commandList);
+	SorceTexBuffer->SetComputeDescriptorBuffer(commandList, SRV, 1);
+
+	SplitImgConstData constData;
+
+	//分割前のサイズを記録
+	constData.splitSize = { static_cast<int>(SorceTexBuffer->GetDesc().Width) / SplitNum.x,static_cast<int>(SorceTexBuffer->GetDesc().Height) / SplitNum.y };
+
+	for (int i = 0; i < AllNum; ++i)
+	{
+		if (splitImgConstBuff.size() < splitTexBuffCount + 1)
+		{
+			std::string name = "SplitImgConstBuff - " + std::to_string(i);
+			splitImgConstBuff.emplace_back(GenerateConstantBuffer(sizeof(SplitImgConstData), 1, nullptr, name.c_str()));
+		}
+
+		//描き込み先用のテクスチャバッファ
+		auto splitResult = GenerateTextureBuffer(constData.splitSize, SorceTexBuffer->GetDesc().Format, (Name + " - " + std::to_string(i)).c_str());
+
+		splitResult->SetComputeDescriptorBuffer(commandList, UAV, 0);
+
+		//splitImgConstBuff[i]->Mapping(&constData);
+		//splitImgConstBuff[i]->SetComputeDescriptorBuffer(commandList, CBV, 2);
+		splitImgConstBuff[splitTexBuffCount]->Mapping(&constData);
+		splitImgConstBuff[splitTexBuffCount]->SetComputeDescriptorBuffer(commandList, CBV, 2);
+
+		static const int THREAD_NUM = 8;
+		const Vec2<UINT>thread =
+		{
+			static_cast<UINT>(constData.splitSize.x / THREAD_NUM),
+			static_cast<UINT>(constData.splitSize.y / THREAD_NUM)
+		};
+		commandList->Dispatch(thread.x, thread.y, 1);
+
+		//テクスチャ用のリソースバリア変更
+		splitResult->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+		Array[i] = splitResult;
+
+		constData.imgNum.x++;
+		if (SplitNum.x <= constData.imgNum.x)
+		{
+			constData.imgNum.x = 0;
+			constData.imgNum.y++;
+		}
+
+		splitTexBuffCount++;
+	}
+}
+
+void D3D12App::GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum)
+{
+	auto sourceTexture = GenerateTextureBuffer(LoadImgFilePath);
+	return GenerateTextureBuffer(Array, sourceTexture, AllNum, SplitNum, LoadImgFilePath);
+}
+
 DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc)
 {
 	descHeapCBV_SRV_UAV->CreateSRV(device, Buff, ViewDesc);
@@ -813,18 +875,6 @@ DescHandles D3D12App::CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_
 	descHeapDSV->CreateDSV(device, Buff, ViewDesc);
 	//return DescHandles(descHeapDSV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
 	return DescHandles(descHeapDSV->GetCpuHandleTail(), descHeapDSV->GetGpuHandleTail());
-}
-
-std::vector<std::shared_ptr<TextureBuffer>> D3D12App::GenerateTextureBuffer(const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum)
-{
-	auto sourceTexture = GenerateTextureBuffer(LoadImgFilePath);
-	return SplitTextureBuffer(sourceTexture, AllNum, SplitNum, LoadImgFilePath);
-}
-
-void D3D12App::GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum)
-{
-	auto sourceTexture = GenerateTextureBuffer(LoadImgFilePath);
-	return SplitTextureBuffer(Array, sourceTexture, AllNum, SplitNum, LoadImgFilePath);
 }
 
 std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& Format, const Color& ClearValue, const Vec2<int> Size, const wchar_t* TargetName, D3D12_RESOURCE_STATES InitState, int MipLevel, int ArraySize)
@@ -1350,64 +1400,4 @@ void D3D12App::SetBackBufferRenderTarget()
 	swapchain->GetBackBufferRenderTarget()->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> BACK_BUFF_HANDLE = { swapchain->GetBackBufferRenderTarget()->AsRTV(commandList) };
 	commandList->OMSetRenderTargets(static_cast<UINT>(BACK_BUFF_HANDLE.size()), &BACK_BUFF_HANDLE[0], FALSE, nullptr);
-}
-
-void D3D12App::SplitTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name)
-{
-	//ディスクリプタヒープをセット
-	ID3D12DescriptorHeap* heaps[] = { descHeapCBV_SRV_UAV->GetHeap().Get() };
-	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
-
-	splitImgPipeline->SetPipeline(commandList);
-	SorceTexBuffer->SetComputeDescriptorBuffer(commandList, SRV, 1);
-
-	SplitImgConstData constData;
-
-	//分割前のサイズを記録
-	constData.splitSize = { static_cast<int>(SorceTexBuffer->GetDesc().Width) / SplitNum.x,static_cast<int>(SorceTexBuffer->GetDesc().Height) / SplitNum.y };
-
-	for (int i = 0; i < AllNum; ++i)
-	{
-		if (splitImgConstBuff.size() < splitTexBuffCount + 1)
-		{
-			std::string name = "SplitImgConstBuff - " + std::to_string(i);
-			splitImgConstBuff.emplace_back(GenerateConstantBuffer(sizeof(SplitImgConstData), 1, nullptr, name.c_str()));
-		}
-
-		//描き込み先用のテクスチャバッファ
-		auto splitResult = GenerateTextureBuffer(constData.splitSize, SorceTexBuffer->GetDesc().Format, (Name + " - " + std::to_string(i)).c_str());
-
-		splitResult->SetComputeDescriptorBuffer(commandList, UAV, 0);
-
-		//splitImgConstBuff[i]->Mapping(&constData);
-		//splitImgConstBuff[i]->SetComputeDescriptorBuffer(commandList, CBV, 2);
-		splitImgConstBuff[splitTexBuffCount]->Mapping(&constData);
-		splitImgConstBuff[splitTexBuffCount]->SetComputeDescriptorBuffer(commandList, CBV, 2);
-
-		static const int THREAD_NUM = 8;
-		const UINT threadX = constData.splitSize.x / THREAD_NUM;
-		const UINT threadY = constData.splitSize.y / THREAD_NUM;
-		commandList->Dispatch(threadX, threadY, 1);
-
-		//テクスチャ用のリソースバリアに変更
-		splitResult->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-		Array[i] = splitResult;
-
-		constData.imgNum.x++;
-		if (SplitNum.x <= constData.imgNum.x)
-		{
-			constData.imgNum.x = 0;
-			constData.imgNum.y++;
-		}
-
-		splitTexBuffCount++;
-	}
-}
-
-std::vector<std::shared_ptr<TextureBuffer>> D3D12App::SplitTextureBuffer(const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name)
-{
-	std::vector<std::shared_ptr<TextureBuffer>>result(AllNum);
-	SplitTextureBuffer(&result[0], SorceTexBuffer, AllNum, SplitNum, Name);
-	return result;
 }

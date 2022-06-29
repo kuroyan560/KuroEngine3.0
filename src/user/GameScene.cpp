@@ -11,6 +11,7 @@
 #include"ModelAnimator.h"
 #include"EnemyManager.h"
 #include"Collider.h"
+#include"NoiseGenerator.h"
 
 GameScene::GameScene()
 {
@@ -32,7 +33,7 @@ GameScene::GameScene()
 	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
 
 	Transform initSandBagPos;
-	
+
 	const float offset = 4.0f;
 	for (int x = 0; x < 10; ++x)
 	{
@@ -42,8 +43,10 @@ GameScene::GameScene()
 			EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 		}
 	}
-	
+
 	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
+
+	noise = NoiseGenerator::PerlinNoise({ 128,128 }, 8);
 }
 
 void GameScene::OnInitialize()
@@ -129,6 +132,10 @@ void GameScene::OnDraw()
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam);
 
 	Collider::DebugDrawAllColliders(nowCam);
+
+	static auto tex = D3D12App::Instance()->GenerateTextureBuffer(Color(0.2f, 0.2f, 0.2f, 1.0f), 128);
+	DrawFunc2D::DrawGraph({ 0,0 }, tex);
+	DrawFunc2D::DrawGraph({ 0,0 }, noise);
 }
 
 void GameScene::OnImguiDebug()
