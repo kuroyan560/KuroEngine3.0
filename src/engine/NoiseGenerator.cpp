@@ -60,14 +60,15 @@ std::shared_ptr<TextureBuffer>NoiseGenerator::PerlinNoise(const Vec2<int>& Size,
 	CONST_BUFF->Mapping(&constData);
 
 	//分割後の各頂点の勾配ベクトル格納先
-	Vec2<float>grad[SPLIT_MAX + 1][SPLIT_MAX + 1];
+	Vec2<float>grad[(SPLIT_MAX + 1) * (SPLIT_MAX + 1)];
 	for (int y = 0; y <= Split; ++y)
 	{
 		for (int x = 0; x <= Split; ++x)
 		{
+			int idx = y * (Split + 1) + x;
 			//ランダムな勾配ベクトル
-			grad[y][x].x = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
-			grad[y][x].y = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
+			grad[idx].x = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
+			grad[idx].y = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 		}
 	}
 	//構造化バッファに転送

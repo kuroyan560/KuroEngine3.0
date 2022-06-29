@@ -22,39 +22,47 @@ float GradWaveLet(float2 uv, float2 grad)
 [numthreads(1, 1, 1)]
 void CSmain( uint2 DTid : SV_DispatchThreadID )
 {
+    int2 myPixelIdx = DTid;
+    
     //自身が所属する矩形の各角のインデックス取得
-    int x0Idx = DTid.x / rectLength;
+    int x0Idx = myPixelIdx.x / rectLength.x;
     int x1Idx = x0Idx + 1;
-    int y0Idx = DTid.y / rectLength;
+    int y0Idx = myPixelIdx.y / rectLength.y;
     int y1Idx = y0Idx + 1;
     
     //各角の勾配ベクトル取得
-    float2 grad_LU = grads[y0Idx][x0Idx];
-    float2 grad_LB = grads[y1Idx][x0Idx];
-    float2 grad_RU = grads[y0Idx][x1Idx];
-    float2 grad_RB = grads[y1Idx][x1Idx];
+    float2 grad_LU = grads[y0Idx * (split + 1) + x0Idx];
+    float2 grad_LB = grads[y1Idx * (split + 1) + x0Idx];
+    float2 grad_RU = grads[y0Idx * (split + 1) + x1Idx];
+    float2 grad_RB = grads[y1Idx * (split + 1) + x1Idx];
     
     //自身が所属する矩形の各角の座標取得
-    int x0Pos = x0Idx * rectLength;
-    int x1Pos = x1Idx * rectLength;
-    int y0Pos = y0Idx * rectLength;
-    int y1Pos = y1Idx * rectLength;
+    int x0Pos = x0Idx * rectLength.x;
+    int x1Pos = x1Idx * rectLength.x;
+    int y0Pos = y0Idx * rectLength.y;
+    int y1Pos = y1Idx * rectLength.y;
     
-    //自身の相対座標取得
-    float2 uv = DTid / (rectLength * split) * 2.0f - 1.0f;  //-1.0f ~ 1.0fの範囲に直す
+    //各角に対しての相対座標
+    float2 uv_LU = (myPixelIdx - int2(x0Pos, y0Pos)) / rectLength;
+    float2 uv_RU = (myPixelIdx - int2(x1Pos, y0Pos)) / rectLength;
+    float2 uv_LB = (myPixelIdx - int2(x0Pos, y1Pos)) / rectLength;
+    float2 uv_RB = (myPixelIdx - int2(x1Pos, y1Pos)) / rectLength;
+    
+    //自身が所属する矩形上での相対座標(左上基準）
+    float2 uvOnSplit = uv_LU;
     
     //左上と右上の対で補間
-    float w00 = GradWaveLet(uv, grad_LU);
-    float w10 = GradWaveLet(uv, grad_RU);
-    float wy0 = lerp(w00, w10, uv.x);
+    float w_LU = GradWaveLet(uv_LU, grad_LU);
+    float w_RU = GradWaveLet(uv_RU, grad_RU);
+    float w_U = lerp(w_LU, w_RU, uvOnSplit.x);
     
     //左下と右下の対で補間
-    float w01 = GradWaveLet(uv, grad_LB);
-    float w11 = GradWaveLet(uv, grad_RB);
-    float wy1 = lerp(w01, w11, uv.x);
+    float w_LB = GradWaveLet(uv_LB, grad_LB);
+    float w_RB = GradWaveLet(uv_RB, grad_RB);
+    float w_B = lerp(w_LB, w_RB, uvOnSplit.x);
     
     //Y軸方向に補間
-    float result = lerp(wy0, wy1, uv.y);
+    float result = lerp(w_U, w_B, uvOnSplit.y);
     
     pixels[DTid] = float4(result, result, result, 1.0f);
 }
