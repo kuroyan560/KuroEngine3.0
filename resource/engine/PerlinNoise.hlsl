@@ -50,11 +50,6 @@ float PerlinNoise(float2 pixelIdx)
     float2 uv_LB = (pixelIdx - float2(x0Pos, y1Pos)) / rectLength;
     float2 uv_RB = (pixelIdx - float2(x1Pos, y1Pos)) / rectLength;
     
-    uv_LU = clamp(uv_LU, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
-    uv_RU = clamp(uv_RU, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
-    uv_LB = clamp(uv_LB, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
-    uv_RB = clamp(uv_RB, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
-    
     //©g‚ªŠ‘®‚·‚é‹éŒ`ã‚Å‚Ì‘Š‘ÎÀ•W(¶ãŠî€j
     float2 uvOnSplit = uv_LU;
     
@@ -71,11 +66,13 @@ float PerlinNoise(float2 pixelIdx)
     //Y²•ûŒü‚É•âŠÔ
     float result = lerp(w_U, w_B, uvOnSplit.y);
     
-    result = result * 2.0f + 0.5f;
+    //‚O`‚P‚É•â³
+    result = (result + 1.0f) / 2.0f;
+    
     return result;
 }
 
-[numthreads(1, 1, 1)]
+[numthreads(16, 16, 1)]
 void CSmain(uint2 DTid : SV_DispatchThreadID)
 {
     float total = 0;

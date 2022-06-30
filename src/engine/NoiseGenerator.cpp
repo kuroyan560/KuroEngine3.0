@@ -70,6 +70,9 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 			//ランダムな勾配ベクトル
 			grad[idx].x = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 			grad[idx].y = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
+
+			if (x == Split)grad[idx] = grad[y * (Split + 1)];
+			if (y == Split)grad[idx] = grad[x];
 		}
 	}
 	//構造化バッファに転送
