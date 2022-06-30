@@ -1,6 +1,10 @@
 #pragma once
 #include"Vec.h"
 #include<array>
+
+#include<memory>
+class TextureBuffer;
+
 class HitEffect
 {
 private:
@@ -8,9 +12,11 @@ private:
 	static std::array<HitEffect, MAX_NUM>INSTANCES;
 
 public:
+	HitEffect() {}
+
 	static void Generate(const Vec2<float>& Pos);
 	static void Init();
-	static void Draw();
+	static void Draw(/*std::shared_ptr<TextureBuffer>&Noise*/);
 
 private:
 	char isActive = 0;

@@ -3,6 +3,7 @@ cbuffer cbuff0 : register(b0)
     float2 rectLength;
     int split;
     int octaves;
+    float baseFrequency;
     float persistance;
 }
 StructuredBuffer<float2> grads : register(t0);
@@ -76,7 +77,7 @@ float PerlinNoise(float2 pixelIdx)
 void CSmain(uint2 DTid : SV_DispatchThreadID)
 {
     float total = 0;
-    float frequency = 1;
+    float frequency = baseFrequency;
     float amplitude = 1;
     float maxValue = 0;
     for (int i = 0; i < octaves;++i)

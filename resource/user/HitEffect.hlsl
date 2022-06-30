@@ -21,6 +21,8 @@ struct GSOutput
 };
 
 Texture2D<float4> tex : register(t0);
+Texture2D<float4> displacementNoiseTex : register(t1);
+Texture2D<float4> alphaNoiseTex : register(t2);
 SamplerState smp : register(s0);
 
 [maxvertexcount(4)]
@@ -29,6 +31,9 @@ void GSmain(
 	inout TriangleStream<GSOutput> output
 )
 {
+    if (!input[0].isAlive)
+        return;
+    
     uint2 texSize;
     tex.GetDimensions(texSize.x, texSize.y);
     
@@ -72,7 +77,26 @@ void GSmain(
 
 float4 PSmain(GSOutput input) : SV_TARGET
 {
-    return tex.Sample(smp, input.uv);
+    float displacementNoise = displacementNoiseTex.Sample(smp, input.uv).r;
+    displacementNoise = displacementNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
+    
+    //中央から外側に向かって
+    float2 vec = normalize(input.uv - float2(0.5f, 0.5f));
+    
+    //ランダムにずれる
+    input.uv += vec * displacementNoise;
+    
+    //通常のテクスチャ
+    float4 result = tex.Sample(smp, input.uv);
+    
+    //アルファノイズ
+    float alphaNoise = alphaNoiseTex.Sample(smp, input.uv).r;
+    alphaNoise = alphaNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
+    alphaNoise *= 13.0f; //コントラストを上げる
+    //alphaNoise = clamp(alphaNoise * 2.0f - 1.0f, 0.0f, 1.0f); //0~1から-1~1の範囲にしてから、負の値を０にする
+    result.w *= alphaNoise;
+ 
+    return result;
 }
 
 float4 main(float4 pos : POSITION) : SV_POSITION

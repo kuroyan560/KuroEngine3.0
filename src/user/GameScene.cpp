@@ -17,13 +17,13 @@ void GameScene::NoiseGenerate()
 {
 	if (!noise)
 	{
-		noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
-		noise2 = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
+		noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, frequency, persistance);
+		noise2 = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, frequency, persistance);
 	}
 	else
 	{
-		NoiseGenerator::PerlinNoise(noise, split, octaves, persistance);
-		NoiseGenerator::PerlinNoise(noise2, split, octaves, persistance);
+		NoiseGenerator::PerlinNoise(noise, split, octaves, frequency, persistance);
+		NoiseGenerator::PerlinNoise(noise2, split, octaves, frequency, persistance);
 	}
 }
 
@@ -61,6 +61,8 @@ GameScene::GameScene()
 	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
 
 	NoiseGenerate();
+
+	HitEffect::Generate(WinApp::Instance()->GetExpandWinCenter());
 }
 
 void GameScene::OnInitialize()
@@ -152,9 +154,9 @@ void GameScene::OnDraw()
 		NoiseGenerate();
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise);
-	DrawFunc2D::DrawGraph({ 530,0 }, noise2);
+	//DrawFunc2D::DrawGraph({ 530,0 }, noise2);
 
-	hitEffect.Draw();
+	HitEffect::Draw(/*noise*/);
 }
 
 void GameScene::OnImguiDebug()
@@ -165,6 +167,7 @@ void GameScene::OnImguiDebug()
 	bool change = false;
 	if (ImGui::SliderInt("Split", &split, 1, 256))change = true;
 	if (ImGui::SliderInt("Octaves", &octaves, 1, 10))change = true;
+	if (ImGui::SliderFloat("Frequency", &frequency, 0.1f, 10.0f))change = true;
 	if (ImGui::SliderFloat("Persistance", &persistance, 0.1f, 1.0f))change = true;
 
 	if (change)

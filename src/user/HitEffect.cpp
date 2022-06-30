@@ -21,17 +21,17 @@ void HitEffect::Init()
 	for (auto& e : INSTANCES)e.isActive = 0;
 }
 
-void HitEffect::Draw()
+void HitEffect::Draw(/*std::shared_ptr<TextureBuffer>& Noise*/)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE;
 	static std::shared_ptr<TextureBuffer>CIRCLE_TEX;
-	static std::shared_ptr<TextureBuffer>NOISE_TEX;
+	static std::shared_ptr<TextureBuffer>DISPLACEMENT_NOISE_TEX;
+	static std::shared_ptr<TextureBuffer>ALPHA_NOISE_TEX;
 	static std::shared_ptr<VertexBuffer>VERTEX_BUFF;
 	if (!PIPELINE)
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
@@ -51,7 +51,8 @@ void HitEffect::Draw()
 		{
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"平行投影行列定数バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"円テクスチャ"),
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"パーリンノイズテクスチャ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ディスプレイスメント用パーリンノイズテクスチャ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"アルファ用パーリンノイズテクスチャ"),
 		};
 
 		//レンダーターゲット描画先情報
@@ -63,7 +64,8 @@ void HitEffect::Draw()
 		CIRCLE_TEX = D3D12App::Instance()->GenerateTextureBuffer("resource/user/circle.png");
 
 		//パーリンノイズ
-		NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 4, 4);
+		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 4, 1.0f, 2);
+		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 8, 9, 1.0f, 0.12f);
 
 		//頂点バッファ生成
 		VERTEX_BUFF = D3D12App::Instance()->GenerateVertexBuffer(sizeof(HitEffect), MAX_NUM, nullptr, "HitEffect - VertexBuffer");
@@ -80,9 +82,11 @@ void HitEffect::Draw()
 		{
 			KuroEngine::Instance().GetParallelMatProjBuff(),
 			CIRCLE_TEX,
-			NOISE_TEX
+			DISPLACEMENT_NOISE_TEX,
+			//Noise
+			ALPHA_NOISE_TEX
 		},
-		{ CBV,SRV,SRV },
+		{ CBV,SRV,SRV,SRV },
 		0.0f, true
 	);
 }

@@ -5,7 +5,7 @@
 
 int NoiseGenerator::PERLIN_NOISE_ID = 0;
 
-void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const int& Split, const int& Octaves, const float& Persistance)
+void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const int& Split, const int& Octaves, const float& Frequency, const float& Persistance)
 {
 	//最大分割数
 	static const int SPLIT_MAX = 256;
@@ -22,8 +22,10 @@ void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const i
 		Vec2<float>rectLength;
 		int split;
 		int octaveNum;
+		float frequency;
 		float persistance;
-		ConstData(const Vec2<float>& RectLength, const int& Split, const int& Octaves, const float& Persistance) :rectLength(RectLength), split(Split), octaveNum(Octaves), persistance(Persistance) {}
+		ConstData(const Vec2<float>& RectLength, const int& Split, const int& Octaves, const float& Frequency, const float& Persistance)
+			:rectLength(RectLength), split(Split), octaveNum(Octaves), frequency(Frequency), persistance(Persistance) {}
 	};
 
 	//構造体バッファ
@@ -57,7 +59,7 @@ void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const i
 	}
 
 	//定数バッファにデータ転送
-	ConstData constData(DestTex->GetGraphSize().Float() / Split, Split, Octaves, Persistance);
+	ConstData constData(DestTex->GetGraphSize().Float() / Split, Split, Octaves, Frequency, Persistance);
 	CONST_BUFF[PERLIN_NOISE_ID]->Mapping(&constData);
 
 	//分割後の各頂点の勾配ベクトル格納先
@@ -112,10 +114,10 @@ void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const i
 	PERLIN_NOISE_ID++;
 }
 
-std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Persistance)
+std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Frequency, const float& Persistance)
 {
 	//描き込み先用テクスチャバッファ生成
 	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, DXGI_FORMAT_R32G32B32A32_FLOAT, ("PerlinNoise - " + std::to_string(PERLIN_NOISE_ID)).c_str());
-	PerlinNoise(result, Split, Octaves, Persistance);
+	PerlinNoise(result, Split, Octaves, Frequency, Persistance);
 	return result;
 }
