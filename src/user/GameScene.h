@@ -4,6 +4,7 @@
 #include"Player.h"
 #include"GameManager.h"
 #include"ShadowMapDevice.h"
+#include"HitEffect.h"
 
 class Model;
 class ModelObject;
@@ -28,6 +29,8 @@ class GameScene : public BaseScene
 	int octaves = 5;
 	float persistance = 0.5f;
 	Vec2<int>noiseSize = { 256 * 2,256 * 2 };
+
+	HitEffect hitEffect;
 
 	void NoiseGenerate();
 

@@ -617,11 +617,11 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 	else
 	{
 		descHeapCBV_SRV_UAV->CreateSRV(device, buff, metadata.format);
+		texDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, metadata.width, metadata.height);
 	}
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
 	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
-
 
 	//専用のシェーダーリソースクラスにまとめる
 	std::shared_ptr<TextureBuffer>result;

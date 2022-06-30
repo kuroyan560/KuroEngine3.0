@@ -147,6 +147,8 @@ void GameScene::OnDraw()
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise);
 	DrawFunc2D::DrawGraph({ 530,0 }, noise2);
+
+	hitEffect.Draw();
 }
 
 void GameScene::OnImguiDebug()

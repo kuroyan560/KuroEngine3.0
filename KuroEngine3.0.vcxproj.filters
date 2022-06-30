@@ -89,6 +89,9 @@
     <Filter Include="src\engine\ユーザー向け\Collision">
       <UniqueIdentifier>{226ed961-4357-402e-b741-74cace9cdbe6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\user\Effect">
+      <UniqueIdentifier>{09de12f2-4801-4db7-956b-a4351608d029}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\engine\RectTexture.hlsl">
@@ -180,6 +183,9 @@
     </FxCompile>
     <FxCompile Include="resource\engine\PerlinNoise.hlsl">
       <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\user\HitEffect.hlsl">
+      <Filter>HLSL\user</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -379,6 +385,9 @@
     </ClCompile>
     <ClCompile Include="src\engine\NoiseGenerator.cpp">
       <Filter>src\engine\フレームワーク</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\HitEffect.cpp">
+      <Filter>src\user\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -597,6 +606,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\NoiseGenerator.h">
       <Filter>src\engine\フレームワーク</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\HitEffect.h">
+      <Filter>src\user\Effect</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
