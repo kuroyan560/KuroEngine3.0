@@ -5,7 +5,7 @@
 
 int NoiseGenerator::PERLIN_NOISE_ID = 0;
 
-std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Persistence)
+void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const int& Split, const int& Octaves, const float& Persistance)
 {
 	//最大分割数
 	static const int SPLIT_MAX = 256;
@@ -57,7 +57,7 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 	}
 
 	//定数バッファにデータ転送
-	ConstData constData(Size.Float() / Split, Split, Octaves, Persistence);
+	ConstData constData(DestTex->GetGraphSize().Float() / Split, Split, Octaves, Persistance);
 	CONST_BUFF[PERLIN_NOISE_ID]->Mapping(&constData);
 
 	//分割後の各頂点の勾配ベクトル格納先
@@ -70,13 +70,13 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 			//ランダムな勾配ベクトル
 			grad[idx].x = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 			grad[idx].y = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
+
+			if (x == Split)grad[idx] = grad[y * (Split + 1)];
+			if (y == Split)grad[idx] = grad[x];
 		}
 	}
 	//構造化バッファに転送
 	STRUCTURED_BUFF[PERLIN_NOISE_ID]->Mapping(grad);
-
-	//描き込み先用テクスチャバッファ生成
-	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, DXGI_FORMAT_R32G32B32A32_FLOAT, ("PerlinNoise - " + std::to_string(PERLIN_NOISE_ID)).c_str());
 
 	//コマンドリスト取得
 	auto cmdList = D3D12App::Instance()->GetCmdList();
@@ -94,22 +94,28 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 	STRUCTURED_BUFF[PERLIN_NOISE_ID]->SetComputeDescriptorBuffer(cmdList, SRV, 1);
 
 	//描き込み先テクスチャバッファセット
-	result->SetComputeDescriptorBuffer(cmdList, UAV, 2);
+	DestTex->SetComputeDescriptorBuffer(cmdList, UAV, 2);
 
 
 	//実行
-	static const int THREAD_NUM = 8;
+	static const int THREAD_NUM = 16;
 	const Vec2<UINT>thread =
 	{
-		static_cast<UINT>(Size.x / THREAD_NUM),
-		static_cast<UINT>(Size.y / THREAD_NUM)
+		static_cast<UINT>(DestTex->GetGraphSize().x / THREAD_NUM),
+		static_cast<UINT>(DestTex->GetGraphSize().y / THREAD_NUM)
 	};
-	cmdList->Dispatch(Size.x, Size.y, 1);
+	cmdList->Dispatch(thread.x, thread.y, 1);
 
 	//描き込んだ画像のリソースバリア変更
-	result->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	DestTex->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	PERLIN_NOISE_ID++;
+}
 
+std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Persistance)
+{
+	//描き込み先用テクスチャバッファ生成
+	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, DXGI_FORMAT_R32G32B32A32_FLOAT, ("PerlinNoise - " + std::to_string(PERLIN_NOISE_ID)).c_str());
+	PerlinNoise(result, Split, Octaves, Persistance);
 	return result;
 }

@@ -15,10 +15,16 @@
 
 void GameScene::NoiseGenerate()
 {
-	noise.reset();
-	noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
-	noise2.reset();
-	noise2 = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
+	if (!noise)
+	{
+		noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
+		noise2 = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
+	}
+	else
+	{
+		NoiseGenerator::PerlinNoise(noise, split, octaves, persistance);
+		NoiseGenerator::PerlinNoise(noise2, split, octaves, persistance);
+	}
 }
 
 GameScene::GameScene()
