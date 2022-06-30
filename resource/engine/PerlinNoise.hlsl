@@ -2,9 +2,11 @@ cbuffer cbuff0 : register(b0)
 {
     float2 rectLength;
     int split;
+    int octaves;
+    float persistance;
 }
 StructuredBuffer<float2> grads : register(t0);
-RWTexture2D<float4> pixels : register(u0);  
+RWTexture2D<float4> pixels : register(u0);
 
 float Wavelet(float t)
 {
@@ -19,15 +21,15 @@ float GradWaveLet(float2 uv, float2 grad)
     return c * l;
 }
 
-[numthreads(1, 1, 1)]
-void CSmain( uint2 DTid : SV_DispatchThreadID )
+float PerlinNoise(float2 pixelIdx)
 {
-    int2 myPixelIdx = DTid;
+    float2 imgSize = rectLength * split;
+    pixelIdx %= imgSize;    //繰り返し
     
-    //自身が所属する矩形の各角のインデックス取得
-    int x0Idx = myPixelIdx.x / rectLength.x;
+      //自身が所属する矩形の各角のインデックス取得
+    int x0Idx = pixelIdx.x / rectLength.x;
     int x1Idx = x0Idx + 1;
-    int y0Idx = myPixelIdx.y / rectLength.y;
+    int y0Idx = pixelIdx.y / rectLength.y;
     int y1Idx = y0Idx + 1;
     
     //各角の勾配ベクトル取得
@@ -43,10 +45,10 @@ void CSmain( uint2 DTid : SV_DispatchThreadID )
     float y1Pos = y1Idx * rectLength.y;
     
     //各角に対しての相対座標
-    float2 uv_LU = (myPixelIdx - float2(x0Pos, y0Pos)) / rectLength;
-    float2 uv_RU = (myPixelIdx - float2(x1Pos, y0Pos)) / rectLength;
-    float2 uv_LB = (myPixelIdx - float2(x0Pos, y1Pos)) / rectLength;
-    float2 uv_RB = (myPixelIdx - float2(x1Pos, y1Pos)) / rectLength;
+    float2 uv_LU = (pixelIdx - float2(x0Pos, y0Pos)) / rectLength;
+    float2 uv_RU = (pixelIdx - float2(x1Pos, y0Pos)) / rectLength;
+    float2 uv_LB = (pixelIdx - float2(x0Pos, y1Pos)) / rectLength;
+    float2 uv_RB = (pixelIdx - float2(x1Pos, y1Pos)) / rectLength;
     
     uv_LU = clamp(uv_LU, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
     uv_RU = clamp(uv_RU, float2(-1.0f, -1.0f), float2(1.0f, 1.0f));
@@ -70,6 +72,24 @@ void CSmain( uint2 DTid : SV_DispatchThreadID )
     float result = lerp(w_U, w_B, uvOnSplit.y);
     
     result = result * 2.0f + 0.5f;
+    return result;
+}
+
+[numthreads(1, 1, 1)]
+void CSmain(uint2 DTid : SV_DispatchThreadID)
+{
+    float total = 0;
+    float frequency = 1;
+    float amplitude = 1;
+    float maxValue = 0;
+    for (int i = 0; i < octaves;++i)
+    {
+        total += PerlinNoise(DTid * frequency) * amplitude;
+        maxValue += amplitude;
+        amplitude *= persistance;
+        frequency *= 2;
+    }
     
+    float result = total / maxValue;
     pixels[DTid] = float4(result, result, result, 1.0f);
 };

@@ -181,9 +181,6 @@
     <FxCompile Include="resource\engine\PerlinNoise.hlsl">
       <Filter>HLSL\engine</Filter>
     </FxCompile>
-    <FxCompile Include="resource\engine\PerlinNoiseFractal.hlsl">
-      <Filter>HLSL\engine</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\engine\LightInfo.hlsli">

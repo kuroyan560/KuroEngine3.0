@@ -17,7 +17,7 @@ void GameScene::NoiseGenerate()
 {
 	noise.reset();
 	//noise = NoiseGenerator::PerlinNoise(noiseSize, split);
-	noise = NoiseGenerator::PerlinNoiseFractal(noiseSize, split, octaves, persistance);
+	noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
 }
 
 GameScene::GameScene()
