@@ -26,7 +26,7 @@ class GameScene : public BaseScene
 	int split = 8;
 	int octaves = 5;
 	float persistance = 0.5f;
-	Vec2<int>noiseSize = { 256,256 };
+	Vec2<int>noiseSize = { 256 * 2,256 * 2 };
 
 	void NoiseGenerate();
 
