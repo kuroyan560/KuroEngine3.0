@@ -17,7 +17,7 @@ void GameScene::NoiseGenerate()
 {
 	noise.reset();
 	//noise = NoiseGenerator::PerlinNoise(noiseSize, split);
-	noise = NoiseGenerator::PerlinNoiseFractal(noiseSize, split, 5);
+	noise = NoiseGenerator::PerlinNoiseFractal(noiseSize, split, octaves, persistance);
 }
 
 GameScene::GameScene()
@@ -151,7 +151,13 @@ void GameScene::OnImguiDebug()
 {
 	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
 	ImGui::Begin("Noise");
-	if (ImGui::SliderInt("Split", &split, 1, 256))
+
+	bool change = false;
+	if (ImGui::SliderInt("Split", &split, 1, 256))change = true;
+	if (ImGui::SliderInt("Octaves", &octaves, 1, 10))change = true;
+	if (ImGui::SliderFloat("Persistance", &persistance, 0.1f, 1.0f))change = true;
+
+	if (change)
 	{
 		NoiseGenerate();
 	}
