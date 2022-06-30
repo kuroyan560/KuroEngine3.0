@@ -13,6 +13,8 @@
 
 #include"DrawFunc3D.h"
 
+#include"NoiseGenerator.h"
+
 
 #ifdef _DEBUG
 int main()
@@ -65,6 +67,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DrawFunc2D_Color::CountReset();
 
 		DrawFunc3D::CountReset();
+
+		NoiseGenerator::CountReset();
 
 		//メッセージがある？
 		MSG msg{};

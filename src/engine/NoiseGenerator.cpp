@@ -3,20 +3,19 @@
 #include"KuroFunc.h"
 #include"D3D12App.h"
 
+int NoiseGenerator::PERLIN_NOISE_ID = 0;
+
 std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Persistence)
 {
 	//最大分割数
 	static const int SPLIT_MAX = 256;
 	assert(0 < Split && Split <= SPLIT_MAX);
 
-	//生成した数（画像名にIDとして付与する）
-	static int ID = 0;
-
 	//コンピュートパイプライン
 	static std::shared_ptr<ComputePipeline>PIPELINE;
 
 	//定数バッファ
-	static std::shared_ptr<ConstantBuffer>CONST_BUFF;
+	static std::vector<std::shared_ptr<ConstantBuffer>>CONST_BUFF;
 	//定数バッファ用データ
 	struct ConstData
 	{
@@ -28,7 +27,7 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 	};
 
 	//構造体バッファ
-	static std::shared_ptr<StructuredBuffer>STRUCTURED_BUFF;
+	static std::vector<std::shared_ptr<StructuredBuffer>>STRUCTURED_BUFF;
 
 	if (!PIPELINE)
 	{
@@ -43,17 +42,23 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 		};
 		//パイプライン生成
 		PIPELINE = D3D12App::Instance()->GenerateComputePipeline(cs, rootParams, { WrappedSampler(false, false) });
+	}
 
-		//定数バッファ生成
-		CONST_BUFF = D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, "PerlinNoise - ConstantBuffer");
+	//定数バッファ生成
+	if (CONST_BUFF.size() < PERLIN_NOISE_ID + 1)
+	{
+		CONST_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, ("PerlinNoise - ConstantBuffer - " + std::to_string(PERLIN_NOISE_ID)).c_str()));
+	}
 
-		//構造体バッファ生成
-		STRUCTURED_BUFF = D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Vec2<float>), pow(SPLIT_MAX + 1, 2), nullptr, "PerlinNoise - StructuredBuffer");
+	//構造体バッファ生成
+	if (STRUCTURED_BUFF.size() < PERLIN_NOISE_ID + 1)
+	{
+		STRUCTURED_BUFF.emplace_back(D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Vec2<float>), pow(SPLIT_MAX + 1, 2), nullptr, ("PerlinNoise - StructuredBuffer" + std::to_string(PERLIN_NOISE_ID)).c_str()));
 	}
 
 	//定数バッファにデータ転送
 	ConstData constData(Size.Float() / Split, Split, Octaves, Persistence);
-	CONST_BUFF->Mapping(&constData);
+	CONST_BUFF[PERLIN_NOISE_ID]->Mapping(&constData);
 
 	//分割後の各頂点の勾配ベクトル格納先
 	Vec2<float>grad[(SPLIT_MAX + 1) * (SPLIT_MAX + 1)];
@@ -68,10 +73,10 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 		}
 	}
 	//構造化バッファに転送
-	STRUCTURED_BUFF->Mapping(grad);
+	STRUCTURED_BUFF[PERLIN_NOISE_ID]->Mapping(grad);
 
 	//描き込み先用テクスチャバッファ生成
-	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, DXGI_FORMAT_R32G32B32A32_FLOAT, ("PerlinNoise - " + std::to_string(ID++)).c_str());
+	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, DXGI_FORMAT_R32G32B32A32_FLOAT, ("PerlinNoise - " + std::to_string(PERLIN_NOISE_ID)).c_str());
 
 	//コマンドリスト取得
 	auto cmdList = D3D12App::Instance()->GetCmdList();
@@ -83,10 +88,10 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 	PIPELINE->SetPipeline(cmdList);
 
 	//定数バッファセット
-	CONST_BUFF->SetComputeDescriptorBuffer(cmdList, CBV, 0);
+	CONST_BUFF[PERLIN_NOISE_ID]->SetComputeDescriptorBuffer(cmdList, CBV, 0);
 
 	//構造体バッファセット
-	STRUCTURED_BUFF->SetComputeDescriptorBuffer(cmdList, SRV, 1);
+	STRUCTURED_BUFF[PERLIN_NOISE_ID]->SetComputeDescriptorBuffer(cmdList, SRV, 1);
 
 	//描き込み先テクスチャバッファセット
 	result->SetComputeDescriptorBuffer(cmdList, UAV, 2);
@@ -103,6 +108,8 @@ std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise(const Vec2<int>& Size
 
 	//描き込んだ画像のリソースバリア変更
 	result->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	PERLIN_NOISE_ID++;
 
 	return result;
 }

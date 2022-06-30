@@ -16,8 +16,9 @@
 void GameScene::NoiseGenerate()
 {
 	noise.reset();
-	//noise = NoiseGenerator::PerlinNoise(noiseSize, split);
 	noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
+	noise2.reset();
+	noise2 = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, persistance);
 }
 
 GameScene::GameScene()
@@ -145,6 +146,7 @@ void GameScene::OnDraw()
 		NoiseGenerate();
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise);
+	DrawFunc2D::DrawGraph({ 530,0 }, noise2);
 }
 
 void GameScene::OnImguiDebug()

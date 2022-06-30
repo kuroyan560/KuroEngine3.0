@@ -23,6 +23,7 @@ class GameScene : public BaseScene
 	Player player;
 
 	std::shared_ptr<TextureBuffer>noise;
+	std::shared_ptr<TextureBuffer>noise2;
 	int split = 8;
 	int octaves = 5;
 	float persistance = 0.5f;
