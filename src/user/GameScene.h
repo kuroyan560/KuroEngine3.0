@@ -26,6 +26,8 @@ class GameScene : public BaseScene
 	int split = 8;
 	Vec2<int>noiseSize = { 256,256 };
 
+	void NoiseGenerate();
+
 public:
 	GameScene();
 	void OnInitialize()override;

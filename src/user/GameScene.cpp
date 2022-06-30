@@ -13,6 +13,13 @@
 #include"Collider.h"
 #include"NoiseGenerator.h"
 
+void GameScene::NoiseGenerate()
+{
+	noise.reset();
+	//noise = NoiseGenerator::PerlinNoise(noiseSize, split);
+	noise = NoiseGenerator::PerlinNoiseFractal(noiseSize, split, 5);
+}
+
 GameScene::GameScene()
 {
 	floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
@@ -45,7 +52,8 @@ GameScene::GameScene()
 	}
 
 	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
-	noise = NoiseGenerator::PerlinNoise(noiseSize, split);
+
+	NoiseGenerate();
 }
 
 void GameScene::OnInitialize()
@@ -134,8 +142,7 @@ void GameScene::OnDraw()
 
 	if (UsersInput::Instance()->KeyInput(DIK_SPACE))
 	{
-		noise.reset();
-		noise = NoiseGenerator::PerlinNoise(noiseSize, split);
+		NoiseGenerate();
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise);
 }
@@ -146,8 +153,7 @@ void GameScene::OnImguiDebug()
 	ImGui::Begin("Noise");
 	if (ImGui::SliderInt("Split", &split, 1, 256))
 	{
-		noise.reset();
-		noise = NoiseGenerator::PerlinNoise(noiseSize, split);
+		NoiseGenerate();
 	}
 
 	ImGui::End();
