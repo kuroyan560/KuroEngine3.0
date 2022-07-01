@@ -51,6 +51,8 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 			InputLayoutParam("BLUR",DXGI_FORMAT_R32_FLOAT),
 			InputLayoutParam("SCALE",DXGI_FORMAT_R32_FLOAT),
 			InputLayoutParam("UV_OFFSET",DXGI_FORMAT_R32_FLOAT),
+			InputLayoutParam("CIRCLE_THICKNESS",DXGI_FORMAT_R32_FLOAT),
+			InputLayoutParam("CIRCLE_RADIUS",DXGI_FORMAT_R32_FLOAT),
 		};
 
 		//ルートパラメータ
@@ -89,10 +91,10 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 		{
 			KuroEngine::Instance().GetParallelMatProjBuff(),
 			CIRCLE_TEX,
-			//Noise,
-			DISPLACEMENT_NOISE_TEX,
-			//Noise2,
-			ALPHA_NOISE_TEX
+			Noise,
+			//DISPLACEMENT_NOISE_TEX,
+			Noise2,
+			//ALPHA_NOISE_TEX
 		},
 		{ CBV,SRV,SRV,SRV },
 		0.0f, true

@@ -10,6 +10,8 @@ struct VSOutput
     float blur : BLUR;
     float scale : SCALE;
     float uvOffset : UV_OFFSET;
+    float circleThickness : CIRCLE_THICKNESS;
+    float circleRadius : CIRCLE_RADIUS;
 };
 
 VSOutput VSmain(VSOutput input)
@@ -23,6 +25,8 @@ struct GSOutput
     float2 uv : TEXCOORD;
     float blur : BLUR;
     float uvOffset : UV_OFFSET;
+    float circleThickness : CIRCLE_THICKNESS;
+    float circleRadius : CIRCLE_RADIUS;
 };
 
 Texture2D<float4> tex : register(t0);
@@ -51,6 +55,9 @@ void GSmain(
     element.blur = input[0].blur;
     element.uvOffset = input[0].uvOffset;
         
+    element.circleThickness = input[0].circleThickness;
+    element.circleRadius = input[0].circleRadius;
+    
     //左下
     element.pos = input[0].center;
     element.pos.x -= width_h;
@@ -84,19 +91,30 @@ void GSmain(
     output.Append(element);
 }
 
+static float _circleThicknes;
+static float _circleRadius;
+
+float4 GetCirclePixel(float2 uv)
+{
+    float dist = length(uv - float2(0.5f, 0.5f));
+    float differ = abs(dist - _circleRadius);
+    return float4(1, 1, 1, 1) * step(differ, _circleThicknes / 2.0f);
+}
+
 float4 GetPixelColor(float2 uv)
 {
     float displacementNoise = displacementNoiseTex.Sample(smp, uv).r;
     displacementNoise = displacementNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
     
     //中央から外側に向かって
-    float2 vec = normalize(uv - float2(0.5f, 0.5f));
+    float2 toOutVec = uv - float2(0.5f, 0.5f);
     
     //ランダムにずれる
-    uv += vec * displacementNoise;
+    uv += normalize(toOutVec) * displacementNoise;
     
     //通常のテクスチャ
-    float4 result = tex.Sample(smp, uv);
+    //float4 result = tex.Sample(smp, uv);
+    float4 result = GetCirclePixel(uv);
     
     //アルファノイズ
     float alphaNoise = alphaNoiseTex.Sample(smp, uv).r;
@@ -109,14 +127,17 @@ float4 GetPixelColor(float2 uv)
 static const float2 VIEW_PORT_OFFSET = (float2(0.5f, 0.5f) / float2(1280.0f, 720.0f));
 float4 PSmain(GSOutput input) : SV_TARGET
 {
+
+    
     input.uv += float2(0, VIEW_PORT_OFFSET.y);
     float2 toOutVec = input.uv - float2(0.5f, 0.5f);    //中心から外側へ向かうUVベクトル
     float len = length(toOutVec);
     toOutVec = normalize(toOutVec);
-    
-    //円が広がったり狭まったり
     input.uv += -toOutVec * input.uvOffset;
-
+    
+    _circleRadius = input.circleRadius + 1.0f * input.uvOffset;
+    _circleThicknes = input.circleThickness;
+    
     //ブラーのためにいくつかのピクセルをサンプリング
     float2 offset = toOutVec * VIEW_PORT_OFFSET;
     offset *= (len * input.blur);
