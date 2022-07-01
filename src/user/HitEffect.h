@@ -24,4 +24,5 @@ public:
 	Vec2<float>pos = { 0,0 };
 	float blur = 0.0f;
 	float scale = 1.0f;
+	float uvOffsetAmount = 0.0f;
 };

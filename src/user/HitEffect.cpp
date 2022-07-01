@@ -15,6 +15,7 @@ void HitEffect::Generate(const Vec2<float>& Pos)
 		e.isActive = 1;
 		e.blur = 34.158f;
 		e.scale = 1.0f;
+		e.uvOffsetAmount = 0.0f;
 		break;
 	}
 }
@@ -49,6 +50,7 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32_FLOAT),
 			InputLayoutParam("BLUR",DXGI_FORMAT_R32_FLOAT),
 			InputLayoutParam("SCALE",DXGI_FORMAT_R32_FLOAT),
+			InputLayoutParam("UV_OFFSET",DXGI_FORMAT_R32_FLOAT),
 		};
 
 		//ルートパラメータ

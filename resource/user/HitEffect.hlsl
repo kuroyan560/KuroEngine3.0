@@ -9,6 +9,7 @@ struct VSOutput
     float4 center : POSITION;
     float blur : BLUR;
     float scale : SCALE;
+    float uvOffset : UV_OFFSET;
 };
 
 VSOutput VSmain(VSOutput input)
@@ -21,6 +22,7 @@ struct GSOutput
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD;
     float blur : BLUR;
+    float uvOffset : UV_OFFSET;
 };
 
 Texture2D<float4> tex : register(t0);
@@ -47,6 +49,7 @@ void GSmain(
     
     GSOutput element;
     element.blur = input[0].blur;
+    element.uvOffset = input[0].uvOffset;
         
     //左下
     element.pos = input[0].center;
@@ -106,11 +109,16 @@ float4 GetPixelColor(float2 uv)
 static const float2 VIEW_PORT_OFFSET = (float2(0.5f, 0.5f) / float2(1280.0f, 720.0f));
 float4 PSmain(GSOutput input) : SV_TARGET
 {
-    //return GetPixelColor(input.uv);
     input.uv += float2(0, VIEW_PORT_OFFSET.y);
-    float2 blurDir = input.uv - float2(0.5f, 0.5f);
-    float len = length(blurDir);
-    float2 offset = normalize(blurDir) * VIEW_PORT_OFFSET;
+    float2 toOutVec = input.uv - float2(0.5f, 0.5f);    //中心から外側へ向かうUVベクトル
+    float len = length(toOutVec);
+    toOutVec = normalize(toOutVec);
+    
+    //円が広がったり狭まったり
+    input.uv += -toOutVec * input.uvOffset;
+
+    //ブラーのためにいくつかのピクセルをサンプリング
+    float2 offset = toOutVec * VIEW_PORT_OFFSET;
     offset *= (len * input.blur);
     float4 result = GetPixelColor(input.uv) * 0.19f;
     result += GetPixelColor(input.uv + offset         ) * 0.17f;
@@ -123,7 +131,10 @@ float4 PSmain(GSOutput input) : SV_TARGET
     result += GetPixelColor(input.uv + offset * 8.0f) * 0.04f;
     result += GetPixelColor(input.uv + offset * 9.0f) * 0.01f;
     
+    //明るくする
     result *= 2.0f;
+    
+    //色を青っぽく（アルファ値が高いと青白く）
     result.xyz = lerp(float3(0.33f, 0.1f, 0.73f), float3(0.65f, 0.64f, 0.94f), result.w);
     return result;
 }

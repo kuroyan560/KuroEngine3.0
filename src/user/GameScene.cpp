@@ -192,6 +192,7 @@ void GameScene::OnImguiDebug()
 	ImGui::Begin("Effect");
 	ImGui::SliderFloat("Blur", &HitEffect::GetInstance(0).blur, 0.0f, 50.0f);
 	ImGui::SliderFloat("Scale", &HitEffect::GetInstance(0).scale, 0.0f, 5.0f);
+	ImGui::SliderFloat("ToOutUVOffset", &HitEffect::GetInstance(0).uvOffsetAmount, -1.0f, 1.0f);
 	ImGui::End();
 	//GameManager::Instance()->ImGuiDebug();
 }
