@@ -13,6 +13,9 @@ void HitEffect::Generate(const Vec2<float>& Pos)
 
 		e.pos = Pos;
 		e.isActive = 1;
+		e.blur = 34.158f;
+		e.scale = 1.0f;
+		break;
 	}
 }
 
@@ -21,7 +24,7 @@ void HitEffect::Init()
 	for (auto& e : INSTANCES)e.isActive = 0;
 }
 
-void HitEffect::Draw(/*std::shared_ptr<TextureBuffer>& Noise*/)
+void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<TextureBuffer>& Noise2)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE;
 	static std::shared_ptr<TextureBuffer>CIRCLE_TEX;
@@ -44,6 +47,8 @@ void HitEffect::Draw(/*std::shared_ptr<TextureBuffer>& Noise*/)
 		{
 			InputLayoutParam("ALIVE",DXGI_FORMAT_R8_SINT),
 			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32_FLOAT),
+			InputLayoutParam("BLUR",DXGI_FORMAT_R32_FLOAT),
+			InputLayoutParam("SCALE",DXGI_FORMAT_R32_FLOAT),
 		};
 
 		//ルートパラメータ
@@ -58,14 +63,14 @@ void HitEffect::Draw(/*std::shared_ptr<TextureBuffer>& Noise*/)
 		//レンダーターゲット描画先情報
 		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_Trans) };
 		//パイプライン生成
-		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
+		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, true) });
 
 		//エフェクトのソース画像
 		CIRCLE_TEX = D3D12App::Instance()->GenerateTextureBuffer("resource/user/circle.png");
 
 		//パーリンノイズ
-		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 4, 1.0f, 2);
-		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 8, 9, 1.0f, 0.12f);
+		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 12, 6, 1.647f, 0.775f);
+		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise(CIRCLE_TEX->GetGraphSize(), 7, 2, 0.79f, 0.5f);
 
 		//頂点バッファ生成
 		VERTEX_BUFF = D3D12App::Instance()->GenerateVertexBuffer(sizeof(HitEffect), MAX_NUM, nullptr, "HitEffect - VertexBuffer");
@@ -82,8 +87,9 @@ void HitEffect::Draw(/*std::shared_ptr<TextureBuffer>& Noise*/)
 		{
 			KuroEngine::Instance().GetParallelMatProjBuff(),
 			CIRCLE_TEX,
+			//Noise,
 			DISPLACEMENT_NOISE_TEX,
-			//Noise
+			//Noise2,
 			ALPHA_NOISE_TEX
 		},
 		{ CBV,SRV,SRV,SRV },

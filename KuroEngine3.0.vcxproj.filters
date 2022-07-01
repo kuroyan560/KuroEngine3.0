@@ -187,6 +187,12 @@
     <FxCompile Include="resource\user\HitEffect.hlsl">
       <Filter>HLSL\user</Filter>
     </FxCompile>
+    <FxCompile Include="resource\engine\RadialBlur.hlsl">
+      <Filter>HLSL\engine\PostEffect</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\user\HitEffect_Tex.hlsl">
+      <Filter>HLSL\user</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\engine\LightInfo.hlsli">
@@ -388,6 +394,9 @@
     </ClCompile>
     <ClCompile Include="src\user\HitEffect.cpp">
       <Filter>src\user\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\RadialBlur.cpp">
+      <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -609,6 +618,9 @@
     </ClInclude>
     <ClInclude Include="src\user\HitEffect.h">
       <Filter>src\user\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\RadialBlur.h">
+      <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

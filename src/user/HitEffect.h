@@ -16,9 +16,12 @@ public:
 
 	static void Generate(const Vec2<float>& Pos);
 	static void Init();
-	static void Draw(/*std::shared_ptr<TextureBuffer>&Noise*/);
+	static void Draw(std::shared_ptr<TextureBuffer>&Noise, std::shared_ptr<TextureBuffer>& Noise2);
+	static HitEffect& GetInstance(const int& Idx) { return INSTANCES[Idx]; }
 
-private:
+public:
 	char isActive = 0;
 	Vec2<float>pos = { 0,0 };
+	float blur = 0.0f;
+	float scale = 1.0f;
 };

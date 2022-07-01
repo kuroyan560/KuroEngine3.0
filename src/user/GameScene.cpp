@@ -15,15 +15,15 @@
 
 void GameScene::NoiseGenerate()
 {
-	if (!noise)
+	if (!noises[0].noise)
 	{
-		noise = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, frequency, persistance);
-		noise2 = NoiseGenerator::PerlinNoise(noiseSize, split, octaves, frequency, persistance);
+		noises[0].noise = NoiseGenerator::PerlinNoise(noiseSize, noises[0].split, noises[0].octaves, noises[0].frequency, noises[0].persistance);
+		noises[1].noise = NoiseGenerator::PerlinNoise(noiseSize, noises[1].split, noises[1].octaves, noises[1].frequency, noises[1].persistance);
 	}
 	else
 	{
-		NoiseGenerator::PerlinNoise(noise, split, octaves, frequency, persistance);
-		NoiseGenerator::PerlinNoise(noise2, split, octaves, frequency, persistance);
+		NoiseGenerator::PerlinNoise(noises[0].noise, noises[0].split, noises[0].octaves, noises[0].frequency, noises[0].persistance);
+		NoiseGenerator::PerlinNoise(noises[1].noise, noises[1].split, noises[1].octaves, noises[1].frequency, noises[1].persistance);
 	}
 }
 
@@ -59,7 +59,15 @@ GameScene::GameScene()
 	}
 
 	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
+	noises[1].split = 7;
+	noises[1].octaves = 2;
+	noises[1].frequency = 0.79f;
+	noises[1].persistance = 0.5f;
 
+	noises[0].split = 12;
+	noises[0].octaves = 6;
+	noises[0].frequency = 1.647f;
+	noises[0].persistance = 0.775f;
 	NoiseGenerate();
 
 	HitEffect::Generate(WinApp::Instance()->GetExpandWinCenter());
@@ -153,28 +161,37 @@ void GameScene::OnDraw()
 	{
 		NoiseGenerate();
 	}
-	DrawFunc2D::DrawGraph({ 0,0 }, noise);
+	DrawFunc2D::DrawGraph({ 0,0 }, noises[0].noise);
 	//DrawFunc2D::DrawGraph({ 530,0 }, noise2);
 
-	HitEffect::Draw(/*noise*/);
+	DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
+	HitEffect::Draw(noises[0].noise,noises[1].noise);
 }
 
 void GameScene::OnImguiDebug()
 {
 	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
-	ImGui::Begin("Noise");
 
-	bool change = false;
-	if (ImGui::SliderInt("Split", &split, 1, 256))change = true;
-	if (ImGui::SliderInt("Octaves", &octaves, 1, 10))change = true;
-	if (ImGui::SliderFloat("Frequency", &frequency, 0.1f, 10.0f))change = true;
-	if (ImGui::SliderFloat("Persistance", &persistance, 0.1f, 1.0f))change = true;
-
-	if (change)
+	for (int i = 0; i < 2; ++i)
 	{
-		NoiseGenerate();
+		ImGui::Begin(("Noise" + std::to_string(i)).c_str());
+		bool change = false;
+		if (ImGui::SliderInt("Split", &noises[i].split, 1, 256))change = true;
+		if (ImGui::SliderInt("Octaves", &noises[i].octaves, 1, 10))change = true;
+		if (ImGui::SliderFloat("Frequency", &noises[i].frequency, 0.1f, 10.0f))change = true;
+		if (ImGui::SliderFloat("Persistance", &noises[i].persistance, 0.1f, 1.0f))change = true;
+
+		if (change)
+		{
+			NoiseGenerate();
+		}
+
+		ImGui::End();
 	}
 
+	ImGui::Begin("Effect");
+	ImGui::SliderFloat("Blur", &HitEffect::GetInstance(0).blur, 0.0f, 50.0f);
+	ImGui::SliderFloat("Scale", &HitEffect::GetInstance(0).scale, 0.0f, 5.0f);
 	ImGui::End();
 	//GameManager::Instance()->ImGuiDebug();
 }

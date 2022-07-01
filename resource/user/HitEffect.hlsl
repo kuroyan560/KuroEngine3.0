@@ -7,6 +7,8 @@ struct VSOutput
 {
     min16int isAlive : ALIVE;
     float4 center : POSITION;
+    float blur : BLUR;
+    float scale : SCALE;
 };
 
 VSOutput VSmain(VSOutput input)
@@ -18,6 +20,7 @@ struct GSOutput
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD;
+    float blur : BLUR;
 };
 
 Texture2D<float4> tex : register(t0);
@@ -37,10 +40,13 @@ void GSmain(
     uint2 texSize;
     tex.GetDimensions(texSize.x, texSize.y);
     
-    float width_h = texSize.x / 2.0f;
-    float height_h = texSize.y / 2.0f;
+    float width_h = (texSize.x * input[0].scale) / 2.0f;
+    float height_h = (texSize.y * input[0].scale) / 2.0f;
+    //float width_h = texSize.x / 2.0f;
+    //float height_h = texSize.y / 2.0f;
     
     GSOutput element;
+    element.blur = input[0].blur;
         
     //左下
     element.pos = input[0].center;
@@ -75,27 +81,50 @@ void GSmain(
     output.Append(element);
 }
 
-float4 PSmain(GSOutput input) : SV_TARGET
+float4 GetPixelColor(float2 uv)
 {
-    float displacementNoise = displacementNoiseTex.Sample(smp, input.uv).r;
+    float displacementNoise = displacementNoiseTex.Sample(smp, uv).r;
     displacementNoise = displacementNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
     
     //中央から外側に向かって
-    float2 vec = normalize(input.uv - float2(0.5f, 0.5f));
+    float2 vec = normalize(uv - float2(0.5f, 0.5f));
     
     //ランダムにずれる
-    input.uv += vec * displacementNoise;
+    uv += vec * displacementNoise;
     
     //通常のテクスチャ
-    float4 result = tex.Sample(smp, input.uv);
+    float4 result = tex.Sample(smp, uv);
     
     //アルファノイズ
-    float alphaNoise = alphaNoiseTex.Sample(smp, input.uv).r;
+    float alphaNoise = alphaNoiseTex.Sample(smp, uv).r;
     alphaNoise = alphaNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
-    alphaNoise *= 13.0f; //コントラストを上げる
-    //alphaNoise = clamp(alphaNoise * 2.0f - 1.0f, 0.0f, 1.0f); //0~1から-1~1の範囲にしてから、負の値を０にする
+    alphaNoise *= 9.0f; //コントラストを上げる
     result.w *= alphaNoise;
- 
+    return result;
+}
+
+static const float2 VIEW_PORT_OFFSET = (float2(0.5f, 0.5f) / float2(1280.0f, 720.0f));
+float4 PSmain(GSOutput input) : SV_TARGET
+{
+    //return GetPixelColor(input.uv);
+    input.uv += float2(0, VIEW_PORT_OFFSET.y);
+    float2 blurDir = input.uv - float2(0.5f, 0.5f);
+    float len = length(blurDir);
+    float2 offset = normalize(blurDir) * VIEW_PORT_OFFSET;
+    offset *= (len * input.blur);
+    float4 result = GetPixelColor(input.uv) * 0.19f;
+    result += GetPixelColor(input.uv + offset         ) * 0.17f;
+    result += GetPixelColor(input.uv + offset * 2.0f) * 0.15f;
+    result += GetPixelColor(input.uv + offset * 3.0f) * 0.13f;
+    result += GetPixelColor(input.uv + offset * 4.0f) * 0.11f;
+    result += GetPixelColor(input.uv + offset * 5.0f) * 0.09f;
+    result += GetPixelColor(input.uv + offset * 6.0f) * 0.07f;
+    result += GetPixelColor(input.uv + offset * 7.0f) * 0.05f;
+    result += GetPixelColor(input.uv + offset * 8.0f) * 0.04f;
+    result += GetPixelColor(input.uv + offset * 9.0f) * 0.01f;
+    
+    result *= 2.0f;
+    result.xyz = lerp(float3(0.33f, 0.1f, 0.73f), float3(0.65f, 0.64f, 0.94f), result.w);
     return result;
 }
 
