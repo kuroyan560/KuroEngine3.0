@@ -1,13 +1,13 @@
 #include "GaussianBlur.h"
 #include"D3D12App.h"
 
-GaussianBlur::GaussianBlur(const Vec2<int>& Size, const DXGI_FORMAT& Format, const float& BlurPower)
-{
-    //重みテーブル定数バッファ
-    weightConstBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(float), NUM_WEIGHTS, nullptr, "GaussianBlur - weight");
-    SetBlurPower(BlurPower);
+std::shared_ptr<ComputePipeline>GaussianBlur::X_BLUR_PIPELINE;	
+std::shared_ptr<ComputePipeline>GaussianBlur::Y_BLUR_PIPELINE;	
+std::shared_ptr<ComputePipeline>GaussianBlur::FINAL_PIPELINE;
 
-    //パイプライン
+void GaussianBlur::GeneratePipeline()
+{
+    if (!X_BLUR_PIPELINE)
     {
         std::vector<RootParam>rootParam =
         {
@@ -18,12 +18,21 @@ GaussianBlur::GaussianBlur(const Vec2<int>& Size, const DXGI_FORMAT& Format, con
         };
 
         auto cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "XBlur", "cs_5_0");
-        xBlurPipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
+        X_BLUR_PIPELINE = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
         cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "YBlur", "cs_5_0");
-        yBlurPipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
+        Y_BLUR_PIPELINE = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
         cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "Final", "cs_5_0");
-        finalPipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
+        FINAL_PIPELINE = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
     }
+}
+
+GaussianBlur::GaussianBlur(const Vec2<int>& Size, const DXGI_FORMAT& Format, const float& BlurPower)
+{
+    GeneratePipeline();
+
+    //重みテーブル定数バッファ
+    weightConstBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(float), NUM_WEIGHTS, nullptr, "GaussianBlur - weight");
+    SetBlurPower(BlurPower);
 
     //テクスチャ情報
     struct TexInfo
@@ -77,7 +86,7 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     static const int DIV = 4;
 
     //Xブラー
-    xBlurPipeline->SetPipeline(CmdList);
+    X_BLUR_PIPELINE->SetPipeline(CmdList);
     weightConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 0);
     texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     SourceTex->SetComputeDescriptorBuffer(CmdList, SRV, 2);
@@ -85,7 +94,7 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     CmdList->Dispatch(static_cast<UINT>(xBlurResult->GetDesc().Width / DIV), static_cast<UINT>(xBlurResult->GetDesc().Height / DIV), 1);
 
     //Yブラー
-    yBlurPipeline->SetPipeline(CmdList);
+    Y_BLUR_PIPELINE->SetPipeline(CmdList);
     weightConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 0);
     texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     xBlurResult->SetComputeDescriptorBuffer(CmdList, SRV, 2);
@@ -93,7 +102,7 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     CmdList->Dispatch(static_cast<UINT>(yBlurResult->GetDesc().Width / DIV), static_cast<UINT>(yBlurResult->GetDesc().Height / DIV), 1);
 
     //最終結果合成
-    finalPipeline->SetPipeline(CmdList);
+    FINAL_PIPELINE->SetPipeline(CmdList);
     weightConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 0);
     texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     yBlurResult->SetComputeDescriptorBuffer(CmdList, SRV, 2);

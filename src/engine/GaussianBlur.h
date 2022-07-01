@@ -1,6 +1,5 @@
 #pragma once
 #include"PostEffect.h"
-
 class ComputePipeline;
 class ConstantBuffer;
 class TextureBuffer;
@@ -8,7 +7,14 @@ class RenderTarget;
 
 class GaussianBlur : public PostEffect
 {
+private:
 	static const int NUM_WEIGHTS = 8;
+	static std::shared_ptr<ComputePipeline>X_BLUR_PIPELINE;	//横ブラー
+	static std::shared_ptr<ComputePipeline>Y_BLUR_PIPELINE;	//縦ブラー
+	static std::shared_ptr<ComputePipeline>FINAL_PIPELINE;		//各ブラーテクスチャ合成
+	static void GeneratePipeline();
+
+private:
 	//重みテーブル
 	float weights[NUM_WEIGHTS];
 
@@ -18,15 +24,12 @@ class GaussianBlur : public PostEffect
 	std::shared_ptr<ConstantBuffer>texInfoConstBuff;
 
 	//横ブラーの結果
-	std::shared_ptr<ComputePipeline>xBlurPipeline;
 	std::shared_ptr<TextureBuffer>xBlurResult;
 
 	//縦ブラーの結果
-	std::shared_ptr<ComputePipeline>yBlurPipeline;
 	std::shared_ptr<TextureBuffer>yBlurResult;
 
 	//最終結果
-	std::shared_ptr<ComputePipeline>finalPipeline;
 	std::shared_ptr<TextureBuffer>finalResult;
 
 public:
