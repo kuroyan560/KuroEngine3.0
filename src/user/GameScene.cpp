@@ -172,12 +172,6 @@ void GameScene::OnDraw()
 
 	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
 	HitEffect::Draw(noises[0].noise,noises[1].noise);
-
-	lightBloomDevice.SetRenderTargets();
-	HitEffect::Draw(noises[0].noise,noises[1].noise);
-
-	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
-	lightBloomDevice.Draw();
 }
 
 void GameScene::OnImguiDebug()

@@ -170,6 +170,7 @@ float4 PSmain(GSOutput input) : SV_TARGET
     //色を青っぽく（アルファ値が高いと青白く）
     result.xyz = lerp(float3(0.33f, 0.1f, 0.73f), float3(0.65f, 0.64f, 0.94f), result.w);
     result.w *= input.alpha;
+    result.xyz *= clamp(result.w, 0.0f, 1.0f);
     return result;
 }
 
