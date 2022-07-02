@@ -108,6 +108,8 @@ void GraphicsPipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdL
 	CmdList->IASetPrimitiveTopology(topology);
 }
 
+int ComputePipeline::PIPELINE_NUM = 0;
+
 void ComputePipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	//パイプラインステートの設定

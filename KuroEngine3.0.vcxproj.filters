@@ -395,6 +395,9 @@
     <ClCompile Include="src\engine\RadialBlur.cpp">
       <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\LightBloomDevice.cpp">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -618,6 +621,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\RadialBlur.h">
       <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\LightBloomDevice.h">
+      <Filter>src\engine\レンダリング関連</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

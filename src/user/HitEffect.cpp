@@ -110,7 +110,7 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 	VERTEX_BUFF->Mapping(INSTANCES.data());
 
 	//パイプラインセット
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
 	KuroEngine::Instance().Graphics().ObjectRender(
 		VERTEX_BUFF,

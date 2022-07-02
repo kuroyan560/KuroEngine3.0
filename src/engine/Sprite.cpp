@@ -72,7 +72,7 @@ void Sprite::SetColor(const Color& Color)
 
 void Sprite::Draw(const AlphaBlendMode& BlendMode)
 {
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[(int)BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[(int)BlendMode]);
 
 	if (transform.GetDirty())
 	{

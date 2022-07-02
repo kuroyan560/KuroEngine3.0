@@ -221,7 +221,7 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
@@ -410,7 +410,7 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 	}
 
 	KuroEngine::Instance().Graphics().SetRenderTargets({ cubeRenderTarget }, cubeDepth);
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
 	for (auto& modelPtr : ModelObject)
 	{

@@ -70,7 +70,7 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (LINE_VERTEX_BUFF.size() < (DRAW_LINE_COUNT + 1))
 	{
@@ -125,7 +125,7 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (DRAW_NON_SHADING_COUNT + 1))
 	{
@@ -198,7 +198,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (DRAW_ADS_SHADING_COUNT + 1))
 	{
@@ -280,7 +280,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (DRAW_PBR_SHADING_COUNT + 1))
 	{
@@ -368,7 +368,7 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (DRAW_TOON_COUNT + 1))
 	{

@@ -108,9 +108,6 @@ void NoiseGenerator::PerlinNoise(std::shared_ptr<TextureBuffer> DestTex, const i
 	};
 	cmdList->Dispatch(thread.x, thread.y, 1);
 
-	//描き込んだ画像のリソースバリア変更
-	DestTex->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
 	PERLIN_NOISE_ID++;
 }
 

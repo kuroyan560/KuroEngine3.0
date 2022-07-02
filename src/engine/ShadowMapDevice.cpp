@@ -48,7 +48,7 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
 	if (TRANSFORM_BUFF.size() < Models.size())
 	{
@@ -128,7 +128,7 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex_Model::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false),shadowMapSampler });
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < Models.size())
 	{

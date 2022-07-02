@@ -72,7 +72,7 @@ void DrawFunc2D_FillTex::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const V
 		EXTEND_GRAPH_PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(EXTEND_GRAPH_PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
 
 	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (DRAW_EXTEND_GRAPH_COUNT + 1))
 	{
@@ -149,7 +149,7 @@ void DrawFunc2D_FillTex::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<f
 		ROTA_GRAPH_PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetPipeline(ROTA_GRAPH_PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
 
 	if (ROTA_GRAPH_VERTEX_BUFF.size() < (DRAW_ROTA_GRAPH_COUNT + 1))
 	{

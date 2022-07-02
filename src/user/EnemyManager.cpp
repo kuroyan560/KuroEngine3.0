@@ -93,7 +93,7 @@ void EnemyManager::Update()
 
 void EnemyManager::Draw(Camera& Cam)
 {
-	KuroEngine::Instance().Graphics().SetPipeline(pipeline);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(pipeline);
 
 	for (int enemyType = 0; enemyType < ENEMY_TYPE_NUM; ++enemyType)
 	{

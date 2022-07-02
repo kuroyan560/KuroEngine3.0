@@ -112,7 +112,7 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 
 	StaticInit();
 
-	KuroEngine::Instance().Graphics().SetPipeline(EXTEND_GRAPH_PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
 
 	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (DRAW_EXTEND_GRAPH_COUNT + 1))
 	{
@@ -208,7 +208,7 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 
 	StaticInit();
 
-	KuroEngine::Instance().Graphics().SetPipeline(ROTA_GRAPH_PIPELINE);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
 
 	if (ROTA_GRAPH_VERTEX_BUFF.size() < (DRAW_ROTA_GRAPH_COUNT + 1))
 	{

@@ -28,19 +28,34 @@ class GraphicsManager
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
-	//パイプラインセットコマンド
-	class SetPipelineCommand : public GraphicsCommandBase
+	//グラフィックスパイプラインセットコマンド
+	class SetGraphicsPipelineCommand : public GraphicsCommandBase
 	{
-		SetPipelineCommand() = delete;
+		SetGraphicsPipelineCommand() = delete;
 
-		std::weak_ptr<GraphicsPipeline> pipeline;
+		std::weak_ptr<GraphicsPipeline> gPipeline;
 	public:
-		SetPipelineCommand(std::weak_ptr<GraphicsPipeline> Pipeline) :pipeline(Pipeline) {}
+		SetGraphicsPipelineCommand(std::weak_ptr<GraphicsPipeline> Pipeline) :gPipeline(Pipeline) {}
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
 		{
-			pipeline.lock()->SetPipeline(CmdList);
+			gPipeline.lock()->SetPipeline(CmdList);
 		}
-		const int& GetPipelineHandle() { return pipeline.lock()->GetPipelineHandle(); }
+		const int& GetPipelineHandle() { return gPipeline.lock()->GetPipelineHandle(); }
+	};
+
+	//コンピュートパイプラインセットコマンド
+	class SetComputePipelineCommand : public GraphicsCommandBase
+	{
+		SetComputePipelineCommand() = delete;
+
+		std::weak_ptr<ComputePipeline> cPipeline;
+	public:
+		SetComputePipelineCommand(std::weak_ptr<ComputePipeline> Pipeline) :cPipeline(Pipeline) {}
+		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
+		{
+			cPipeline.lock()->SetPipeline(CmdList);
+		}
+		const int& GetPipelineHandle() { return cPipeline.lock()->GetPipelineHandle(); }
 	};
 
 	//レンダーターゲットクリアコマンド
@@ -102,6 +117,25 @@ class GraphicsManager
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
+	//コンピュートシェーダ用Dispatchコマンド
+	class DispatchCommand : public GraphicsCommandBase
+	{
+		DispatchCommand() = delete;
+
+		const Vec3<UINT>threadNum;
+		const std::vector<std::weak_ptr<DescriptorData>> descDatas;	//ディスクリプタ（CBV,SRVなど）
+		const std::vector<DESC_HANDLE_TYPE> types;	//セットするディスクリプタタイプ
+
+	public:
+		DispatchCommand(const Vec3<UINT>& ThreadNum,
+			const std::vector<std::weak_ptr<DescriptorData>>& DescDatas,
+			const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
+			:threadNum(ThreadNum), descDatas(DescDatas), types(DescHandleTypes) {}
+
+		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+	};
+
+
 	//ポストエフェクト
 	class SetPostEffect :public GraphicsCommandBase
 	{
@@ -138,6 +172,9 @@ private:
 	//レンダリングコマンドリスト（ソートのため一時グラフィックスコマンドリストとは別で積み上げる）
 	std::list<std::shared_ptr<RenderCommand>>renderCommands;
 
+	//最後にセットされたいパイプラインがグラフィックスかコンピュートか
+	enum PIPELINE_TYPE { GRAPHICS, COMPUTE, NONE }recentPipelineType = NONE;
+
 	//最後にセットされたパイプラインハンドル
 	int recentPipelineHandle = -1;
 
@@ -160,8 +197,11 @@ public:
 	//レンダーターゲットのセットコマンド積み上げ
 	void SetRenderTargets(const std::vector<std::shared_ptr<RenderTarget>>& RTs, const std::shared_ptr<DepthStencil>& DS = std::shared_ptr<DepthStencil>());
 
-	//パイプラインのセットコマンド積み上げ
-	void SetPipeline(const std::shared_ptr<GraphicsPipeline>& Pipeline);
+	//グラフィックスパイプラインのセットコマンド積み上げ
+	void SetGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>& Pipeline);
+
+	//コンピュートパイプラインのセットコマンド積み上げ
+	void SetComputePipeline(const std::shared_ptr<ComputePipeline>& Pipeline);
 
 	//レンダーターゲットのクリアコマンド積み上げ
 	void ClearRenderTarget(const std::shared_ptr<RenderTarget>& RenderTarget);

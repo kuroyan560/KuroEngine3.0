@@ -66,6 +66,18 @@ void GraphicsManager::RenderCommand::Excute(const ComPtr<ID3D12GraphicsCommandLi
 	}
 }
 
+void GraphicsManager::DispatchCommand::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+{
+	//ディスクリプタセット
+	for (int i = 0; i < descDatas.size(); ++i)
+	{
+		if (!descDatas[i].lock())continue;
+		descDatas[i].lock()->SetComputeDescriptorBuffer(CmdList, types[i], i);
+	}
+	CmdList->Dispatch(threadNum.x, threadNum.y, threadNum.z);
+}
+
+
 void GraphicsManager::SetPostEffect::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	postEffect->Excute(CmdList, sourceTex.lock());
@@ -77,16 +89,37 @@ void GraphicsManager::SetRenderTargets(const std::vector<std::shared_ptr<RenderT
 	gCommands.emplace_back(std::make_shared<SetRenderTargetsCommand>(ConvertToWeakPtrArray(RTs), DS));
 }
 
-void GraphicsManager::SetPipeline(const std::shared_ptr<GraphicsPipeline>& Pipeline)
+void GraphicsManager::SetGraphicsPipeline(const std::shared_ptr<GraphicsPipeline>& Pipeline)
 {
 	//新しいパイプラインのハンドル取得
 	const int newPipelineHandle = Pipeline->GetPipelineHandle();
 
 	//既にセットされていたものと同じならスルー
-	if (newPipelineHandle == recentPipelineHandle)return;
+	if (recentPipelineType == GRAPHICS && newPipelineHandle == recentPipelineHandle)return;
 
 	if (!renderCommands.empty())StackRenderCommands();	//Zバッファ＆透過するかどうかでソートしてグラフィックスコマンドリストに一括スタック
-	gCommands.emplace_back(std::make_shared<SetPipelineCommand>(Pipeline));
+	gCommands.emplace_back(std::make_shared<SetGraphicsPipelineCommand>(Pipeline));
+
+	//パイプラインタイプ記録
+	recentPipelineType = GRAPHICS;
+
+	//パイプラインハンドル記録
+	recentPipelineHandle = newPipelineHandle;
+}
+
+void GraphicsManager::SetComputePipeline(const std::shared_ptr<ComputePipeline>& Pipeline)
+{
+	//新しいパイプラインのハンドル取得
+	const int newPipelineHandle = Pipeline->GetPipelineHandle();
+
+	//既にセットされていたものと同じならスルー
+	if (recentPipelineType == COMPUTE && newPipelineHandle == recentPipelineHandle)return;
+
+	if (!renderCommands.empty())StackRenderCommands();	//Zバッファ＆透過するかどうかでソートしてグラフィックスコマンドリストに一括スタック
+	gCommands.emplace_back(std::make_shared<SetComputePipelineCommand>(Pipeline));
+
+	//パイプラインタイプ記録
+	recentPipelineType = COMPUTE;
 
 	//パイプラインハンドル記録
 	recentPipelineHandle = newPipelineHandle;
@@ -180,6 +213,7 @@ void GraphicsManager::CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12Graphics
 
 	//コマンドリストクリア
 	gCommands.clear();
+	recentPipelineType = NONE;
 	recentPipelineHandle = -1;
 }
 

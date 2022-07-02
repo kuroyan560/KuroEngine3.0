@@ -144,7 +144,7 @@ void Sprite_Shadow::SetLimAffect(const float& Lim)
 
 void Sprite_Shadow::Draw(LightManager& LigManager)
 {
-	KuroEngine::Instance().Graphics().SetPipeline(PIPELINE_TRANS);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE_TRANS);
 
 	if (transform.GetDirty())
 	{

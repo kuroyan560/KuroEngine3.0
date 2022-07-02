@@ -632,13 +632,18 @@ class ComputePipeline
 private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
+	static int PIPELINE_NUM;	//パイプラインが生成された数（＝識別番号）
 
 private:
+	int	handle = -1;	//パイプライン識別番号
+
 	ComPtr<ID3D12PipelineState>pipeline;			//パイプライン
 	ComPtr<ID3D12RootSignature>rootSignature;	//ルートシグネチャ
 public:
 	ComputePipeline(const ComPtr<ID3D12PipelineState>& Pipeline, const ComPtr<ID3D12RootSignature>& RootSignature)
-		:pipeline(Pipeline), rootSignature(RootSignature) {}
+		:pipeline(Pipeline), rootSignature(RootSignature), handle(PIPELINE_NUM++) {}
 
 	void SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdList);
+
+	const int& GetPipelineHandle() { return handle; }
 };
