@@ -113,26 +113,26 @@ void GaussianBlur::Excute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList
 
 void GaussianBlur::Register(const std::shared_ptr<TextureBuffer>& SourceTex)
 {
-    const auto& sDesc = SourceTex->GetDesc();
-    const auto& fDesc = finalResult->GetDesc();
-    KuroFunc::ErrorMessage(sDesc.Width != fDesc.Width || sDesc.Height != fDesc.Height || sDesc.Format != fDesc.Format, "GaussianBlur", "Register", "ソースとなるテクスチャ形式とガウシアンブラー形式が合いません\n");
+    const auto sourceSize = SourceTex->GetGraphSize();
+    const auto resultSize = finalResult->GetGraphSize();
+    KuroFunc::ErrorMessage(sourceSize != resultSize, "GaussianBlur", "Register", "ソースとなるテクスチャとガウシアンブラーのサイズが合いません\n");
 
     static const int DIV = 4;
-    Vec3<UINT>threadNum;
+    Vec3<int>threadNum;
 
     //Xブラー
     KuroEngine::Instance().Graphics().SetComputePipeline(X_BLUR_PIPELINE);
-    threadNum = { static_cast<UINT>(xBlurResult->GetDesc().Width / DIV), static_cast<UINT>(xBlurResult->GetDesc().Height / DIV), 1 };
+    threadNum = { xBlurResult->GetGraphSize().x / DIV,xBlurResult->GetGraphSize().y / DIV, 1 };
     KuroEngine::Instance().Graphics().Dispatch(threadNum, { weightConstBuff,texInfoConstBuff,SourceTex,xBlurResult }, { CBV,CBV,SRV,UAV });
 
     //Yブラー
     KuroEngine::Instance().Graphics().SetComputePipeline(Y_BLUR_PIPELINE);
-    threadNum = { static_cast<UINT>(yBlurResult->GetDesc().Width / DIV), static_cast<UINT>(yBlurResult->GetDesc().Height / DIV), 1 };
+    threadNum = { yBlurResult->GetGraphSize().x / DIV, yBlurResult->GetGraphSize().y / DIV, 1 };
     KuroEngine::Instance().Graphics().Dispatch(threadNum, { weightConstBuff,texInfoConstBuff,xBlurResult,yBlurResult }, { CBV,CBV,SRV,UAV });
 
     //最終結果合成
     KuroEngine::Instance().Graphics().SetComputePipeline(FINAL_PIPELINE);
-    threadNum = { static_cast<UINT>(finalResult->GetDesc().Width / DIV), static_cast<UINT>(finalResult->GetDesc().Height / DIV), 1 };
+    threadNum = { finalResult->GetGraphSize().x / DIV, finalResult->GetGraphSize().y / DIV, 1 };
     KuroEngine::Instance().Graphics().Dispatch(threadNum, { weightConstBuff,texInfoConstBuff,yBlurResult,finalResult }, { CBV,CBV,SRV,UAV });
 }
 

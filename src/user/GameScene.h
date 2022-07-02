@@ -4,7 +4,7 @@
 #include"Player.h"
 #include"GameManager.h"
 #include"ShadowMapDevice.h"
-#include"HitEffect.h"
+#include"LightBloomDevice.h"
 
 class Model;
 class ModelObject;
@@ -14,6 +14,8 @@ class Enemy;
 class GameScene : public BaseScene
 {
 	ShadowMapDevice shadowMapDevice;
+	LightBloomDevice lightBloomDevice;
+
 	std::shared_ptr<ModelObject>floorModel;
 
 	LightManager ligMgr;

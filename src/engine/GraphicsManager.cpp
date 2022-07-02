@@ -74,7 +74,7 @@ void GraphicsManager::DispatchCommand::Excute(const ComPtr<ID3D12GraphicsCommand
 		if (!descDatas[i].lock())continue;
 		descDatas[i].lock()->SetComputeDescriptorBuffer(CmdList, types[i], i);
 	}
-	CmdList->Dispatch(threadNum.x, threadNum.y, threadNum.z);
+	CmdList->Dispatch(static_cast<UINT>(threadNum.x), static_cast<UINT>(threadNum.y), static_cast<UINT>(threadNum.z));
 }
 
 
@@ -155,7 +155,7 @@ void GraphicsManager::ObjectRender(const std::shared_ptr<VertexBuffer>& VertexBu
 	renderCommands.emplace_back(std::make_shared<RenderCommand>(VertexBuff, IndexBuff, ConvertToWeakPtrArray(DescDatas), DescHandleTypes, Depth, TransFlg, InstanceNum));
 }
 
-void GraphicsManager::Dispatch(const Vec3<UINT>& ThreadNum, const std::vector<std::shared_ptr<DescriptorData>>& DescDatas, const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
+void GraphicsManager::Dispatch(const Vec3<int>& ThreadNum, const std::vector<std::shared_ptr<DescriptorData>>& DescDatas, const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
 {
 	gCommands.emplace_back(std::make_shared<DispatchCommand>(ThreadNum, ConvertToWeakPtrArray(DescDatas), DescHandleTypes));
 }

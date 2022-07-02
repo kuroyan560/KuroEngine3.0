@@ -121,12 +121,12 @@ class GraphicsManager
 	{
 		DispatchCommand() = delete;
 
-		const Vec3<UINT>threadNum;
+		const Vec3<int>threadNum;
 		const std::vector<std::weak_ptr<DescriptorData>> descDatas;	//ディスクリプタ（CBV,SRVなど）
 		const std::vector<DESC_HANDLE_TYPE> types;	//セットするディスクリプタタイプ
 
 	public:
-		DispatchCommand(const Vec3<UINT>& ThreadNum,
+		DispatchCommand(const Vec3<int>& ThreadNum,
 			const std::vector<std::weak_ptr<DescriptorData>>& DescDatas,
 			const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
 			:threadNum(ThreadNum), descDatas(DescDatas), types(DescHandleTypes) {}
@@ -209,7 +209,7 @@ public:
 		const float& Depth, const bool& TransFlg, const int& InstanceNum = 1);
 
 	//ディスパッチコマンド積み上げ
-	void Dispatch(const Vec3<UINT>& ThreadNum,
+	void Dispatch(const Vec3<int>& ThreadNum,
 		const std::vector<std::shared_ptr<DescriptorData>>& DescDatas,
 		const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes);
 
