@@ -2,11 +2,12 @@
 #include"KuroEngine.h"
 #include"DrawFunc2D.h"
 #include"NoiseGenerator.h"
+#include"Camera.h"
 
 std::array<HitEffect, HitEffect::MAX_NUM>HitEffect::INSTANCES;
 static const Vec2<int>IMG_SIZE = { 512,512 };
 
-void HitEffect::Generate(const Vec2<float>& Pos)
+void HitEffect::Generate(const Vec3<float>& Pos)
 {
 	for (auto& e : INSTANCES)
 	{
@@ -51,7 +52,7 @@ void HitEffect::Update()
 	}
 }
 
-void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<TextureBuffer>& Noise2)
+void HitEffect::Draw(Camera& Cam, std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<TextureBuffer>& Noise2)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE;
 	static std::shared_ptr<TextureBuffer>DISPLACEMENT_NOISE_TEX;
@@ -73,7 +74,7 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
 		{
 			InputLayoutParam("ALIVE",DXGI_FORMAT_R8_SINT),
-			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32_FLOAT),
+			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT),
 			InputLayoutParam("SCALE",DXGI_FORMAT_R32_FLOAT),
 			InputLayoutParam("ROTATE",DXGI_FORMAT_R32_FLOAT),
 			InputLayoutParam("ALPHA",DXGI_FORMAT_R32_FLOAT),
@@ -88,7 +89,7 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
 		{
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"平行投影行列定数バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ定数バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ディスプレイスメント用パーリンノイズテクスチャ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"アルファ用パーリンノイズテクスチャ"),
 		};
@@ -115,7 +116,7 @@ void HitEffect::Draw(std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<Text
 	KuroEngine::Instance().Graphics().ObjectRender(
 		VERTEX_BUFF,
 		{
-			KuroEngine::Instance().GetParallelMatProjBuff(),
+			Cam.GetBuff(),
 			Noise,
 			//DISPLACEMENT_NOISE_TEX,
 			Noise2,

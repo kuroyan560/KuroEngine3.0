@@ -1,6 +1,8 @@
+#include"../engine/Camera.hlsli"
+
 cbuffer cbuff0 : register(b0)
 {
-    matrix parallelProjMat; //平行投影行列
+    Camera cam;
 };
 
 struct Vertex
@@ -38,8 +40,6 @@ Texture2D<float4> displacementNoiseTex : register(t0);
 Texture2D<float4> alphaNoiseTex : register(t1);
 SamplerState smp : register(s0);
 
-static const int2 IMG_SIZE = int2(512,512);
-
 float2 RotateFloat2(float2 Pos, float Radian)
 {
     float2 result;
@@ -47,6 +47,8 @@ float2 RotateFloat2(float2 Pos, float Radian)
     result.y = Pos.y * cos(Radian) + Pos.x * sin(Radian);
     return result;
 }
+
+static const int2 SIZE = int2(15, 15);
 
 [maxvertexcount(4)]
 void GSmain(
@@ -57,8 +59,8 @@ void GSmain(
     if (!input[0].isAlive)
         return;
     
-    float width_h = (IMG_SIZE.x * input[0].scale) / 2.0f;
-    float height_h = (IMG_SIZE.y * input[0].scale) / 2.0f;
+    float width_h = (SIZE.x * input[0].scale) / 2.0f;
+    float height_h = (SIZE.y * input[0].scale) / 2.0f;
     
     float2 rotateCenter = input[0].center.xy;
     
@@ -69,40 +71,39 @@ void GSmain(
     element.circleThickness = input[0].circleThickness;
     element.circleRadius = input[0].circleRadius;
     
-    //左下
-    element.pos = input[0].center;
-    element.pos.x -= width_h;
-    element.pos.y += height_h;
-    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
-    element.pos = mul(parallelProjMat, element.pos);
-    element.uv = float2(0.0f, 1.0f);
-    output.Append(element);
+    float4 offset = float4(0, 0, 0, 0);
     
     //左上
     element.pos = input[0].center;
-    element.pos.x -= width_h;
-    element.pos.y -= height_h;
-    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
-    element.pos = mul(parallelProjMat, element.pos);
+    //offset = mul(cam.billBoardY, float4(-width_h, -height_h, 0, 0));
+    offset = mul(cam.billBoardY, float4(RotateFloat2(float2(-width_h, -height_h), input[0].rotate), 0, 0));
+    element.pos = mul(cam.proj, mul(cam.view, element.pos + offset));
     element.uv = float2(0.0f, 0.0f);
+    output.Append(element);
+    
+    //左下
+    element.pos = input[0].center;
+    //offset = mul(cam.billBoardY, float4(-width_h, height_h, 0, 0));
+    offset = mul(cam.billBoardY, float4(RotateFloat2(float2(-width_h, height_h), input[0].rotate), 0, 0));
+    //element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
+    element.pos = mul(cam.proj, mul(cam.view, element.pos + offset));
+    element.uv = float2(0.0f, 1.0f);
+    output.Append(element);
+    
+     //右上
+    element.pos = input[0].center;
+    //offset = mul(cam.billBoardY, float4(width_h, -height_h, 0, 0));
+    offset = mul(cam.billBoardY, float4(RotateFloat2(float2(width_h, -height_h), input[0].rotate), 0, 0));
+    element.pos = mul(cam.proj, mul(cam.view, element.pos + offset));
+    element.uv = float2(1.0f, 0.0f);
     output.Append(element);
     
      //右下
     element.pos = input[0].center;
-    element.pos.x += width_h;
-    element.pos.y += height_h;
-    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
-    element.pos = mul(parallelProjMat, element.pos);
+    //offset = mul(cam.billBoardY, float4(width_h, height_h, 0, 0));
+    offset = mul(cam.billBoardY, float4(RotateFloat2(float2(width_h, height_h), input[0].rotate), 0, 0));
+    element.pos = mul(cam.proj, mul(cam.view, element.pos + offset));
     element.uv = float2(1.0f, 1.0f);
-    output.Append(element);
-    
-    //右上
-    element.pos = input[0].center;
-    element.pos.x += width_h;
-    element.pos.y -= height_h;
-    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
-    element.pos = mul(parallelProjMat, element.pos);
-    element.uv = float2(1.0f, 0.0f);
     output.Append(element);
 }
 

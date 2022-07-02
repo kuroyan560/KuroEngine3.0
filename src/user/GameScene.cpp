@@ -125,7 +125,7 @@ void GameScene::OnUpdate()
 
 	if (UsersInput::Instance()->ControllerOnTrigger(0,XBOX_BUTTON::A))
 	{
-		HitEffect::Generate(WinApp::Instance()->GetExpandWinCenter());
+		HitEffect::Generate({ 0.0f,7.0f,0.0f });
 	}
 
 	GameManager::Instance()->Update();
@@ -171,7 +171,7 @@ void GameScene::OnDraw()
 	//DrawFunc2D::DrawGraph({ 530,0 }, noise2);
 
 	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
-	HitEffect::Draw(noises[0].noise,noises[1].noise);
+	HitEffect::Draw(nowCam, noises[0].noise, noises[1].noise);
 }
 
 void GameScene::OnImguiDebug()

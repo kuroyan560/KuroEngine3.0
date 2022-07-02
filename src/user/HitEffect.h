@@ -4,6 +4,7 @@
 
 #include<memory>
 class TextureBuffer;
+class Camera;
 
 class HitEffect
 {
@@ -14,15 +15,15 @@ private:
 public:
 	HitEffect() {}
 
-	static void Generate(const Vec2<float>& Pos);
+	static void Generate(const Vec3<float>& Pos);
 	static void Init();
 	static void Update();
-	static void Draw(std::shared_ptr<TextureBuffer>&Noise, std::shared_ptr<TextureBuffer>& Noise2);
+	static void Draw(Camera& Cam, std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<TextureBuffer>& Noise2);
 	static HitEffect& GetInstance(const int& Idx) { return INSTANCES[Idx]; }
 
 public:
 	char isActive = 0;
-	Vec2<float>pos = { 0,0 };			//座標
+	Vec3<float>pos = { 0,0,0 };			//座標
 	float scale = 1.0f;						//描画スケール
 	float rotate = 0.0f;					//回転（ラジアン）
 	float alpha = 1.0f;					//アルファ値
