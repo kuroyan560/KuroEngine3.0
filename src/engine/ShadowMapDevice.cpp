@@ -87,7 +87,6 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 	}
 
 	gaussianBlur->Register(shadowMap);
-
 }
 
 void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelObject>>& Models, Camera& GameCamera, const AlphaBlendMode& BlendMode)

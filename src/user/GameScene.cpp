@@ -169,7 +169,7 @@ void GameScene::OnDraw()
 	DrawFunc2D::DrawGraph({ 0,0 }, noises[0].noise);
 	//DrawFunc2D::DrawGraph({ 530,0 }, noise2);
 
-	DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
+	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
 	HitEffect::Draw(noises[0].noise,noises[1].noise);
 }
 

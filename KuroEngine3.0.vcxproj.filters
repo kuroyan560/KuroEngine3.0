@@ -221,9 +221,6 @@
     <ClCompile Include="src\engine\GraphicsManager.cpp">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\PostEffect.cpp">
-      <Filter>src\engine\レンダリング関連</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\LightManager.cpp">
       <Filter>src\engine\レンダリング関連\レンダーオブジェクト</Filter>
     </ClCompile>
@@ -413,9 +410,6 @@
       <Filter>src\engine\DirectX12</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\GraphicsManager.h">
-      <Filter>src\engine\レンダリング関連</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\PostEffect.h">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\Light.h">

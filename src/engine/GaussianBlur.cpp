@@ -1,5 +1,6 @@
 #include "GaussianBlur.h"
-#include"D3D12App.h"
+#include"KuroEngine.h"
+#include"DrawFunc2D.h"
 
 std::shared_ptr<ComputePipeline>GaussianBlur::X_BLUR_PIPELINE;	
 std::shared_ptr<ComputePipeline>GaussianBlur::Y_BLUR_PIPELINE;	
@@ -77,7 +78,7 @@ void GaussianBlur::SetBlurPower(const float& BlurPower)
     weightConstBuff->Mapping(&weights[0]);
 }
 
-void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex)
+void GaussianBlur::Excute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex)
 {
     const auto& sDesc = SourceTex->GetDesc();
     const auto& fDesc = finalResult->GetDesc();
@@ -110,10 +111,34 @@ void GaussianBlur::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, cons
     CmdList->Dispatch(static_cast<UINT>(finalResult->GetDesc().Width / DIV), static_cast<UINT>(finalResult->GetDesc().Height / DIV), 1);
 }
 
+void GaussianBlur::Register(const std::shared_ptr<TextureBuffer>& SourceTex)
+{
+    const auto& sDesc = SourceTex->GetDesc();
+    const auto& fDesc = finalResult->GetDesc();
+    KuroFunc::ErrorMessage(sDesc.Width != fDesc.Width || sDesc.Height != fDesc.Height || sDesc.Format != fDesc.Format, "GaussianBlur", "Register", "ソースとなるテクスチャ形式とガウシアンブラー形式が合いません\n");
+
+    static const int DIV = 4;
+    Vec3<UINT>threadNum;
+
+    //Xブラー
+    KuroEngine::Instance().Graphics().SetComputePipeline(X_BLUR_PIPELINE);
+    threadNum = { static_cast<UINT>(xBlurResult->GetDesc().Width / DIV), static_cast<UINT>(xBlurResult->GetDesc().Height / DIV), 1 };
+    KuroEngine::Instance().Graphics().Dispatch(threadNum, { weightConstBuff,texInfoConstBuff,SourceTex,xBlurResult }, { CBV,CBV,SRV,UAV });
+
+    //Yブラー
+    KuroEngine::Instance().Graphics().SetComputePipeline(Y_BLUR_PIPELINE);
+    threadNum = { static_cast<UINT>(yBlurResult->GetDesc().Width / DIV), static_cast<UINT>(yBlurResult->GetDesc().Height / DIV), 1 };
+    KuroEngine::Instance().Graphics().Dispatch(threadNum, { weightConstBuff,texInfoConstBuff,xBlurResult,yBlurResult }, { CBV,CBV,SRV,UAV });
+
+    //最終結果合成
+    KuroEngine::Instance().Graphics().SetComputePipeline(FINAL_PIPELINE);
+    threadNum = { static_cast<UINT>(finalResult->GetDesc().Width / DIV), static_cast<UINT>(finalResult->GetDesc().Height / DIV), 1 };
+    KuroEngine::Instance().Graphics().Dispatch(threadNum, { weightConstBuff,texInfoConstBuff,yBlurResult,finalResult }, { CBV,CBV,SRV,UAV });
+}
+
 #include"KuroEngine.h"
 void GaussianBlur::DrawResult(const AlphaBlendMode& AlphaBlend)
 {
     KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() });
-    PostEffect::GetWinSizeSprite()->SetTexture(finalResult);
-    PostEffect::GetWinSizeSprite()->Draw(AlphaBlend);
+    DrawFunc2D::DrawExtendGraph2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), finalResult, AlphaBlend);
 }

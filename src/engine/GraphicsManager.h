@@ -1,6 +1,5 @@
 #pragma once
 #include"D3D12Data.h"
-#include"PostEffect.h"
 
 //グラフィックスマネージャ
 class GraphicsManager
@@ -135,21 +134,6 @@ class GraphicsManager
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
-
-	//ポストエフェクト
-	class SetPostEffect :public GraphicsCommandBase
-	{
-		SetPostEffect() = delete;
-
-		PostEffect* postEffect;
-		std::weak_ptr<TextureBuffer>sourceTex;
-	public:
-		SetPostEffect(PostEffect* PostEffect, const std::weak_ptr<TextureBuffer>& SourceTex)
-			:postEffect(PostEffect), sourceTex(SourceTex) {}
-
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
-	};
-
 	//テクスチャのコピー
 	class CopyTex : public GraphicsCommandBase
 	{
@@ -209,9 +193,6 @@ public:
 	//デプスステンシルのクリアコマンド積み上げ
 	void ClearDepthStencil(const std::shared_ptr<DepthStencil>& DepthStencil);
 
-	//ポストエフェクトコマンド積み上げ
-	void ExcutePostEffect(PostEffect* PostEffect, const std::shared_ptr<TextureBuffer>& SourceTex);
-
 	//テクスチャコピーコマンド積み上げ
 	void CopyTexture(const std::shared_ptr<TextureBuffer>& DestTex, const std::shared_ptr<TextureBuffer>& SrcTex);
 
@@ -226,6 +207,11 @@ public:
 		const std::vector<std::shared_ptr<DescriptorData>>& DescDatas,
 		const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes,
 		const float& Depth, const bool& TransFlg, const int& InstanceNum = 1);
+
+	//ディスパッチコマンド積み上げ
+	void Dispatch(const Vec3<UINT>& ThreadNum,
+		const std::vector<std::shared_ptr<DescriptorData>>& DescDatas,
+		const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes);
 
 	//コマンドリスト全実行
 	void CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList);

@@ -78,11 +78,6 @@ void GraphicsManager::DispatchCommand::Excute(const ComPtr<ID3D12GraphicsCommand
 }
 
 
-void GraphicsManager::SetPostEffect::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
-{
-	postEffect->Excute(CmdList, sourceTex.lock());
-}
-
 void GraphicsManager::SetRenderTargets(const std::vector<std::shared_ptr<RenderTarget>>& RTs, const std::shared_ptr<DepthStencil>& DS)
 {
 	if (!renderCommands.empty())StackRenderCommands();	//Zバッファ＆透過するかどうかでソートしてグラフィックスコマンドリストに一括スタック
@@ -137,14 +132,6 @@ void GraphicsManager::ClearDepthStencil(const std::shared_ptr<DepthStencil>& Dep
 	gCommands.emplace_back(std::make_shared<ClearDSVCommand>(DepthStencil));
 }
 
-void GraphicsManager::ExcutePostEffect(PostEffect* PostEffect, const std::shared_ptr<TextureBuffer>& SourceTex)
-{
-	recentPipelineHandle = -1;
-
-	if (!renderCommands.empty())StackRenderCommands();	//Zバッファ＆透過するかどうかでソートしてグラフィックスコマンドリストに一括スタック
-	gCommands.emplace_back(std::make_shared<SetPostEffect>(PostEffect, SourceTex));
-}
-
 void GraphicsManager::CopyTexture(const std::shared_ptr<TextureBuffer>& DestTex, const std::shared_ptr<TextureBuffer>& SrcTex)
 {
 	gCommands.emplace_back(std::make_shared<CopyTex>(DestTex, SrcTex));
@@ -166,6 +153,11 @@ void GraphicsManager::ObjectRender(const std::shared_ptr<VertexBuffer>& VertexBu
 {
 	//ソートするので gCommands ではなく一時的にrenderCommandsに積む
 	renderCommands.emplace_back(std::make_shared<RenderCommand>(VertexBuff, IndexBuff, ConvertToWeakPtrArray(DescDatas), DescHandleTypes, Depth, TransFlg, InstanceNum));
+}
+
+void GraphicsManager::Dispatch(const Vec3<UINT>& ThreadNum, const std::vector<std::shared_ptr<DescriptorData>>& DescDatas, const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
+{
+	gCommands.emplace_back(std::make_shared<DispatchCommand>(ThreadNum, ConvertToWeakPtrArray(DescDatas), DescHandleTypes));
 }
 
 

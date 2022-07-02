@@ -1,11 +1,9 @@
 #pragma once
-#include"PostEffect.h"
-class ComputePipeline;
-class ConstantBuffer;
-class TextureBuffer;
-class RenderTarget;
+#include<memory>
+#include<wrl.h>
+#include"D3D12Data.h"
 
-class GaussianBlur : public PostEffect
+class GaussianBlur
 {
 private:
 	static const int NUM_WEIGHTS = 8;
@@ -37,8 +35,10 @@ public:
 	GaussianBlur(const Vec2<int>& Size, const DXGI_FORMAT& Format, const float& BlurPower = 8.0f);
 	//ボケ具合
 	void SetBlurPower(const float& BlurPower);
-	//実行
-	void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex)override;
+	//即時実行
+	void Excute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex);
+	//グラフィックスマネージャに登録
+	void Register(const std::shared_ptr<TextureBuffer>& SourceTex);
 
 	//結果のテクスチャ取得
 	std::shared_ptr<TextureBuffer>& GetResultTex() { return finalResult; }

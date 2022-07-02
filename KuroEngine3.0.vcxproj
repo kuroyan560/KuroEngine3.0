@@ -562,7 +562,6 @@
     <ClCompile Include="src\engine\ModelMesh.cpp" />
     <ClCompile Include="src\engine\NoiseGenerator.cpp" />
     <ClCompile Include="src\engine\Object.cpp" />
-    <ClCompile Include="src\engine\PostEffect.cpp" />
     <ClCompile Include="src\engine\ShadowMapDevice.cpp" />
     <ClCompile Include="src\engine\Skeleton.cpp" />
     <ClCompile Include="src\engine\Sprite.cpp" />
@@ -638,7 +637,6 @@
     <ClInclude Include="src\engine\ModelMesh.h" />
     <ClInclude Include="src\engine\NoiseGenerator.h" />
     <ClInclude Include="src\engine\Object.h" />
-    <ClInclude Include="src\engine\PostEffect.h" />
     <ClInclude Include="src\engine\ShadowMapDevice.h" />
     <ClInclude Include="src\engine\Skeleton.h" />
     <ClInclude Include="src\engine\Sprite.h" />
