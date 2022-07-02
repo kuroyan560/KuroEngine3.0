@@ -3,18 +3,22 @@ cbuffer cbuff0 : register(b0)
     matrix parallelProjMat; //平行投影行列
 };
 
-struct VSOutput
+struct Vertex
 {
     min16int isAlive : ALIVE;
     float4 center : POSITION;
-    float blur : BLUR;
     float scale : SCALE;
-    float uvOffset : UV_OFFSET;
+    float rotate : ROTATE;
+    float alpha : ALPHA;
+    float lifeTimer : LIFE_TIMER;
+    int lifeSpan : LIFE_SPAN;
+    float blur : BLUR;
+    float uvRadiusOffset : UV_RADIUS_OFFSET;
     float circleThickness : CIRCLE_THICKNESS;
     float circleRadius : CIRCLE_RADIUS;
 };
 
-VSOutput VSmain(VSOutput input)
+Vertex VSmain(Vertex input)
 {
     return input;
 }
@@ -23,38 +27,45 @@ struct GSOutput
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD;
+    float alpha : ALPHA;
     float blur : BLUR;
-    float uvOffset : UV_OFFSET;
+    float uvRadiusOffset : UV_RADIUS_OFFSET;
     float circleThickness : CIRCLE_THICKNESS;
     float circleRadius : CIRCLE_RADIUS;
 };
 
-Texture2D<float4> tex : register(t0);
-Texture2D<float4> displacementNoiseTex : register(t1);
-Texture2D<float4> alphaNoiseTex : register(t2);
+Texture2D<float4> displacementNoiseTex : register(t0);
+Texture2D<float4> alphaNoiseTex : register(t1);
 SamplerState smp : register(s0);
+
+static const int2 IMG_SIZE = int2(512,512);
+
+float2 RotateFloat2(float2 Pos, float Radian)
+{
+    float2 result;
+    result.x = Pos.x * cos(Radian) - Pos.y * sin(Radian);
+    result.y = Pos.y * cos(Radian) + Pos.x * sin(Radian);
+    return result;
+}
 
 [maxvertexcount(4)]
 void GSmain(
-	point VSOutput input[1],
+	point Vertex input[1],
 	inout TriangleStream<GSOutput> output
 )
 {
     if (!input[0].isAlive)
         return;
     
-    uint2 texSize;
-    tex.GetDimensions(texSize.x, texSize.y);
+    float width_h = (IMG_SIZE.x * input[0].scale) / 2.0f;
+    float height_h = (IMG_SIZE.y * input[0].scale) / 2.0f;
     
-    float width_h = (texSize.x * input[0].scale) / 2.0f;
-    float height_h = (texSize.y * input[0].scale) / 2.0f;
-    //float width_h = texSize.x / 2.0f;
-    //float height_h = texSize.y / 2.0f;
+    float2 rotateCenter = input[0].center.xy;
     
     GSOutput element;
+    element.alpha = input[0].alpha;
     element.blur = input[0].blur;
-    element.uvOffset = input[0].uvOffset;
-        
+    element.uvRadiusOffset = input[0].uvRadiusOffset;
     element.circleThickness = input[0].circleThickness;
     element.circleRadius = input[0].circleRadius;
     
@@ -62,6 +73,7 @@ void GSmain(
     element.pos = input[0].center;
     element.pos.x -= width_h;
     element.pos.y += height_h;
+    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
     element.pos = mul(parallelProjMat, element.pos);
     element.uv = float2(0.0f, 1.0f);
     output.Append(element);
@@ -70,6 +82,7 @@ void GSmain(
     element.pos = input[0].center;
     element.pos.x -= width_h;
     element.pos.y -= height_h;
+    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
     element.pos = mul(parallelProjMat, element.pos);
     element.uv = float2(0.0f, 0.0f);
     output.Append(element);
@@ -78,6 +91,7 @@ void GSmain(
     element.pos = input[0].center;
     element.pos.x += width_h;
     element.pos.y += height_h;
+    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
     element.pos = mul(parallelProjMat, element.pos);
     element.uv = float2(1.0f, 1.0f);
     output.Append(element);
@@ -86,11 +100,13 @@ void GSmain(
     element.pos = input[0].center;
     element.pos.x += width_h;
     element.pos.y -= height_h;
+    element.pos.xy = rotateCenter + RotateFloat2(element.pos.xy - rotateCenter, input[0].rotate);
     element.pos = mul(parallelProjMat, element.pos);
     element.uv = float2(1.0f, 0.0f);
     output.Append(element);
 }
 
+//一時格納用
 static float _circleThicknes;
 static float _circleRadius;
 
@@ -113,7 +129,6 @@ float4 GetPixelColor(float2 uv)
     uv += normalize(toOutVec) * displacementNoise;
     
     //通常のテクスチャ
-    //float4 result = tex.Sample(smp, uv);
     float4 result = GetCirclePixel(uv);
     
     //アルファノイズ
@@ -127,15 +142,12 @@ float4 GetPixelColor(float2 uv)
 static const float2 VIEW_PORT_OFFSET = (float2(0.5f, 0.5f) / float2(1280.0f, 720.0f));
 float4 PSmain(GSOutput input) : SV_TARGET
 {
-
-    
-    input.uv += float2(0, VIEW_PORT_OFFSET.y);
     float2 toOutVec = input.uv - float2(0.5f, 0.5f);    //中心から外側へ向かうUVベクトル
     float len = length(toOutVec);
     toOutVec = normalize(toOutVec);
-    input.uv += -toOutVec * input.uvOffset;
+    input.uv += -toOutVec * input.uvRadiusOffset;
     
-    _circleRadius = input.circleRadius + 1.0f * input.uvOffset;
+    _circleRadius = input.circleRadius + 1.0f * input.uvRadiusOffset;   //外側にいくほど半径も大きく（中心から画像ループしにくくするため）
     _circleThicknes = input.circleThickness;
     
     //ブラーのためにいくつかのピクセルをサンプリング
@@ -157,6 +169,7 @@ float4 PSmain(GSOutput input) : SV_TARGET
     
     //色を青っぽく（アルファ値が高いと青白く）
     result.xyz = lerp(float3(0.33f, 0.1f, 0.73f), float3(0.65f, 0.64f, 0.94f), result.w);
+    result.w *= input.alpha;
     return result;
 }
 

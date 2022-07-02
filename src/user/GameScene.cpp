@@ -69,8 +69,6 @@ GameScene::GameScene()
 	noises[0].frequency = 1.647f;
 	noises[0].persistance = 0.775f;
 	NoiseGenerate();
-
-	HitEffect::Generate(WinApp::Instance()->GetExpandWinCenter());
 }
 
 void GameScene::OnInitialize()
@@ -124,6 +122,11 @@ void GameScene::OnUpdate()
 		hemiLig.SetActive();
 	}
 
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_RETURN))
+	{
+		HitEffect::Generate(WinApp::Instance()->GetExpandWinCenter());
+	}
+
 	GameManager::Instance()->Update();
 
 	player.Update();
@@ -131,6 +134,8 @@ void GameScene::OnUpdate()
 	EnemyManager::Instance()->Update();
 
 	Collider::UpdateAllColliders();
+
+	HitEffect::Update();
 }
 
 
@@ -192,7 +197,7 @@ void GameScene::OnImguiDebug()
 	ImGui::Begin("Effect");
 	ImGui::SliderFloat("Blur", &HitEffect::GetInstance(0).blur, 0.0f, 50.0f);
 	ImGui::SliderFloat("Scale", &HitEffect::GetInstance(0).scale, 0.0f, 5.0f);
-	ImGui::SliderFloat("ToOutUVOffset", &HitEffect::GetInstance(0).uvOffsetAmount, -1.0f, 1.0f);
+	ImGui::SliderFloat("ToOutUVOffset", &HitEffect::GetInstance(0).uvRadiusOffset, -1.0f, 1.0f);
 	ImGui::SliderFloat("CircleThickness", &HitEffect::GetInstance(0).circleThickness, 0.0f, 1.0f);
 	ImGui::SliderFloat("CircleRadius", &HitEffect::GetInstance(0).circleRadius, 0.0f, 1.0f);
 	ImGui::End();
