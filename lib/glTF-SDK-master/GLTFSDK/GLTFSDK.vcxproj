@@ -194,6 +194,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <PreBuildEvent>
       <Command>powershell -ExecutionPolicy Bypass $(ProjectDir)GenerateSchemaJsonHeader.ps1 -outPath $(OutDir)Inc</Command>
