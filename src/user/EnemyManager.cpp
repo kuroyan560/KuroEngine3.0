@@ -28,7 +28,6 @@ EnemyManager::EnemyManager()
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "キューブマップ"),
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ベースカラーテクスチャ"),
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"メタルネステクスチャ"),
-		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ノーマルマップ"),
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"粗さ"),
 	};
 
@@ -41,7 +40,6 @@ EnemyManager::EnemyManager()
 /*--- エネミー型オブジェクト定義 ---*/
 	//サンドバッグ（何もしてこない）
 	auto sandBagModel = Importer::Instance()->LoadModel("resource/user/", "sandbag.glb");
-	sandBagModel->AllMeshBuildTangentAndBiNormal();
 	breeds[SANDBAG] = std::make_unique<EnemyBreed>(100, sandBagModel);
 }
 
@@ -152,10 +150,9 @@ void EnemyManager::Draw(Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap)
 					AttachCubeMap->GetCubeMapTex(),
 					mesh.material->texBuff[COLOR_TEX],
 					mesh.material->texBuff[METALNESS_TEX],
-					mesh.material->texBuff[NORMAL_TEX],
 					mesh.material->texBuff[ROUGHNESS_TEX],
 				},
-				{ CBV,CBV,SRV,SRV,SRV,SRV,SRV,SRV,SRV },
+				{ CBV,CBV,SRV,SRV,SRV,SRV,SRV,SRV },
 				0.0f,
 				false,
 				enemyNum
