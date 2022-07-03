@@ -174,6 +174,8 @@ StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideL
 		//デフォルトのテクスチャアタッチ
 		surfaces[surfaceIdx].tex = DEFAULT_TEX;
 	}
+
+	transformBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, (Name + " - ConstantBuffer - Transform").c_str());
 }
 
 void StaticallyCubeMap::SetSideLength(const float& Length)
@@ -218,6 +220,7 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 		static std::vector<RootParam>ROOT_PARAMETER =
 		{
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"トランスフォームバッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"カラーテクスチャ"),
 		};
 
@@ -236,13 +239,15 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
+	transformBuff->Mapping(&transform.GetMat());
+
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
 		auto& s = surfaces[surfaceIdx];
 		KuroEngine::Instance().Graphics().ObjectRender(
 			s.mesh.vertBuff,
-			{ Cam.GetBuff(), s.tex },
-			{ CBV,SRV },
+			{ Cam.GetBuff(),transformBuff, s.tex },
+			{ CBV,CBV,SRV },
 			sideLength * 0.5f,
 			false);
 	}

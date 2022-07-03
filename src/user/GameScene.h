@@ -11,6 +11,7 @@ class ModelObject;
 class GaussianBlur;
 class Enemy;
 class StaticallyCubeMap;
+class DynamicCubeMap;
 
 class GameScene : public BaseScene
 {
@@ -26,7 +27,8 @@ class GameScene : public BaseScene
 	
 	Player player;
 
-	std::shared_ptr<StaticallyCubeMap>cubeMap;
+	std::shared_ptr<StaticallyCubeMap>staticCubeMap;
+	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
 
 public:
 	GameScene();

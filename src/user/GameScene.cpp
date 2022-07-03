@@ -50,10 +50,13 @@ GameScene::GameScene()
 	sandbagTrans.SetPos({ 0,6,0 });
 	EnemyManager::Instance()->Spawn(SANDBAG, sandbagTrans);
 
-	cubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
+	staticCubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
 	const std::string cubeMpaDir = "resource/user/hdri/";
-	cubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
-	cubeMap->AttachTex(cubeMpaDir, ".png");
+	staticCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
+	staticCubeMap->AttachTex(cubeMpaDir, ".png");
+	staticCubeMap->transform.SetScale(30);
+
+	dynamicCubeMap = std::make_shared<DynamicCubeMap>();
 }
 
 void GameScene::OnInitialize()
@@ -127,7 +130,9 @@ void GameScene::OnUpdate()
 void GameScene::OnDraw()
 {
 	//キューブマップに描き込む
-
+	dynamicCubeMap->Clear();
+	dynamicCubeMap->CopyCubeMap(staticCubeMap);
+	dynamicCubeMap->DrawToCubeMap(ligMgr, { player.GetModelObj() });
 
 	//デプスステンシル
 	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
@@ -144,16 +149,16 @@ void GameScene::OnDraw()
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
 
 	//キューブマップ描画
-	cubeMap->Draw(nowCam);
+	staticCubeMap->Draw(nowCam);
 
 	//影つき床
 	shadowMapDevice.DrawShadowReceiver({ floorModel }, nowCam);
 
 	//敵
-	EnemyManager::Instance()->Draw(nowCam, cubeMap);
+	EnemyManager::Instance()->Draw(nowCam, dynamicCubeMap);
 
 	//プレイヤー
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam, staticCubeMap);
 
 	static Transform debugTrans;
 	debugTrans.SetPos({ 9,6,0 });

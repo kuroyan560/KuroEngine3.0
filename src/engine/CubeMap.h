@@ -5,10 +5,12 @@
 #include"Mesh.h"
 #include<memory>
 #include<vector>
+#include"Transform.h"
 class TextureBuffer;
 class Camera;
 class LightManager;
 class ModelObject;
+class ConstantBuffer;
 
 class CubeMap
 {
@@ -67,18 +69,26 @@ private:
 	std::string name;
 	float sideLength = 10.0f;	//辺の長さ
 	std::array<Surface, SURFACE_NUM>surfaces;	//描画に使用
+	std::shared_ptr<ConstantBuffer>transformBuff;
 
 	void ResetMeshVertices();
 
 public:
+	Transform transform;
+
 	StaticallyCubeMap(const std::string& Name, const float& SideLength = 100.0f);
 
 	//辺の長さを設定
 	void SetSideLength(const float& Length);
 
 	//指定面に描画に用いるテクスチャをアタッチ
-	void AttachTex(const SURFACE_TYPE& Surface, const std::shared_ptr<TextureBuffer>& Tex)
+	void AttachTex(SURFACE_TYPE Surface, const std::shared_ptr<TextureBuffer>& Tex)
 	{
+		//YとXは逆
+		if (Surface == PY)Surface = NY;
+		else if (Surface == NY)Surface = PY;
+		else if (Surface == PX)Surface = NX;
+		else if (Surface == NX)Surface = PX;
 		surfaces[Surface].tex = Tex;
 	}
 	void AttachTex(const std::string& Dir, const std::string& Extention);
