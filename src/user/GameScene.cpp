@@ -46,7 +46,7 @@ GameScene::GameScene()
 	//	}
 	//}
 
-	sandbagTrans.SetScale(7);
+	//sandbagTrans.SetScale(7);
 	sandbagTrans.SetPos({ 0,6,0 });
 	EnemyManager::Instance()->Spawn(SANDBAG, sandbagTrans);
 
@@ -157,8 +157,7 @@ void GameScene::OnDraw()
 
 	static Transform debugTrans;
 	debugTrans.SetPos({ 9,6,0 });
-	debugTrans.SetScale(7);
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, EnemyManager::Instance()->GetModel(SANDBAG), debugTrans, nowCam, nullptr, cubeMap);
+	//DrawFunc3D::DrawPBRShadingModel(ligMgr, EnemyManager::Instance()->GetModel(SANDBAG), debugTrans, nowCam, nullptr, cubeMap);
 
 	//当たり判定デバッグ描画
 	Collider::DebugDrawAllColliders(nowCam);
