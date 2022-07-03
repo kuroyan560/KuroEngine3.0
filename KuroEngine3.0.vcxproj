@@ -575,7 +575,6 @@
     <ClCompile Include="src\engine\DebugCamera.cpp" />
     <ClCompile Include="src\engine\DescriptorHeap.cpp" />
     <ClCompile Include="src\engine\LightBloomDevice.cpp" />
-    <ClCompile Include="src\engine\RadialBlur.cpp" />
     <ClCompile Include="src\engine\DrawFunc2D.cpp" />
     <ClCompile Include="src\engine\DrawFunc2D_FillTex.cpp" />
     <ClCompile Include="src\engine\DrawFunc2D_Mask.cpp" />
@@ -649,7 +648,6 @@
     <ClInclude Include="src\engine\DebugCamera.h" />
     <ClInclude Include="src\engine\DescriptorHeap.h" />
     <ClInclude Include="src\engine\LightBloomDevice.h" />
-    <ClInclude Include="src\engine\RadialBlur.h" />
     <ClInclude Include="src\engine\DrawFunc2D.h" />
     <ClInclude Include="src\engine\DrawFunc2D_FillTex.h" />
     <ClInclude Include="src\engine\DrawFunc2D_Mask.h" />

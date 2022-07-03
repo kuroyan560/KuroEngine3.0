@@ -392,9 +392,6 @@
     <ClCompile Include="src\user\HitEffect.cpp">
       <Filter>src\user\Effect</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\RadialBlur.cpp">
-      <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
-    </ClCompile>
     <ClCompile Include="src\engine\LightBloomDevice.cpp">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClCompile>
@@ -615,9 +612,6 @@
     </ClInclude>
     <ClInclude Include="src\user\HitEffect.h">
       <Filter>src\user\Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine\RadialBlur.h">
-      <Filter>src\engine\ユーザー向け\ポストエフェクト</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\LightBloomDevice.h">
       <Filter>src\engine\レンダリング関連</Filter>
