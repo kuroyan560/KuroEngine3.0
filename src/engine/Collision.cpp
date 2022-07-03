@@ -97,7 +97,7 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.world =/* XMMatrixScaling(radius, radius, radius) * */GetLocalMat() * GetWorldMat() * XMMatrixTranslation(offset.x, offset.y, offset.z);
+	constData.world = XMMatrixScaling(radius, radius, radius) * GetLocalMat() * GetWorldMat() * XMMatrixTranslation(offset.x, offset.y, offset.z);
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
 

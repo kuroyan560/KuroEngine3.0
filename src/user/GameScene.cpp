@@ -165,7 +165,15 @@ void GameScene::OnDraw()
 	//DrawFunc3D::DrawPBRShadingModel(ligMgr, EnemyManager::Instance()->GetModel(SANDBAG), debugTrans, nowCam, nullptr, cubeMap);
 
 	//当たり判定デバッグ描画
-	Collider::DebugDrawAllColliders(nowCam);
+	static bool COLLIDER_DRAW = true;
+	if (UsersInput::Instance()->ControllerOnTrigger(0, XBOX_BUTTON::X))
+	{
+		COLLIDER_DRAW = !COLLIDER_DRAW;
+	}
+	if (COLLIDER_DRAW)
+	{
+		Collider::DebugDrawAllColliders(nowCam);
+	}
 
 	//ヒットエフェクト
 	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
@@ -174,16 +182,14 @@ void GameScene::OnDraw()
 
 void GameScene::OnImguiDebug()
 {
-	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
+	ImGui::Begin("Button");
+	ImGui::Text("RB - Player's attack");
+	ImGui::Text("A  - Emit hit effect");
+	ImGui::Text("X - Turn collider's draw flag");
 
-	ImGui::Begin("Effect");
-	ImGui::SliderFloat("Blur", &HitEffect::GetInstance(0).blur, 0.0f, 50.0f);
-	ImGui::SliderFloat("Scale", &HitEffect::GetInstance(0).scale, 0.0f, 5.0f);
-	ImGui::SliderFloat("ToOutUVOffset", &HitEffect::GetInstance(0).uvRadiusOffset, -1.0f, 1.0f);
-	ImGui::SliderFloat("CircleThickness", &HitEffect::GetInstance(0).circleThickness, 0.0f, 1.0f);
-	ImGui::SliderFloat("CircleRadius", &HitEffect::GetInstance(0).circleRadius, 0.0f, 1.0f);
 	ImGui::End();
-	//GameManager::Instance()->ImGuiDebug();
+
+	GameManager::Instance()->ImGuiDebug();
 }
 
 void GameScene::OnFinalize()
