@@ -4,13 +4,16 @@
 #include<memory>
 #include<vector>
 #include"PlayerAttack.h"
+#include"Collider.h"
 class ModelObject;
 class Camera;
-class Collider;
+
 
 class Player
 {
 private:
+
+
 	//インスタンス生成を１個に制限するためのフラグ
 	static bool INSTANCED;
 

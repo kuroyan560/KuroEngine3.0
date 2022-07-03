@@ -29,5 +29,13 @@ public:
 
 	//全メッシュにおける各軸の頂点座標の最小値最大値を取得
 	Vec3<ValueMinMax>GetAllMeshPosMinMax();
+
+	void AllMeshBuildTangentAndBiNormal()
+	{
+		for (auto& m : meshes)
+		{
+			m.BuildTangentAndBiNormal();
+		}
+	}
 };
 

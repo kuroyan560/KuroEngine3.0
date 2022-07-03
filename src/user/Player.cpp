@@ -92,9 +92,6 @@ Player::Player()
 	//	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	//}
 
-	auto col = std::make_shared<CollisionAABB>(model->model->GetAllMeshPosMinMax(), &model->transform);
-	colliders.emplace_back(Collider::Generate(col));
-
 	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
 	boneCol_R_Sphere->offset = { 0,-0.5f,0.7f };
 	auto boneCol_R = Collider::Generate(boneCol_R_Sphere);

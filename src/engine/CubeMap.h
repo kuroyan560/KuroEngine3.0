@@ -81,6 +81,7 @@ public:
 	{
 		surfaces[Surface].tex = Tex;
 	}
+	void AttachTex(const std::string& Dir, const std::string& Extention);
 
 	//描画に用いるテクスチャ取得
 	std::shared_ptr<TextureBuffer>GetTex(const SURFACE_TYPE& Surface)

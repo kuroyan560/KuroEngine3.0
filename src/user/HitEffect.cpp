@@ -52,7 +52,7 @@ void HitEffect::Update()
 	}
 }
 
-void HitEffect::Draw(Camera& Cam, std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<TextureBuffer>& Noise2)
+void HitEffect::Draw(Camera& Cam)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE;
 	static std::shared_ptr<TextureBuffer>DISPLACEMENT_NOISE_TEX;
@@ -63,6 +63,7 @@ void HitEffect::Draw(Camera& Cam, std::shared_ptr<TextureBuffer>& Noise, std::sh
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 		PIPELINE_OPTION.depthWriteMask = false;
+		PIPELINE_OPTION.depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
@@ -117,10 +118,8 @@ void HitEffect::Draw(Camera& Cam, std::shared_ptr<TextureBuffer>& Noise, std::sh
 		VERTEX_BUFF,
 		{
 			Cam.GetBuff(),
-			Noise,
-			//DISPLACEMENT_NOISE_TEX,
-			Noise2,
-			//ALPHA_NOISE_TEX
+			DISPLACEMENT_NOISE_TEX,
+			ALPHA_NOISE_TEX
 		},
 		{ CBV,SRV,SRV },
 		0.0f, true

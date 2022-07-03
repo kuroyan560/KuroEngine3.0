@@ -5,6 +5,7 @@
 #include"Model.h"
 #include"ModelAnimator.h"
 #include"Camera.h"
+#include"CubeMap.h"
 
 EnemyManager::EnemyManager()
 {
@@ -21,9 +22,14 @@ EnemyManager::EnemyManager()
 	static std::vector<RootParam>ROOT_PARAMETER =
 	{
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
+		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"マテリアル基本情報バッファ"),
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"トランスフォームバッファ配列（構造化バッファ）"),
 		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ボーン行列バッファ（構造化バッファ）"),
-		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"カラーテクスチャ"),
+		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, "キューブマップ"),
+		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ベースカラーテクスチャ"),
+		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"メタルネステクスチャ"),
+		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"ノーマルマップ"),
+		RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"粗さ"),
 	};
 
 	//レンダーターゲット描画先情報
@@ -35,6 +41,7 @@ EnemyManager::EnemyManager()
 /*--- エネミー型オブジェクト定義 ---*/
 	//サンドバッグ（何もしてこない）
 	auto sandBagModel = Importer::Instance()->LoadModel("resource/user/", "sandbag.glb");
+	sandBagModel->AllMeshBuildTangentAndBiNormal();
 	breeds[SANDBAG] = std::make_unique<EnemyBreed>(100, sandBagModel);
 }
 
@@ -91,7 +98,7 @@ void EnemyManager::Update()
 	}
 }
 
-void EnemyManager::Draw(Camera& Cam)
+void EnemyManager::Draw(Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap)
 {
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(pipeline);
 
@@ -139,11 +146,16 @@ void EnemyManager::Draw(Camera& Cam)
 				mesh.mesh->idxBuff,
 				{
 					Cam.GetBuff(),
+					mesh.material->buff,
 					worldMatriciesBuff[enemyType],
 					boneMatriciesBuff[enemyType],
+					AttachCubeMap->GetCubeMapTex(),
 					mesh.material->texBuff[COLOR_TEX],
+					mesh.material->texBuff[METALNESS_TEX],
+					mesh.material->texBuff[NORMAL_TEX],
+					mesh.material->texBuff[ROUGHNESS_TEX],
 				},
-				{ CBV,SRV,SRV,SRV },
+				{ CBV,CBV,SRV,SRV,SRV,SRV,SRV,SRV,SRV },
 				0.0f,
 				false,
 				enemyNum

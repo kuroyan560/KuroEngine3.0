@@ -97,7 +97,7 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.world = XMMatrixScaling(radius, radius, radius) * GetLocalMat() * GetWorldMat() * XMMatrixTranslation(offset.x, offset.y, offset.z);
+	constData.world =/* XMMatrixScaling(radius, radius, radius) * */GetLocalMat() * GetWorldMat() * XMMatrixTranslation(offset.x, offset.y, offset.z);
 	constData.hit = Hit;
 	constBuff->Mapping(&constData);
 
@@ -237,8 +237,8 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter)
 {
 	//‚Q‚Â‚Ì‹…‚Ìƒ[ƒ‹ƒh’†SÀ•W‚ğ‹‚ß‚é
-	const auto centerA = KuroMath::TransformVec3(SphereA->offset, SphereA->GetWorldMat());
-	const auto centerB = KuroMath::TransformVec3(SphereB->offset, SphereB->GetWorldMat());
+	const auto centerA = KuroMath::TransformVec3(SphereA->offset, SphereA->GetLocalMat() * SphereA->GetWorldMat());
+	const auto centerB = KuroMath::TransformVec3(SphereB->offset, SphereB->GetLocalMat() * SphereB->GetWorldMat());
 
 	// ’†S“_‚Ì‹——£‚Ì‚Qæ <= ”¼Œa‚Ì˜a‚Ì‚Qæ‚È‚çŒğ·
 	const float distSq = centerA.DistanceSq(centerB);

@@ -10,6 +10,7 @@ class Model;
 class ModelObject;
 class GaussianBlur;
 class Enemy;
+class StaticallyCubeMap;
 
 class GameScene : public BaseScene
 {
@@ -25,18 +26,7 @@ class GameScene : public BaseScene
 	
 	Player player;
 
-	struct Noise
-	{
-		std::shared_ptr<TextureBuffer>noise;
-		int split = 8;
-		int octaves = 5;
-		float frequency = 1.0f;
-		float persistance = 0.5f;
-	};
-	Noise noises[2];
-	Vec2<int>noiseSize = { 256 * 2,256 * 2 };
-
-	void NoiseGenerate();
+	std::shared_ptr<StaticallyCubeMap>cubeMap;
 
 public:
 	GameScene();

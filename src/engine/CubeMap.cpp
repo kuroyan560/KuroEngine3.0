@@ -186,6 +186,19 @@ void StaticallyCubeMap::SetSideLength(const float& Length)
 	}
 }
 
+void StaticallyCubeMap::AttachTex(const std::string& Dir, const std::string& Extention)
+{
+	static std::array<std::string, SURFACE_NUM>IMG_NAMES =
+	{
+		"posz","negz","posx","negx","posy","negy"
+	};
+	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
+	{
+		auto loadTex = D3D12App::Instance()->GenerateTextureBuffer(Dir + IMG_NAMES[surfaceIdx] + Extention);
+		AttachTex((SURFACE_TYPE)surfaceIdx, loadTex);
+	}
+}
+
 void StaticallyCubeMap::Draw(Camera& Cam)
 {
 	static std::shared_ptr<GraphicsPipeline>PIPELINE;

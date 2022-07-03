@@ -13,20 +13,7 @@
 #include"Collider.h"
 #include"NoiseGenerator.h"
 #include"HitEffect.h"
-
-void GameScene::NoiseGenerate()
-{
-	if (!noises[0].noise)
-	{
-		noises[0].noise = NoiseGenerator::PerlinNoise(noiseSize, noises[0].split, noises[0].octaves, noises[0].frequency, noises[0].persistance);
-		noises[1].noise = NoiseGenerator::PerlinNoise(noiseSize, noises[1].split, noises[1].octaves, noises[1].frequency, noises[1].persistance);
-	}
-	else
-	{
-		NoiseGenerator::PerlinNoise(noises[0].noise, noises[0].split, noises[0].octaves, noises[0].frequency, noises[0].persistance);
-		NoiseGenerator::PerlinNoise(noises[1].noise, noises[1].split, noises[1].octaves, noises[1].frequency, noises[1].persistance);
-	}
-}
+#include"CubeMap.h"
 
 GameScene::GameScene()
 {
@@ -47,29 +34,26 @@ GameScene::GameScene()
 
 	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
 
-	Transform initSandBagPos;
+	Transform sandbagTrans;
 
-	const float offset = 4.0f;
-	for (int x = 0; x < 10; ++x)
-	{
-		for (int z = 0; z < 10; ++z)
-		{
-			initSandBagPos.SetPos({ (float)x * offset,2,(float)z * offset });
-			EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
-		}
-	}
+	//const float offset = 4.0f;
+	//for (int x = 0; x < 10; ++x)
+	//{
+	//	for (int z = 0; z < 10; ++z)
+	//	{
+	//		initSandBagPos.SetPos({ (float)x * offset,2,(float)z * offset });
+	//		EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
+	//	}
+	//}
 
-	//EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
-	noises[1].split = 7;
-	noises[1].octaves = 2;
-	noises[1].frequency = 0.79f;
-	noises[1].persistance = 0.5f;
+	sandbagTrans.SetScale(7);
+	sandbagTrans.SetPos({ 0,6,0 });
+	EnemyManager::Instance()->Spawn(SANDBAG, sandbagTrans);
 
-	noises[0].split = 12;
-	noises[0].octaves = 6;
-	noises[0].frequency = 1.647f;
-	noises[0].persistance = 0.775f;
-	NoiseGenerate();
+	cubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
+	const std::string cubeMpaDir = "resource/user/hdri/";
+	cubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
+	cubeMap->AttachTex(cubeMpaDir, ".png");
 }
 
 void GameScene::OnInitialize()
@@ -142,58 +126,51 @@ void GameScene::OnUpdate()
 
 void GameScene::OnDraw()
 {
+	//キューブマップに描き込む
+
+
+	//デプスステンシル
 	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
-
 	dsv->Clear(D3D12App::Instance()->GetCmdList());
 
+	//シャドウマップに描き込み
 	shadowMapDevice.DrawShadowMap({ player.GetModelObj() });
 
-	//動的キューブマップに書き込み
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
+	//現在のカメラ取得
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
-	//DrawFunc3D::DrawADSShadingModel(ligMgr, floorModel, nowCam);
+
+	//キューブマップ描画
+	cubeMap->Draw(nowCam);
+
+	//影つき床
 	shadowMapDevice.DrawShadowReceiver({ floorModel }, nowCam);
 
-	EnemyManager::Instance()->Draw(nowCam);
-	//player.Draw(nowCam);
+	//敵
+	EnemyManager::Instance()->Draw(nowCam, cubeMap);
+
+	//プレイヤー
 	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam);
 
+	static Transform debugTrans;
+	debugTrans.SetPos({ 9,6,0 });
+	debugTrans.SetScale(7);
+	DrawFunc3D::DrawPBRShadingModel(ligMgr, EnemyManager::Instance()->GetModel(SANDBAG), debugTrans, nowCam, nullptr, cubeMap);
+
+	//当たり判定デバッグ描画
 	Collider::DebugDrawAllColliders(nowCam);
 
-	if (UsersInput::Instance()->KeyInput(DIK_SPACE))
-	{
-		NoiseGenerate();
-	}
-	DrawFunc2D::DrawGraph({ 0,0 }, noises[0].noise);
-	//DrawFunc2D::DrawGraph({ 530,0 }, noise2);
-
+	//ヒットエフェクト
 	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
-	HitEffect::Draw(nowCam, noises[0].noise, noises[1].noise);
+	HitEffect::Draw(nowCam);
 }
 
 void GameScene::OnImguiDebug()
 {
 	//ImguiApp::Instance()->DebugMaterial(sphere->model->meshes[0].material, REWRITE);
-
-	for (int i = 0; i < 2; ++i)
-	{
-		ImGui::Begin(("Noise" + std::to_string(i)).c_str());
-		bool change = false;
-		if (ImGui::SliderInt("Split", &noises[i].split, 1, 256))change = true;
-		if (ImGui::SliderInt("Octaves", &noises[i].octaves, 1, 10))change = true;
-		if (ImGui::SliderFloat("Frequency", &noises[i].frequency, 0.1f, 10.0f))change = true;
-		if (ImGui::SliderFloat("Persistance", &noises[i].persistance, 0.1f, 1.0f))change = true;
-
-		if (change)
-		{
-			NoiseGenerate();
-		}
-
-		ImGui::End();
-	}
 
 	ImGui::Begin("Effect");
 	ImGui::SliderFloat("Blur", &HitEffect::GetInstance(0).blur, 0.0f, 50.0f);

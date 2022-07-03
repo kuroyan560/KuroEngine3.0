@@ -12,6 +12,8 @@ void PlayerAttack::Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_
 	attachAnimator = Animator;
 	leftHandCol = LeftHandCollider;
 	rightHandCol = RightHandCollider;
+	leftHandCol.lock()->SetCallBack(&attackColliderCallBack);
+	rightHandCol.lock()->SetCallBack(&attackColliderCallBack);
 }
 
 void PlayerAttack::Init()
@@ -39,6 +41,8 @@ void PlayerAttack::Update()
 			readyAnim = false;
 		}
 
+		emitHitEffect = true;
+
 		//複数の攻撃アニメーションをループ
 		nowIdx++;
 		if (ATTACK_ANIM_NUM <= nowIdx)nowIdx = 0;
@@ -59,4 +63,14 @@ void PlayerAttack::Stop()
 	isActive = false;
 	leftHandCol.lock()->SetActive(false);
 	rightHandCol.lock()->SetActive(false);
+}
+
+#include"HitEffect.h"
+void PlayerAttack::AttackColliderCallBack::OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)
+{
+	if (parent->emitHitEffect)
+	{
+		HitEffect::Generate(Inter);
+		parent->emitHitEffect = false;
+	}
 }

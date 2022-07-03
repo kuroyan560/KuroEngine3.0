@@ -2,8 +2,8 @@
 #include<array>
 #include<string>
 #include<memory>
+#include"Collider.h"
 class ModelAnimator;
-class Collider;
 
 class PlayerAttack
 {
@@ -13,6 +13,14 @@ private:
 	{
 		"Attack_0","Attack_1","Attack_2","Attack_3"
 	};
+
+	class AttackColliderCallBack : public CollisionCallBack
+	{
+		PlayerAttack* parent;
+		void OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)override;
+	public:
+		AttackColliderCallBack(PlayerAttack* Parent) :parent(Parent) {}
+	}attackColliderCallBack;
 
 	//アタッチされたアニメーターとコライダー
 	std::weak_ptr<ModelAnimator>attachAnimator;
@@ -31,8 +39,11 @@ private:
 	//アニメーション再生
 	void AnimPlay();
 
+	//ヒットエフェクトを出すかのフラグ
+	bool emitHitEffect = false;
+
 public:
-	PlayerAttack() {}
+	PlayerAttack() :attackColliderCallBack(this) {}
 	void Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& LeftHandCollider, std::shared_ptr<Collider>& RightHandCollider);
 	void Init();
 	void Update();

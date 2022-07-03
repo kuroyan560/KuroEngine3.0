@@ -18,7 +18,7 @@ public:
 	static void Generate(const Vec3<float>& Pos);
 	static void Init();
 	static void Update();
-	static void Draw(Camera& Cam, std::shared_ptr<TextureBuffer>& Noise, std::shared_ptr<TextureBuffer>& Noise2);
+	static void Draw(Camera& Cam);
 	static HitEffect& GetInstance(const int& Idx) { return INSTANCES[Idx]; }
 
 public:

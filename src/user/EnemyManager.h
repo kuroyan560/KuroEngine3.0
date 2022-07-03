@@ -9,6 +9,10 @@ class Enemy;
 class GraphicsPipeline;
 class StructuredBuffer;
 class Camera;
+class CubeMap;
+
+//エネミー種別
+const enum ENEMY_TYPE { SANDBAG, ENEMY_TYPE_NUM };
 
 class EnemyManager : public Singleton<EnemyManager>
 {
@@ -16,10 +20,6 @@ private:
 	friend class Singleton<EnemyManager>;
 	EnemyManager();
 	typedef std::vector<std::shared_ptr<Enemy>> EnemyArray;
-
-public:
-	//エネミー種別
-	const enum ENEMY_TYPE { SANDBAG, ENEMY_TYPE_NUM };
 
 private:
 	//各種別ごとに生成できる最大数
@@ -41,5 +41,10 @@ private:
 public:
 	void Spawn(const ENEMY_TYPE& Type, const Transform& InitTransform);
 	void Update();
-	void Draw(Camera& Cam);
+	void Draw(Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap);
+
+	std::shared_ptr<Model>GetModel(const ENEMY_TYPE& Type)
+	{
+		return breeds[Type]->GetModel();
+	}
 };
