@@ -114,5 +114,6 @@ void CSmain(uint2 DTid : SV_DispatchThreadID)
     }
     
     float result = total / maxValue;
+    result = saturate(result);
     pixels[DTid] = float4(result, result, result, result);
 };
