@@ -12,6 +12,7 @@ class GaussianBlur;
 class Enemy;
 class StaticallyCubeMap;
 class DynamicCubeMap;
+class TextureBuffer;
 
 class GameScene : public BaseScene
 {
@@ -29,6 +30,17 @@ class GameScene : public BaseScene
 
 	std::shared_ptr<StaticallyCubeMap>staticCubeMap;
 	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
+
+	struct Noise
+	{
+		std::shared_ptr<TextureBuffer>tex;
+		int split = 16;
+		int octaves = 1;
+		float frequency = 1.0f;
+		float persistance = 0.5f;
+
+		void ResetNoise();
+	}noise;
 
 public:
 	GameScene();

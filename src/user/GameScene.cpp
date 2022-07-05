@@ -57,6 +57,8 @@ GameScene::GameScene()
 	staticCubeMap->transform.SetScale(30);
 
 	dynamicCubeMap = std::make_shared<DynamicCubeMap>();
+
+	noise.ResetNoise();
 }
 
 void GameScene::OnInitialize()
@@ -177,6 +179,12 @@ void GameScene::OnDraw()
 
 	//ヒットエフェクト
 	DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
+
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
+	{
+		noise.ResetNoise();
+	}
+	DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
 	HitEffect::Draw(nowCam);
 }
 
@@ -186,7 +194,18 @@ void GameScene::OnImguiDebug()
 	ImGui::Text("RB - Player's attack");
 	ImGui::Text("A  - Emit hit effect");
 	ImGui::Text("X - Turn collider's draw flag");
+	ImGui::End();
 
+	ImGui::Begin("Noise");
+	bool change = false;
+	if (ImGui::SliderInt("Split", &noise.split, 1, 32))change = true;
+	if (ImGui::SliderInt("Octaves", &noise.octaves, 1, 32))change = true;
+	if (ImGui::SliderFloat("Frequency", &noise.frequency, 1.0f, 32.0f))change = true;
+	if (ImGui::SliderFloat("Persistance", &noise.persistance, 0.0f, 1.0f))change = true;
+	if (change)
+	{
+		noise.ResetNoise();
+	}
 	ImGui::End();
 
 	GameManager::Instance()->ImGuiDebug();
@@ -194,4 +213,16 @@ void GameScene::OnImguiDebug()
 
 void GameScene::OnFinalize()
 {
+}
+
+void GameScene::Noise::ResetNoise()
+{
+	if (!tex)
+	{
+		tex = NoiseGenerator::PerlinNoise2D("DebugNoise", { 512,512 }, split, octaves, frequency, persistance, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	}
+	else
+	{
+		NoiseGenerator::PerlinNoise2D(tex, split, octaves, frequency, persistance);
+	}
 }
