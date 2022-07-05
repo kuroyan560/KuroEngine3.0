@@ -704,3 +704,26 @@ float3 Easing_Bounce_InOut(float t, float totaltime, float3 min, float3 max)
     Easing_Bounce_InOut(t, totaltime, min.y, max.y),
     Easing_Bounce_InOut(t, totaltime, min.z, max.z));
 }
+
+//ポスタライズ
+float Posterize(float input,float step)
+{
+    return floor(input / (1.0f / step)) * (1.0f / step);
+}
+
+float2 Posterize(float2 input, float step)
+{
+    return float2(Posterize(input.x, step), Posterize(input.y, step));
+};
+
+float3 Posterize(float3 input,float step)
+{
+    float2 xy = Posterize(input.xy, step);
+    return float3(xy.x, xy.y, Posterize(input.z, step));
+}
+
+float4 Posterize(float4 input,float step)
+{
+    float3 xyz = Posterize(input.xyz, step);
+    return float4(xyz.x, xyz.y, xyz.z, Posterize(input.w, step));
+}

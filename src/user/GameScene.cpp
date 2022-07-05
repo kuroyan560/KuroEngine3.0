@@ -176,7 +176,7 @@ void GameScene::OnDraw()
 	}
 
 	//ヒットエフェクト
-	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
+	DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
 	HitEffect::Draw(nowCam);
 }
 
