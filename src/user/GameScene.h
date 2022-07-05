@@ -34,7 +34,8 @@ class GameScene : public BaseScene
 	struct Noise
 	{
 		std::shared_ptr<TextureBuffer>tex;
-		int split = 16;
+		Vec2<int> split = { 16,16 };
+		int contrast = 1;
 		int octaves = 1;
 		float frequency = 1.0f;
 		float persistance = 0.5f;

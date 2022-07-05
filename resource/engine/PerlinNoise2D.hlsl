@@ -1,7 +1,8 @@
 cbuffer cbuff0 : register(b0)
 {
     float2 rectLength;
-    int split;
+    int2 split;
+    int contrast;
     int octaves;
     float baseFrequency;
     float persistance;
@@ -34,10 +35,10 @@ float PerlinNoise(float2 pixelIdx)
     int y1Idx = y0Idx + 1;
     
     //各角の勾配ベクトル取得
-    float2 grad_LU = grads[y0Idx * (split + 1) + x0Idx];
-    float2 grad_LB = grads[y1Idx * (split + 1) + x0Idx];
-    float2 grad_RU = grads[y0Idx * (split + 1) + x1Idx];
-    float2 grad_RB = grads[y1Idx * (split + 1) + x1Idx];
+    float2 grad_LU = grads[y0Idx * (split.x + 1) + x0Idx];
+    float2 grad_LB = grads[y1Idx * (split.x + 1) + x0Idx];
+    float2 grad_RU = grads[y0Idx * (split.x + 1) + x1Idx];
+    float2 grad_RB = grads[y1Idx * (split.x + 1) + x1Idx];
     
     //自身が所属する矩形の各角の座標取得
     float x0Pos = x0Idx * rectLength.x;
@@ -66,6 +67,9 @@ float PerlinNoise(float2 pixelIdx)
     
     //Y軸方向に補間
     float result = lerp(w_U, w_B, uvOnSplit.y);
+    
+    //コントラストを上げる
+    result = atan(contrast * result);
     
     //０～１に補正
     result = (result + 1.0f) / 2.0f;

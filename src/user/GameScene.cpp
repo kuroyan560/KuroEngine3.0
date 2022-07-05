@@ -198,7 +198,9 @@ void GameScene::OnImguiDebug()
 
 	ImGui::Begin("Noise");
 	bool change = false;
-	if (ImGui::SliderInt("Split", &noise.split, 1, 32))change = true;
+	if (ImGui::SliderInt("Split - X", &noise.split.x, 1, 64))change = true;
+	if (ImGui::SliderInt("Split - Y", &noise.split.y, 1, 64))change = true;
+	if (ImGui::SliderInt("Contrast", &noise.contrast, 1, 32))change = true;
 	if (ImGui::SliderInt("Octaves", &noise.octaves, 1, 32))change = true;
 	if (ImGui::SliderFloat("Frequency", &noise.frequency, 1.0f, 32.0f))change = true;
 	if (ImGui::SliderFloat("Persistance", &noise.persistance, 0.0f, 1.0f))change = true;
@@ -219,10 +221,10 @@ void GameScene::Noise::ResetNoise()
 {
 	if (!tex)
 	{
-		tex = NoiseGenerator::PerlinNoise2D("DebugNoise", { 512,512 }, split, octaves, frequency, persistance, DXGI_FORMAT_R32G32B32A32_FLOAT);
+		tex = NoiseGenerator::PerlinNoise2D("DebugNoise", { 512,512 }, split, contrast, octaves, frequency, persistance, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	}
 	else
 	{
-		NoiseGenerator::PerlinNoise2D(tex, split, octaves, frequency, persistance);
+		NoiseGenerator::PerlinNoise2D(tex, split, contrast, octaves, frequency, persistance);
 	}
 }
