@@ -450,7 +450,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CSmain</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CSmain</EntryPointName>
     </FxCompile>
-    <FxCompile Include="resource\engine\PerlinNoise.hlsl">
+    <FxCompile Include="resource\engine\PerlinNoise2D.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CSmain</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>

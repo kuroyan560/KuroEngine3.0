@@ -101,8 +101,8 @@ void HitEffect::Draw(Camera& Cam)
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, true) });
 
 		//パーリンノイズ
-		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise(IMG_SIZE, 12, 6, 1.647f, 0.775f);
-		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise(IMG_SIZE, 7, 2, 0.79f, 0.5f);
+		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise2D(IMG_SIZE, 12, 6, 1.647f, 0.775f);
+		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise2D(IMG_SIZE, 7, 2, 0.79f, 0.5f);
 
 		//頂点バッファ生成
 		VERTEX_BUFF = D3D12App::Instance()->GenerateVertexBuffer(sizeof(HitEffect), MAX_NUM, nullptr, "HitEffect - VertexBuffer");

@@ -92,6 +92,9 @@
     <Filter Include="src\user\Effect">
       <UniqueIdentifier>{09de12f2-4801-4db7-956b-a4351608d029}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HLSL\engine\Noise">
+      <UniqueIdentifier>{bde9b7ce-e8a7-4410-8cf6-de194a798f1e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\engine\RectTexture.hlsl">
@@ -181,9 +184,6 @@
     <FxCompile Include="resource\engine\CollisionPrimitive\Mesh.hlsl">
       <Filter>HLSL\engine\CollisionPrimitive</Filter>
     </FxCompile>
-    <FxCompile Include="resource\engine\PerlinNoise.hlsl">
-      <Filter>HLSL\engine</Filter>
-    </FxCompile>
     <FxCompile Include="resource\user\HitEffect.hlsl">
       <Filter>HLSL\user</Filter>
     </FxCompile>
@@ -192,6 +192,9 @@
     </FxCompile>
     <FxCompile Include="resource\engine\LightBloom.hlsl">
       <Filter>HLSL\engine</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\engine\PerlinNoise2D.hlsl">
+      <Filter>HLSL\engine\Noise</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
