@@ -198,12 +198,38 @@ void GameScene::OnImguiDebug()
 
 	ImGui::Begin("Noise");
 	bool change = false;
-	if (ImGui::SliderInt("Split - X", &noise.split.x, 1, 64))change = true;
-	if (ImGui::SliderInt("Split - Y", &noise.split.y, 1, 64))change = true;
-	if (ImGui::SliderInt("Contrast", &noise.contrast, 1, 32))change = true;
-	if (ImGui::SliderInt("Octaves", &noise.octaves, 1, 32))change = true;
-	if (ImGui::SliderFloat("Frequency", &noise.frequency, 1.0f, 32.0f))change = true;
-	if (ImGui::SliderFloat("Persistance", &noise.persistance, 0.0f, 1.0f))change = true;
+
+	static int TYPE_IDX = WAVELET;
+	static std::string CURRENT_TYPE = NoiseGenerator::GetInterpolationName((NOISE_INTERPOLATION)TYPE_IDX);
+
+	if (ImGui::BeginCombo("Interpolation", CURRENT_TYPE.c_str()))
+	{
+		for (int n = 0; n < NOISE_INTERPOLATION_NUM; ++n)
+		{
+			auto interpolationName = NoiseGenerator::GetInterpolationName((NOISE_INTERPOLATION)n);
+			bool isSelected = (CURRENT_TYPE == interpolationName);
+			if (ImGui::Selectable(interpolationName.c_str(), isSelected))
+			{
+				CURRENT_TYPE = interpolationName;
+				TYPE_IDX = n;
+				noise.initializer.interpolation = (NOISE_INTERPOLATION)n;
+				change = true;
+			}
+			if (isSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+
+		ImGui::EndCombo();
+	}
+
+	if (ImGui::SliderInt("Split - X", &noise.initializer.split.x, 1, 64))change = true;
+	if (ImGui::SliderInt("Split - Y", &noise.initializer.split.y, 1, 64))change = true;
+	if (ImGui::SliderInt("Contrast", &noise.initializer.contrast, 1, 32))change = true;
+	if (ImGui::SliderInt("Octaves", &noise.initializer.octave, 1, 32))change = true;
+	if (ImGui::SliderFloat("Frequency", &noise.initializer.frequency, 1.0f, 32.0f))change = true;
+	if (ImGui::SliderFloat("Persistance", &noise.initializer.persistance, 0.0f, 1.0f))change = true;
 	if (change)
 	{
 		noise.ResetNoise();
@@ -221,10 +247,10 @@ void GameScene::Noise::ResetNoise()
 {
 	if (!tex)
 	{
-		tex = NoiseGenerator::PerlinNoise2D("DebugNoise", { 512,512 }, split, contrast, octaves, frequency, persistance, DXGI_FORMAT_R32G32B32A32_FLOAT);
+		tex = NoiseGenerator::PerlinNoise2D("DebugNoise", { 512,512 }, initializer, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	}
 	else
 	{
-		NoiseGenerator::PerlinNoise2D(tex, split, contrast, octaves, frequency, persistance);
+		NoiseGenerator::PerlinNoise2D(tex, initializer);
 	}
 }

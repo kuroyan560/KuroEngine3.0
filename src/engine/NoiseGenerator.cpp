@@ -5,11 +5,14 @@
 
 int NoiseGenerator::PERLIN_NOISE_ID_2D = 0;
 
-void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const Vec2<int>& Split, const int& Contrast, const int& Octaves, const float& Frequency, const float& Persistance)
+void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const NoiseInitializer& Config)
 {
 	//最大分割数
 	static const int SPLIT_MAX = 256;
-	assert(0 < Split.x && Split.x <= SPLIT_MAX && 0 < Split.y && Split.y <= SPLIT_MAX);
+	assert(0 < Config.split.x && Config.split.x <= SPLIT_MAX && 0 < Config.split.y && Config.split.y <= SPLIT_MAX);
+
+	//補間方法の値が適切か
+	assert(0 <= Config.interpolation && Config.interpolation < NOISE_INTERPOLATION_NUM);
 
 	//コンピュートパイプライン
 	static std::shared_ptr<ComputePipeline>PIPELINE;
@@ -21,12 +24,13 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	{
 		Vec2<float>rectLength;
 		Vec2<int> split;
+		int interpolation;
 		int contrast;
 		int octaveNum;
 		float frequency;
 		float persistance;
-		ConstData(const Vec2<float>& RectLength, const Vec2<int>& Split, const int& Contrast, const int& Octaves, const float& Frequency, const float& Persistance)
-			:rectLength(RectLength), split(Split), contrast(Contrast), octaveNum(Octaves), frequency(Frequency), persistance(Persistance) {}
+		ConstData(const int& Interpolation, const Vec2<float>& RectLength, const Vec2<int>& Split, const int& Contrast, const int& Octaves, const float& Frequency, const float& Persistance)
+			:interpolation(Interpolation), rectLength(RectLength), split(Split), contrast(Contrast), octaveNum(Octaves), frequency(Frequency), persistance(Persistance) {}
 	};
 
 	//構造体バッファ
@@ -60,22 +64,22 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	}
 
 	//定数バッファにデータ転送
-	ConstData constData(DestTex->GetGraphSize().Float() / Split.Float(), Split, Contrast, Octaves, Frequency, Persistance);
+	ConstData constData(Config.interpolation, DestTex->GetGraphSize().Float() / Config.split.Float(), Config.split, Config.contrast, Config.octave, Config.frequency, Config.persistance);
 	CONST_BUFF[PERLIN_NOISE_ID_2D]->Mapping(&constData);
 
 	//分割後の各頂点の勾配ベクトル格納先
 	Vec2<float>grad[(SPLIT_MAX + 1) * (SPLIT_MAX + 1)];
-	for (int y = 0; y <= Split.y; ++y)
+	for (int y = 0; y <= Config.split.y; ++y)
 	{
-		for (int x = 0; x <= Split.x; ++x)
+		for (int x = 0; x <= Config.split.x; ++x)
 		{
-			int idx = y * (Split.x + 1) + x;
+			int idx = y * (Config.split.x + 1) + x;
 			//ランダムな勾配ベクトル
 			grad[idx].x = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 			grad[idx].y = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 
-			if (x == Split.x)grad[idx] = grad[y * (Split.x + 1)];
-			if (y == Split.y)grad[idx] = grad[x];
+			if (x == Config.split.x)grad[idx] = grad[y * (Config.split.x + 1)];
+			if (y == Config.split.y)grad[idx] = grad[x];
 		}
 	}
 	//構造化バッファに転送
@@ -112,10 +116,10 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	PERLIN_NOISE_ID_2D++;
 }
 
-std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise2D(const std::string& Name, const Vec2<int>& Size, const Vec2<int>& Split, const int& Contrast, const int& Octaves, const float& Frequency, const float& Persistance, const DXGI_FORMAT& Format)
+std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise2D(const std::string& Name, const Vec2<int>& Size, const NoiseInitializer& Config, const DXGI_FORMAT& Format)
 {
 	//描き込み先用テクスチャバッファ生成
 	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, Format, Name.c_str());
-	PerlinNoise2D(result, Split, Contrast, Octaves, Frequency, Persistance);
+	PerlinNoise2D(result, Config);
 	return result;
 }

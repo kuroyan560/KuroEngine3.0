@@ -5,6 +5,7 @@
 #include"GameManager.h"
 #include"ShadowMapDevice.h"
 #include"LightBloomDevice.h"
+#include"NoiseGenerator.h"
 
 class Model;
 class ModelObject;
@@ -34,11 +35,7 @@ class GameScene : public BaseScene
 	struct Noise
 	{
 		std::shared_ptr<TextureBuffer>tex;
-		Vec2<int> split = { 16,16 };
-		int contrast = 1;
-		int octaves = 1;
-		float frequency = 1.0f;
-		float persistance = 0.5f;
+		NoiseInitializer initializer;
 
 		void ResetNoise();
 	}noise;

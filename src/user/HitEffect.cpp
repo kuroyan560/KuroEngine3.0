@@ -100,10 +100,23 @@ void HitEffect::Draw(Camera& Cam)
 		//パイプライン生成
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, true) });
 
-		//パーリンノイズ
-		//DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - DisplacementNoiseTex", IMG_SIZE, { 12,12 }, 1, 6, 1.647f, 0.775f);
-		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - DisplacementNoiseTex", IMG_SIZE, { 12,12 }, 1, 6, 1.647f, 0.775f);
-		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - AlphaNoiseTex", IMG_SIZE, { 7,7 }, 2, 2, 0.79f, 0.5f);
+		//パーリンノイズ（ディスプレイスメントマップ）
+		NoiseInitializer displacementNoiseInit;
+		displacementNoiseInit.split = { 12,12 };
+		displacementNoiseInit.contrast = 1;
+		displacementNoiseInit.octave = 6;
+		displacementNoiseInit.frequency = 1.647f;
+		displacementNoiseInit.persistance = 0.775f;
+		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - DisplacementNoiseTex", IMG_SIZE, displacementNoiseInit);
+
+		//パーリンノイズ（アルファ）
+		NoiseInitializer alphaNoiseInit;
+		alphaNoiseInit.split = { 7,7 };
+		alphaNoiseInit.contrast = 2;
+		alphaNoiseInit.octave = 2;
+		alphaNoiseInit.frequency = 0.79f;
+		alphaNoiseInit.persistance = 0.5f;
+		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - AlphaNoiseTex", IMG_SIZE, alphaNoiseInit);
 
 		//頂点バッファ生成
 		VERTEX_BUFF = D3D12App::Instance()->GenerateVertexBuffer(sizeof(HitEffect), MAX_NUM, nullptr, "HitEffect - VertexBuffer");

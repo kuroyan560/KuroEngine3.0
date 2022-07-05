@@ -2,6 +2,7 @@ cbuffer cbuff0 : register(b0)
 {
     float2 rectLength;
     int2 split;
+    int interpolation;
     int contrast;
     int octaves;
     float baseFrequency;
@@ -55,18 +56,38 @@ float PerlinNoise(float2 pixelIdx)
     //自身が所属する矩形上での相対座標(左上基準）
     float2 uvOnSplit = uv_LU;
     
-    //左上と右上の対で補間
-    float w_LU = GradWaveLet(uv_LU, grad_LU);
-    float w_RU = GradWaveLet(uv_RU, grad_RU);
-    float w_U = lerp(w_LU, w_RU, uvOnSplit.x);
     
-    //左下と右下の対で補間
-    float w_LB = GradWaveLet(uv_LB, grad_LB);
-    float w_RB = GradWaveLet(uv_RB, grad_RB);
-    float w_B = lerp(w_LB, w_RB, uvOnSplit.x);
+    float result = 0.0f;
     
-    //Y軸方向に補間
-    float result = lerp(w_U, w_B, uvOnSplit.y);
+    //補間
+    if (interpolation == 0)  //Wavelet
+    {
+        //左上と右上の対で補間
+        float w_LU = GradWaveLet(uv_LU, grad_LU);
+        float w_RU = GradWaveLet(uv_RU, grad_RU);
+        float w_U = lerp(w_LU, w_RU, uvOnSplit.x);
+    
+        //左下と右下の対で補間
+        float w_LB = GradWaveLet(uv_LB, grad_LB);
+        float w_RB = GradWaveLet(uv_RB, grad_RB);
+        float w_B = lerp(w_LB, w_RB, uvOnSplit.x);
+    
+        //Y軸方向に補間
+        result = lerp(w_U, w_B, uvOnSplit.y);
+    }
+    else if (interpolation == 1) //Block
+    {
+        //全て矩形の中心点で補間
+        float w_LU = dot(grad_LU, float2(0.5f, 0.5f));
+        float w_RU = dot(grad_RU, float2(0.5f, 0.5f));
+        float w_U = lerp(w_LU, w_RU, 0.5f);
+    
+        float w_LB = dot(grad_LB, float2(0.5f, 0.5f));
+        float w_RB = dot(grad_RB, float2(0.5f, 0.5f));
+        float w_B = lerp(w_LB, w_RB, 0.5f);
+    
+        result = lerp(w_U, w_B, 0.5f);
+    }
     
     //コントラストを上げる
     result = atan(contrast * result);
