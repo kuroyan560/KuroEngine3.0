@@ -113,12 +113,13 @@ void EnemyManager::Draw(Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap)
 
 
 		//ワールド行列類更新
-		std::vector<Matrix>worldMatricies;
-		for (auto& enemy : enemyArray)
+		static std::vector<Matrix>WORLD_MATRICIES(MAX_NUM);	//行列配列は使いまわし
+		std::fill(WORLD_MATRICIES.begin(), WORLD_MATRICIES.end(), XMMatrixIdentity());
+		for (int enemyIdx = 0; enemyIdx < enemyArray.size(); ++enemyIdx)
 		{
-			worldMatricies.emplace_back(enemy->GetWorldMat());
+			WORLD_MATRICIES[enemyIdx] = enemyArray[enemyIdx]->GetWorldMat();
 		}
-		worldMatriciesBuff[enemyType]->Mapping(worldMatricies.data());
+		worldMatriciesBuff[enemyType]->Mapping(WORLD_MATRICIES.data());
 
 		//ボーン行列更新
 		/*
