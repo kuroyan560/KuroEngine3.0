@@ -89,5 +89,5 @@ void CSmain(uint2 DTid : SV_DispatchThreadID)
     }
     
     float result = total / maxValue;
-    pixels[DTid] = float4(result, result, result, 1.0f);
+    pixels[DTid] = float4(result, result, result, result);
 };

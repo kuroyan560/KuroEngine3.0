@@ -111,10 +111,10 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	PERLIN_NOISE_ID_2D++;
 }
 
-std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise2D(const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Frequency, const float& Persistance, const DXGI_FORMAT& Format)
+std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise2D(const std::string& Name, const Vec2<int>& Size, const int& Split, const int& Octaves, const float& Frequency, const float& Persistance, const DXGI_FORMAT& Format)
 {
 	//描き込み先用テクスチャバッファ生成
-	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, Format, ("PerlinNoise2D - " + std::to_string(PERLIN_NOISE_ID_2D)).c_str());
+	auto result = D3D12App::Instance()->GenerateTextureBuffer(Size, Format, Name.c_str());
 	PerlinNoise2D(result, Split, Octaves, Frequency, Persistance);
 	return result;
 }
