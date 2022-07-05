@@ -121,7 +121,6 @@ float4 GetCirclePixel(float2 uv)
 float4 GetPixelColor(float2 uv)
 {
     float displacementNoise = displacementNoiseTex.Sample(smp, uv).r;
-    displacementNoise = displacementNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
     
     //中央から外側に向かって
     float2 toOutVec = uv - float2(0.5f, 0.5f);
@@ -134,7 +133,6 @@ float4 GetPixelColor(float2 uv)
     
     //アルファノイズ
     float alphaNoise = alphaNoiseTex.Sample(smp, uv).r;
-    alphaNoise = alphaNoise * 2.0f - 1.0f; //0~1から-1~1の範囲に
     alphaNoise *= 9.0f; //コントラストを上げる
     result.w *= alphaNoise;
     return result;

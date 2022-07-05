@@ -92,9 +92,6 @@ float PerlinNoise(float2 pixelIdx)
     //ƒRƒ“ƒgƒ‰ƒXƒg‚ğã‚°‚é
     result = atan(contrast * result);
     
-    //‚O`‚P‚É•â³
-    result = (result + 1.0f) / 2.0f;
-    
     return result;
 }
 
@@ -114,6 +111,6 @@ void CSmain(uint2 DTid : SV_DispatchThreadID)
     }
     
     float result = total / maxValue;
-    result = saturate(result);
+    result = clamp(result, -1.0f, 1.0f);
     pixels[DTid] = float4(result, result, result, result);
 };
