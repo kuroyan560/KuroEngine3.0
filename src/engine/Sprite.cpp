@@ -17,13 +17,6 @@ Sprite::Sprite(const std::shared_ptr<TextureBuffer>& Texture, const char* Name) 
 		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "VSmain", "vs_5_0");
 		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "PSmain", "ps_5_0");
 
-		//インプットレイアウト
-		static std::vector<InputLayoutParam>INPUT_LAYOUT =
-		{
-			InputLayoutParam("POSITION",DXGI_FORMAT_R32G32_FLOAT),
-			InputLayoutParam("TEXCOORD",DXGI_FORMAT_R32G32_FLOAT)
-		};
-
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
 		{
@@ -37,7 +30,7 @@ Sprite::Sprite(const std::shared_ptr<TextureBuffer>& Texture, const char* Name) 
 		{
 			std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), (AlphaBlendMode)i) };
 			//パイプライン生成
-			PIPELINE[i] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
+			PIPELINE[i] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, SpriteMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 		}
 
 		//白テクスチャ

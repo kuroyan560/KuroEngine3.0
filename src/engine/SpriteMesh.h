@@ -9,19 +9,31 @@ class Mesh;
 
 class SpriteMesh
 {
+public:
 	//スプライト専用頂点クラス
-	class Vertex_Sprite
+	class Vertex
 	{
 	public:
 		Vec2<float>pos;
 		Vec2<float>uv;
+
+		static std::vector<InputLayoutParam>GetInputLayout()
+		{
+			static std::vector<InputLayoutParam>INPUT_LAYOUT =
+			{
+				InputLayoutParam("POSITION",DXGI_FORMAT_R32G32_FLOAT),
+				InputLayoutParam("TEXCOORD",DXGI_FORMAT_R32G32_FLOAT)
+			};
+			return INPUT_LAYOUT;
+		}
 	};
+private:
 
 	//頂点インデックス
 	enum { LB, LT, RB, RT, IDX_NUM };
 
 	//メッシュ情報
-	std::shared_ptr<Mesh<Vertex_Sprite>>mesh;
+	std::shared_ptr<Mesh<Vertex>>mesh;
 
 	//トリミングインデックス
 	enum { TOP, BOTTOM, LEFT, RIGHT, TRIM_IDX_NUM };
