@@ -91,6 +91,7 @@ Player::Player() : pushBackColliderCallBack(this)
 /*--- コライダー生成 ---*/
 	//本体
 	auto bodyCol_Sphere = std::make_shared<CollisionSphere>(3.0f, &model->transform);
+	bodyCol_Sphere->offset = { 0,6,0 };
 	auto bodyCol = Collider::Generate(bodyCol_Sphere);
 	bodyCol->SetCallBack(&pushBackColliderCallBack);	//押し戻しコールバック処理をアタッチ
 	colliders.emplace_back(bodyCol);
