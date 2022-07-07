@@ -33,7 +33,7 @@ private:
 	enum { LB, LT, RB, RT, IDX_NUM };
 
 	//メッシュ情報
-	std::shared_ptr<Mesh<Vertex>>mesh;
+	std::shared_ptr<Mesh<SpriteMesh::Vertex>>mesh;
 
 	//トリミングインデックス
 	enum { TOP, BOTTOM, LEFT, RIGHT, TRIM_IDX_NUM };

@@ -10,7 +10,7 @@ class ModelMesh
 {
 public:
 	//モデル専用頂点クラス
-	class Vertex_Model
+	class Vertex
 	{
 	public:
 		static std::vector<InputLayoutParam>GetInputLayout()
@@ -37,7 +37,7 @@ public:
 		Vec4<float>boneWeight = { 0,0,0,0 };
 	};
 
-	std::shared_ptr<Mesh<Vertex_Model>>mesh;
+	std::shared_ptr<Mesh<ModelMesh::Vertex>>mesh;
 	std::shared_ptr<Material> material;
 
 	//スムージング

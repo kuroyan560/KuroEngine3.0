@@ -5,7 +5,7 @@
 SpriteMesh::SpriteMesh(const char* Name)
 {
 	//ƒƒbƒVƒ…¶¬
-	mesh = std::make_shared<Mesh<Vertex_Sprite>>();
+	mesh = std::make_shared<Mesh<SpriteMesh::Vertex>>();
 
 	//–¼‘O‚ª‚ ‚Á‚½‚çİ’è
 	if(Name)mesh->name = Name;

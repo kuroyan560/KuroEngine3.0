@@ -606,7 +606,7 @@ void Importer::LoadGLTFPrimitive(ModelMesh& ModelMesh, const Microsoft::glTF::Me
 		int tid0 = 2 * vertIdx, tid1 = 2 * vertIdx + 1;
 		int jid0 = 4 * vertIdx, jid1 = 4 * vertIdx + 1, jid2 = 4 * vertIdx + 2, jid3 = 4 * vertIdx + 3;
 
-		ModelMesh::Vertex_Model vertex;
+		ModelMesh::Vertex vertex;
 		vertex.pos = { vertPos[vid0],vertPos[vid1],vertPos[vid2] };
 		vertex.normal = { vertNrm[vid0],vertNrm[vid1],vertNrm[vid2] };
 		vertex.uv = { vertUV[tid0],vertUV[tid1] };
@@ -826,7 +826,7 @@ std::shared_ptr<Model> Importer::LoadHSMModel(const std::string& Dir, const std:
 	{
 		//メッシュ取得
 		auto& mesh = model->meshes[meshIdx];
-		mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex_Model>>();
+		mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex>>();
 		mesh.material = std::make_shared<Material>();
 
 		//メッシュ名サイズ
@@ -840,7 +840,7 @@ std::shared_ptr<Model> Importer::LoadHSMModel(const std::string& Dir, const std:
 		ErrorMessage(FUNC_NAME, !LoadData(fp, &vertNum, sizeof(vertNum), 1), "頂点数" + MSG_TAIL);
 		//頂点情報
 		mesh.mesh->vertices.resize(vertNum);
-		ErrorMessage(FUNC_NAME, !LoadData(fp, &mesh.mesh->vertices[0], sizeof(ModelMesh::Vertex_Model), vertNum), "頂点情報" + MSG_TAIL);
+		ErrorMessage(FUNC_NAME, !LoadData(fp, &mesh.mesh->vertices[0], sizeof(ModelMesh::Vertex), vertNum), "頂点情報" + MSG_TAIL);
 
 		//インデックス数
 		unsigned short idxNum;
@@ -941,7 +941,7 @@ void Importer::SaveHSMModel(const std::string& FileNameTail, std::shared_ptr<Mod
 		unsigned short vertNum = mesh.mesh->vertices.size();
 		ErrorMessage(FUNC_NAME, !SaveData(fp, &vertNum, sizeof(vertNum), 1), "頂点数" + MSG_TAIL);
 		//頂点情報
-		ErrorMessage(FUNC_NAME, !SaveData(fp, mesh.mesh->vertices.data(), sizeof(ModelMesh::Vertex_Model), vertNum), "頂点情報" + MSG_TAIL);
+		ErrorMessage(FUNC_NAME, !SaveData(fp, mesh.mesh->vertices.data(), sizeof(ModelMesh::Vertex), vertNum), "頂点情報" + MSG_TAIL);
 
 		//インデックス数
 		unsigned short idxNum = mesh.mesh->indices.size();
@@ -1153,7 +1153,7 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 
 			//モデル用メッシュ生成
 			ModelMesh mesh;
-			mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex_Model>>();
+			mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex>>();
 			//メッシュ名セット
 			mesh.mesh->name = fbxMesh->GetName();
 
@@ -1499,7 +1499,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		{
 			//モデル用メッシュ生成
 			ModelMesh mesh;
-			mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex_Model>>();
+			mesh.mesh = std::make_shared<Mesh<ModelMesh::Vertex>>();
 			mesh.mesh->name = meshName + " - " + std::to_string(primitiveNum++);
 
 			//頂点 & インデックス情報

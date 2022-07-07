@@ -151,7 +151,7 @@ void GameScene::OnDraw()
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
 
 	//キューブマップ描画
-	staticCubeMap->Draw(nowCam);
+	//staticCubeMap->Draw(nowCam);
 
 	//影つき床
 	shadowMapDevice.DrawShadowReceiver({ floorModel }, nowCam);
@@ -178,7 +178,7 @@ void GameScene::OnDraw()
 	}
 
 	//ヒットエフェクト
-	DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
+	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
 
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
 	{

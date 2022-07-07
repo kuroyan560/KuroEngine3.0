@@ -19,7 +19,7 @@ class Importer : public Singleton<Importer>
 	friend class Singleton<Importer>;
 
 	//モデル専用頂点
-	using Vertex = ModelMesh::Vertex_Model;
+	using Vertex = ModelMesh::Vertex;
 
 	//エラーメッセージ表示
 	void ErrorMessage(const std::string& FuncName, const bool& Fail, const std::string& Comment);
