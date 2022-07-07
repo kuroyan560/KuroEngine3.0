@@ -12,8 +12,6 @@ class Camera;
 class Player
 {
 private:
-
-
 	//インスタンス生成を１個に制限するためのフラグ
 	static bool INSTANCED;
 
@@ -55,6 +53,16 @@ private:
 
 	//攻撃処理クラス
 	PlayerAttack attack;
+
+	//押し戻しコールバック処理
+	class PushBackColliderCallBack : public CollisionCallBack
+	{
+		Player* parent;
+		void OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)override;
+	public:
+		Vec3<float>moveVec = { 0,0,0 };
+		PushBackColliderCallBack(Player* Parent) :parent(Parent) {}
+	}pushBackColliderCallBack;
 
 	//移動処理
 	void Move();

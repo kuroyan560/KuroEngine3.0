@@ -14,6 +14,9 @@ Player::CanInput Player::CAN_INPUT;
 
 void Player::Move()
 {
+	//移動方向
+	Vec3<float>moveVec = { 0,0,0 };
+
 	//左スティック入力レート
 	auto stickL = UsersInput::Instance()->GetLeftStickVec(0);
 
@@ -26,8 +29,8 @@ void Player::Move()
 		//走り状態
 		status = RUN;
 
-		//移動方向
-		Vec3<float>moveVec = { stickL.x,0.0f,-stickL.y };
+		//入力方向
+		moveVec = { stickL.x,0.0f,-stickL.y };
 
 		//回転行列を適用
 		//moveVec = KuroMath::TransformVec3(moveVec, model->transform.GetRotate()).GetNormal();
@@ -55,6 +58,9 @@ void Player::Move()
 		//待機状態
 		status = WAIT;
 	}
+
+	//押し戻しコールバック処理に移動方向を記録
+	pushBackColliderCallBack.moveVec = moveVec;
 }
 
 void Player::AnimationSwitch()
@@ -76,38 +82,40 @@ void Player::AnimationSwitch()
 	}
 }
 
-Player::Player()
+Player::Player() : pushBackColliderCallBack(this)
 {
 	KuroFunc::ErrorMessage(INSTANCED, "Player", "Constructor", "Only one Player's instance can exsit.");
 	INSTANCED = true;
 	model = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 
-	//コライダー生成
-	//メッシュ
-	//for (auto& mesh : model->model->meshes)
-	//{
-	//	auto meshCol = std::make_shared<CollisionAABB>(mesh.GetPosMinMax(), &model->transform);
-	//	colliders.emplace_back(Collider::Generate(meshCol));
-	//	colliders.back()->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	//	colliders.back()->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
-	//}
+/*--- コライダー生成 ---*/
+	//本体
+	auto bodyCol_Sphere = std::make_shared<CollisionSphere>(3.0f, &model->transform);
+	auto bodyCol = Collider::Generate(bodyCol_Sphere);
+	bodyCol->SetCallBack(&pushBackColliderCallBack);	//押し戻しコールバック処理をアタッチ
+	colliders.emplace_back(bodyCol);
 
+	//右手武器
 	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
 	boneCol_R_Sphere->offset = { 0,-0.5f,0.7f };
 	auto boneCol_R = Collider::Generate(boneCol_R_Sphere);
+	boneCol_R->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	colliders.emplace_back(boneCol_R);
 
+	//左手武器
 	auto boneCol_L_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_R"));
 	boneCol_L_Sphere->offset = { 0,-0.5f,0.7f };
 	auto boneCol_L = Collider::Generate(boneCol_L_Sphere);
+	boneCol_L->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	colliders.emplace_back(boneCol_L);
 
+	//全ての自身のコライダーにプレイヤー属性を与える
 	for (auto& col : colliders)
 	{
 		col->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-		col->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	}
 
+	//攻撃処理に武器コライダーをアタッチ
 	attack.Attach(model->animator, boneCol_L, boneCol_R);
 }
 
@@ -157,4 +165,23 @@ void Player::Update()
 void Player::Draw(Camera& Cam)
 {
 	DrawFunc3D::DrawNonShadingModel(model, Cam);
+}
+
+void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)
+{
+	//現在の座標
+	Vec3<float>nowPos = parent->model->transform.GetPos();
+
+	//押し戻し方向
+	Vec3<float>pushBackVec = -moveVec;	//移動方向の逆
+	if (pushBackVec.IsZero())pushBackVec = -parent->model->transform.GetFront();	//移動していないならプレイヤーの背面方向
+
+	//押し戻し量
+	float pushBackAmount = nowPos.Distance(Inter);
+
+	//押し戻し後の座標
+	Vec3<float>pushBackPos = nowPos + pushBackVec * pushBackAmount;
+
+	//新しい座標をセット
+	parent->model->transform.SetPos(pushBackPos);
 }
