@@ -15,14 +15,18 @@ enum COLLIDER_ATTRIBUTE
 //衝突判定があった際に呼び出される
 class CollisionCallBack
 {
-protected:
+private:
 	friend class Collider;
+	std::weak_ptr<Collider>attachCollider;
+
+protected:
+	const std::weak_ptr<Collider>& GetAttachCollider() { return attachCollider; }
 	/// <summary>
 	/// 衝突時呼び出される
 	/// </summary>
 	/// <param name="Inter">衝突点</param>
 	/// <param name="OthersAttribute">衝突した相手のAttribute</param>
-	virtual void OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute) = 0;
+	virtual void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider) = 0;
 };
 
 class Collider : public std::enable_shared_from_this<Collider>
@@ -58,17 +62,22 @@ public:
 	Collider(const std::shared_ptr<CollisionPrimitive>& Primitive) :primitive(Primitive) {  }
 
 	//当たり判定（衝突点を返す）
-	void CheckHitCollision(std::weak_ptr<Collider>& Other);
+	bool CheckHitCollision(std::weak_ptr<Collider> Other, Vec3<float>* Inter = nullptr);
 
 	//当たり判定描画
 	void DebugDraw(Camera& Cam);
 
 	//セッタ
-	void SetCallBack(CollisionCallBack* CallBack) { callBack = CallBack; }
+	void SetCallBack(CollisionCallBack* CallBack) 
+	{ 
+		callBack = CallBack; 
+		callBack->attachCollider = weak_from_this();
+	}
 	void SetMyAttribute(const COLLIDER_ATTRIBUTE& Attribute) { myAttribute = Attribute; }
 	void SetHitCheckAttribute(const COLLIDER_ATTRIBUTE& Attribute) { hitCheckAttribute = Attribute; }
 	void SetActive(const bool& Active) { isActive = Active; }
 
 	//ゲッタ
 	const bool& GetIsHit()const { return isHit; }
+	const std::weak_ptr<CollisionPrimitive>GetColliderPrimitive() { return primitive; }
 };

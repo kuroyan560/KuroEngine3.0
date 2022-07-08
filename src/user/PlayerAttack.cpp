@@ -66,7 +66,7 @@ void PlayerAttack::Stop()
 }
 
 #include"HitEffect.h"
-void PlayerAttack::AttackColliderCallBack::OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)
+void PlayerAttack::AttackColliderCallBack::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
 {
 	if (parent->emitHitEffect)
 	{

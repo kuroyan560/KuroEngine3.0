@@ -49,7 +49,7 @@ private:
 	std::shared_ptr<ModelObject>model;
 
 	//コライダー
-	std::vector<std::shared_ptr<Collider>>colliders;
+	std::vector<std::shared_ptr<Collider>>colliders;	//配列
 
 	//攻撃処理クラス
 	PlayerAttack attack;
@@ -58,9 +58,9 @@ private:
 	class PushBackColliderCallBack : public CollisionCallBack
 	{
 		Player* parent;
-		void OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)override;
+		void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override;
 	public:
-		Vec3<float>moveVec = { 0,0,0 };
+		Vec3<float>prePos;
 		PushBackColliderCallBack(Player* Parent) :parent(Parent) {}
 	}pushBackColliderCallBack;
 

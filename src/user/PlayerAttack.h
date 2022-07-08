@@ -17,7 +17,7 @@ private:
 	class AttackColliderCallBack : public CollisionCallBack
 	{
 		PlayerAttack* parent;
-		void OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)override;
+		void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override;
 	public:
 		AttackColliderCallBack(PlayerAttack* Parent) :parent(Parent) {}
 	}attackColliderCallBack;

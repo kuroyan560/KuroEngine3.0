@@ -237,8 +237,8 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter)
 {
 	//‚Q‚Â‚Ì‹…‚Ìƒ[ƒ‹ƒh’†SÀ•W‚ğ‹‚ß‚é
-	const auto centerA = KuroMath::TransformVec3(SphereA->offset, SphereA->GetLocalMat() * SphereA->GetWorldMat());
-	const auto centerB = KuroMath::TransformVec3(SphereB->offset, SphereB->GetLocalMat() * SphereB->GetWorldMat());
+	const auto centerA = SphereA->GetCenter();
+	const auto centerB = SphereB->GetCenter();
 
 	// ’†S“_‚Ì‹——£‚Ì‚Qæ <= ”¼Œa‚Ì˜a‚Ì‚Qæ‚È‚çŒğ·
 	const float distSq = centerA.DistanceSq(centerB);

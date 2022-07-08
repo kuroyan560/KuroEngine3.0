@@ -26,7 +26,16 @@ void Collider::UpdateAllColliders()
 		++itrB;
 		for (; itrB != COLLIDERS.end(); ++itrB)
 		{
-			colA->CheckHitCollision(*itrB);
+			auto colB = itrB->lock();
+			Vec3<float>inter;
+			if (colA->CheckHitCollision(colB, &inter))
+			{
+				colA->isHit = true;
+				colB->isHit = true;
+				//コールバック関数呼び出し
+				if (colA->callBack)colA->callBack->OnCollision(inter, colB);
+				if (colB->callBack)colB->callBack->OnCollision(inter, colA);
+			}
 		}
 	}
 }
@@ -40,30 +49,22 @@ void Collider::DebugDrawAllColliders(Camera& Cam)
 	}
 }
 
-void Collider::CheckHitCollision(std::weak_ptr<Collider>& Other)
+bool Collider::CheckHitCollision(std::weak_ptr<Collider> Other, Vec3<float>* Inter)
 {
 	auto other = Other.lock();
 
 	//いずれかのコライダーが有効でない
-	if (!this->isActive || !other->isActive)return;
+	if (!this->isActive || !other->isActive)return false;
 
 	//衝突判定を行う相手ではない
-	if (!(this->hitCheckAttribute & other->myAttribute))return;
-	if (!(this->myAttribute & other->hitCheckAttribute))return;
+	if (!(this->hitCheckAttribute & other->myAttribute))return false;
+	if (!(this->myAttribute & other->hitCheckAttribute))return false;
 
 	//判定
 	Vec3<float>inter;
 	bool hit = Collision::CheckPrimitiveHit(this->primitive.get(), other->primitive.get(),&inter);
-
-	//衝突していたら
-	if (hit)
-	{
-		this->isHit = true;
-		other->isHit = true;
-		//コールバック関数呼び出し
-		if (this->callBack)this->callBack->OnCollision(inter, (COLLIDER_ATTRIBUTE)other->myAttribute);
-		if (other->callBack)other->callBack->OnCollision(inter, (COLLIDER_ATTRIBUTE)this->myAttribute);
-	}
+	if (Inter)*Inter = inter;
+	return hit;
 }
 
 void Collider::DebugDraw(Camera& Cam)

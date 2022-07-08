@@ -58,9 +58,6 @@ void Player::Move()
 		//待機状態
 		status = WAIT;
 	}
-
-	//押し戻しコールバック処理に移動方向を記録
-	pushBackColliderCallBack.moveVec = moveVec;
 }
 
 void Player::AnimationSwitch()
@@ -125,7 +122,7 @@ void Player::Init()
 	status = RUN;
 	oldStatus = RUN;
 
-	static Vec3<float>INIT_POS = { 0,0,0 };
+	static Vec3<float>INIT_POS = { 0,0,-5 };
 	model->transform.SetPos(INIT_POS);
 	model->transform.SetRotate(XMMatrixIdentity());
 
@@ -137,6 +134,9 @@ void Player::Init()
 
 void Player::Update()
 {
+	//１フレーム前の座標をコールバック処理に記録
+	pushBackColliderCallBack.prePos = model->transform.GetPos();
+
 	//移動の処理
 	if (CAN_INPUT.playerControl)
 	{
@@ -168,20 +168,45 @@ void Player::Draw(Camera& Cam)
 	DrawFunc3D::DrawNonShadingModel(model, Cam);
 }
 
-void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, const COLLIDER_ATTRIBUTE& OthersAttribute)
+void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
 {
 	//現在の座標
 	Vec3<float>nowPos = parent->model->transform.GetPos();
 
-	//押し戻し方向
-	Vec3<float>pushBackVec = -moveVec;	//移動方向の逆
-	if (pushBackVec.IsZero())pushBackVec = -parent->model->transform.GetFront();	//移動していないならプレイヤーの背面方向
+	//押し戻し後の座標格納先
+	Vec3<float>pushBackPos = nowPos;
 
-	//押し戻し量
-	float pushBackAmount = nowPos.Distance(Inter);
+	//自身のコライダープリミティブ（球）を取得
+	auto mySphere = (CollisionSphere*)GetAttachCollider().lock()->GetColliderPrimitive().lock().get();
 
-	//押し戻し後の座標
-	Vec3<float>pushBackPos = nowPos + pushBackVec * pushBackAmount;
+	//相手のコライダープリミティブを取得
+	auto otherPrimitive = OtherCollider.lock()->GetColliderPrimitive().lock();
+	if (otherPrimitive->GetShape() == CollisionPrimitive::SPHERE)
+	{
+		//相手の衝突判定用球取得
+		CollisionSphere* otherSphere = (CollisionSphere*)otherPrimitive.get();
+
+		//それぞれの中心座標
+		Vec3<float>myCenter = mySphere->GetCenter();
+		Vec3<float>otherCenter = otherSphere->GetCenter();
+
+		//押し戻し方向
+		//Vec3<float>pushBackVec = (myCenter - otherCenter).GetNormal();
+		Vec3<float>pushBackVec = (prePos - nowPos).GetNormal();
+
+		//押し戻し量
+		float pushBackAmount = mySphere->radius + otherSphere->radius + 0.1f;
+		
+		//押し戻した後のコライダーの座標
+		Vec3<float>pushBackColPos = otherCenter + pushBackVec * pushBackAmount;
+
+		//押し戻し後のコライダーと現在のコライダー座標とのオフセット
+		Vec3<float>colOffset = pushBackColPos - myCenter;
+
+		//オフセットを親であるトランスフォームに適用
+		pushBackPos = nowPos + colOffset;
+	}
+	else assert(0);	//用意していない
 
 	//新しい座標をセット
 	parent->model->transform.SetPos(pushBackPos);

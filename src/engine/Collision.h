@@ -72,6 +72,10 @@ public:
 	float radius;					//”¼Œa
 	CollisionSphere(const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr)
 		:CollisionPrimitive(SPHERE, World, Local), radius(Radius) {}
+	Vec3<float>GetCenter()
+	{
+		return KuroMath::TransformVec3(offset, GetLocalMat() * GetWorldMat());
+	}
 };
 
 //ƒJƒvƒZƒ‹
