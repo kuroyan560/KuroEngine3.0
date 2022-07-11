@@ -184,18 +184,13 @@ void GameScene::OnDraw()
 	{
 		noise.ResetNoise();
 	}
-	DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
+	//DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
 	HitEffect::Draw(nowCam);
 }
 
 void GameScene::OnImguiDebug()
 {
-	ImGui::Begin("Button");
-	ImGui::Text("RB - Player's attack");
-	ImGui::Text("A  - Emit hit effect");
-	ImGui::Text("X - Turn collider's draw flag");
-	ImGui::End();
-
+	/*
 	ImGui::Begin("Noise");
 	bool change = false;
 
@@ -235,6 +230,7 @@ void GameScene::OnImguiDebug()
 		noise.ResetNoise();
 	}
 	ImGui::End();
+	*/
 
 	GameManager::Instance()->ImGuiDebug();
 }
