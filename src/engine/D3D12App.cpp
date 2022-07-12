@@ -1331,7 +1331,7 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 	for (int paramIdx = 0; paramIdx < gpuBuffNum; ++paramIdx)
 	{
 		//設定を末尾に追加、参照を取得
-		auto& argDesc = argDescArray.emplace_back();
+		D3D12_INDIRECT_ARGUMENT_DESC argDesc = {};
 		//RootParamから情報読み取り
 		auto& param = RootParams[paramIdx];
 
@@ -1352,6 +1352,8 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 			argDesc.UnorderedAccessView.RootParameterIndex = paramIdx;
 		}
 		else assert(0);//用意していない
+
+		argDescArray.emplace_back(argDesc);
 	}
 
 	//末尾にIndirect形式の要素追加
@@ -1364,7 +1366,7 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 	//コマンドシグネチャ情報
 	D3D12_COMMAND_SIGNATURE_DESC cmdSignatureDesc = {};
 	cmdSignatureDesc.pArgumentDescs = argDescArray.data();
-	cmdSignatureDesc.NumArgumentDescs = gpuBuffNum;
+	cmdSignatureDesc.NumArgumentDescs = argDescArray.size();
 	cmdSignatureDesc.ByteStride = IndirectCommand::GetSize(gpuBuffNum);
 
 	//コマンドシグネチャ生成

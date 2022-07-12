@@ -196,6 +196,9 @@
     <FxCompile Include="resource\engine\PerlinNoise2D.hlsl">
       <Filter>HLSL\engine\Noise</Filter>
     </FxCompile>
+    <FxCompile Include="resource\user\IndirectSample_Block.hlsl">
+      <Filter>HLSL\user</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\engine\LightInfo.hlsli">
@@ -397,6 +400,9 @@
     </ClCompile>
     <ClCompile Include="src\engine\LightBloomDevice.cpp">
       <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\IndirectSample.cpp">
+      <Filter>src\user</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -618,6 +624,9 @@
     </ClInclude>
     <ClInclude Include="src\engine\LightBloomDevice.h">
       <Filter>src\engine\レンダリング関連</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\IndirectSample.h">
+      <Filter>src\user</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

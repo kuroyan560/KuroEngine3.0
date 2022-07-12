@@ -6,6 +6,7 @@
 #include"ShadowMapDevice.h"
 #include"LightBloomDevice.h"
 #include"NoiseGenerator.h"
+#include"IndirectSample.h"
 
 class Model;
 class ModelObject;
@@ -39,6 +40,8 @@ class GameScene : public BaseScene
 
 		void ResetNoise();
 	}noise;
+
+	IndirectSample indirectSample;
 
 public:
 	GameScene();

@@ -65,6 +65,7 @@ void GameScene::OnInitialize()
 {
 	player.Init();
 	GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
+	indirectSample.Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -126,20 +127,46 @@ void GameScene::OnUpdate()
 	Collider::UpdateAllColliders();
 
 	HitEffect::Update();
+
+	indirectSample.Update();
 }
 
 
 void GameScene::OnDraw()
 {
-	//キューブマップに描き込む
-	dynamicCubeMap->Clear();
-	dynamicCubeMap->CopyCubeMap(staticCubeMap);
-	dynamicCubeMap->DrawToCubeMap(ligMgr, { player.GetModelObj() });
+	auto cmdList = D3D12App::Instance()->GetCmdList();
 
 	//デプスステンシル
 	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
-	dsv->Clear(D3D12App::Instance()->GetCmdList());
+	dsv->Clear(cmdList);
+
+	//GraphicsManagerの管轄外
+	{
+		auto backRT = D3D12App::Instance()->GetBackBuffRenderTarget();
+
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
+		rtvs.emplace_back(backRT->AsRTV(cmdList));
+
+		const Vec2<float> targetSize = backRT->GetGraphSize().Float();
+		//ビューポート設定
+		auto viewPort = CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y);
+		cmdList->RSSetViewports(1, &viewPort);
+
+		//シザー矩形設定
+		auto rect = CD3DX12_RECT(0, 0, static_cast<LONG>(targetSize.x), static_cast<LONG>(targetSize.y));
+		cmdList->RSSetScissorRects(1, &rect);
+
+		cmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, dsv->AsDSV(cmdList));
+
+		indirectSample.Draw();
+	}
+
+	/*
+	//キューブマップに描き込む
+	dynamicCubeMap->Clear();
+	dynamicCubeMap->CopyCubeMap(staticCubeMap);
+	dynamicCubeMap->DrawToCubeMap(ligMgr, { player.GetModelObj() });
 
 	//シャドウマップに描き込み
 	shadowMapDevice.DrawShadowMap({ player.GetModelObj() });
@@ -186,6 +213,7 @@ void GameScene::OnDraw()
 	}
 	DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
 	HitEffect::Draw(nowCam);
+	*/
 }
 
 void GameScene::OnImguiDebug()
