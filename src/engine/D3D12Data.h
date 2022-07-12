@@ -147,7 +147,7 @@ protected:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	std::shared_ptr<GPUResource> resource;	//定数バッファ
+	std::shared_ptr<GPUResource> resource;	//GPUバッファ
 	DescHandlesContainer handles;	//ディスクリプタハンドル
 
 	DescriptorData(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier) :resource(std::make_shared<GPUResource>(Buff, Barrier)) {}
@@ -646,4 +646,41 @@ public:
 	void SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdList);
 
 	const int& GetPipelineHandle() { return handle; }
+};
+
+class IndirectCommand
+{
+public:
+	static size_t GetSize(const int& GPUBufferNum)
+	{
+		return sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * GPUBufferNum + sizeof(D3D12_DRAW_ARGUMENTS);
+	}
+
+private:
+	//各コマンドでの描画で使用するバッファ
+	std::vector<D3D12_GPU_VIRTUAL_ADDRESS>gpuAddressArray;
+	//通常描画の引数に使われるパラメータ
+	D3D12_DRAW_ARGUMENTS drawArgs;
+};
+
+enum EXCUTE_INDIRECT_TYPE { DRAW, DRAW_INDEXED, DISPATCH, EXCUTE_INDIRECT_TYPE_NUM };
+class IndirectDevice
+{
+private:
+	template<class T>
+	using ComPtr = Microsoft::WRL::ComPtr<T>;
+private:
+	//コマンドシグネチャ
+	ComPtr<ID3D12CommandSignature>cmdSignature;
+	//１つの描画コマンドにつき使用するGPUバッファの数
+	int gpuBuffNum;
+
+public:
+	IndirectDevice(const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum)
+		:cmdSignature(CmdSignature), gpuBuffNum(GPUBufferNum) {}
+
+	void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
+		int MaxCommandCount,
+		ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
+		ID3D12Resource* CountBuffer, UINT CountBufferOffset);
 };

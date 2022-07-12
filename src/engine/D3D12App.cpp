@@ -2,6 +2,7 @@
 #include"KuroFunc.h"
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
+#include<array>
 
 D3D12App* D3D12App::INSTANCE = nullptr;
 std::map<std::string, D3D12App::LoadLambda_t> D3D12App::loadLambdaTable;
@@ -208,6 +209,101 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 		//パイプライン生成
 		splitImgPipeline = GenerateComputePipeline(cs, rootParams, { WrappedSampler(true, false) });
 	}
+}
+
+Microsoft::WRL::ComPtr<ID3D12RootSignature> D3D12App::GenerateRootSignature(const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC>& Samplers)
+{
+	ComPtr<ID3D12RootSignature>rootSignature;
+	std::vector<CD3DX12_ROOT_PARAMETER>rootParameters;
+	std::vector< CD3DX12_DESCRIPTOR_RANGE>rangeArray;
+
+	//各レンジタイプでレジスターがいくつ登録されたか
+	int registerNum[D3D12_DESCRIPTOR_RANGE_TYPE_NUM] = { 0 };
+	for (auto& param : RootParams)
+	{
+		//ディスクリプタとして初期化
+		if (param.descriptor)
+		{
+			//タイプの取得
+			auto& type = param.descriptorRangeType;
+
+			//ディスクリプタレンジ初期化
+			CD3DX12_DESCRIPTOR_RANGE range{};
+			range.Init(type, 1, registerNum[(int)type]);
+
+			registerNum[(int)type]++;
+			rangeArray.emplace_back(range);
+		}
+		//ビューで初期化
+		else
+		{
+			rootParameters.emplace_back();
+			if (param.viewType == SRV)
+			{
+				auto type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+				rootParameters.back().InitAsShaderResourceView(registerNum[(int)type]);
+				registerNum[(int)type]++;
+			}
+			else if (param.viewType == CBV)
+			{
+				auto type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+				rootParameters.back().InitAsConstantBufferView(registerNum[(int)type]);
+				registerNum[(int)type]++;
+			}
+			else if (param.viewType == UAV)
+			{
+				auto type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+				rootParameters.back().InitAsUnorderedAccessView(registerNum[(int)type]);
+				registerNum[(int)type]++;
+			}
+			else
+			{
+				assert(0);	//コンストラクタで避けられてるはずだけど一応
+			}
+		}
+	}
+
+	for (int i = 0; i < rangeArray.size(); ++i)
+	{
+		rootParameters.emplace_back();
+		rootParameters.back().InitAsDescriptorTable(1, &rangeArray[i]);
+	}
+
+	for (int i = 0; i < Samplers.size(); ++i)
+	{
+		Samplers[i].ShaderRegister = i;
+	}
+	// ルートシグネチャの設定
+	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	rootSignatureDesc.Init_1_0(static_cast<UINT>(rootParameters.size()), rootParameters.data(),
+		static_cast<UINT>(Samplers.size()), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	ComPtr<ID3DBlob> rootSigBlob;
+	ComPtr<ID3DBlob> errorBlob = nullptr;	//エラーオブジェクト
+	// バージョン自動判定のシリアライズ
+	auto hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
+
+	if (FAILED(hr))
+	{
+		//errorBlobからエラー内容string型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += '\n';
+
+		KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRootSignature", errstr);
+	}
+
+	// ルートシグネチャの生成
+	hr = device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+
+	//ルートシグネチャ生成に失敗
+	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRootSignature", "ルートシグネチャの生成に失敗\n");
+
+	return rootSignature;
 }
 
 std::shared_ptr<VertexBuffer> D3D12App::GenerateVertexBuffer(const size_t& VertexSize, const int& VertexNum, void* InitSendData, const char* Name, const bool& RWStructuredBuff)
@@ -1098,97 +1194,7 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 	}
 
 	//ルートパラメータ
-	ComPtr<ID3D12RootSignature>rootSignature;
-	{
-		std::vector<CD3DX12_ROOT_PARAMETER>rootParameters;
-		std::vector< CD3DX12_DESCRIPTOR_RANGE>rangeArray;
-
-		//各レンジタイプでレジスターがいくつ登録されたか
-		int registerNum[D3D12_DESCRIPTOR_RANGE_TYPE_NUM] = { 0 };
-		for (auto& param : RootParams)
-		{
-			//ディスクリプタとして初期化
-			if (param.descriptor)
-			{
-				//タイプの取得
-				auto& type = param.descriptorRangeType;
-
-				//ディスクリプタレンジ初期化
-				CD3DX12_DESCRIPTOR_RANGE range{};
-				range.Init(type, 1, registerNum[(int)type]);
-
-				registerNum[(int)type]++;
-				rangeArray.emplace_back(range);
-			}
-			//ビューで初期化
-			else
-			{
-				rootParameters.emplace_back();
-				if (param.viewType == SRV)
-				{
-					auto type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-					rootParameters.back().InitAsShaderResourceView(registerNum[(int)type]);
-					registerNum[(int)type]++;
-				}
-				else if (param.viewType == CBV)
-				{
-					auto type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-					rootParameters.back().InitAsConstantBufferView(registerNum[(int)type]);
-					registerNum[(int)type]++;
-				}
-				else if (param.viewType == UAV)
-				{
-					auto type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-					rootParameters.back().InitAsUnorderedAccessView(registerNum[(int)type]);
-					registerNum[(int)type]++;
-				}
-				else
-				{
-					assert(0);	//コンストラクタで避けられてるはずだけど一応
-				}
-			}
-		}
-
-		for (int i = 0; i < rangeArray.size(); ++i)
-		{
-			rootParameters.emplace_back();
-			rootParameters.back().InitAsDescriptorTable(1, &rangeArray[i]);
-		}
-
-		for (int i = 0; i < Samplers.size(); ++i)
-		{
-			Samplers[i].ShaderRegister = i;
-		}
-		// ルートシグネチャの設定
-		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init_1_0(static_cast<UINT>(rootParameters.size()), rootParameters.data(), 
-			static_cast<UINT>(Samplers.size()), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-		ComPtr<ID3DBlob> rootSigBlob;
-		ComPtr<ID3DBlob> errorBlob = nullptr;	//エラーオブジェクト
-		// バージョン自動判定のシリアライズ
-		auto hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
-
-		if (FAILED(hr))
-		{
-			//errorBlobからエラー内容string型にコピー
-			std::string errstr;
-			errstr.resize(errorBlob->GetBufferSize());
-
-			std::copy_n((char*)errorBlob->GetBufferPointer(),
-				errorBlob->GetBufferSize(),
-				errstr.begin());
-			errstr += '\n';
-
-			KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateGraphicsPipeline", errstr);
-		}
-
-		// ルートシグネチャの生成
-		hr = device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-
-		//ルートシグネチャ生成に失敗
-		KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateGraphicsPipeline", "ルートシグネチャの生成に失敗\n");
-	}
+	ComPtr<ID3D12RootSignature>rootSignature = GenerateRootSignature(RootParams, Samplers);
 
 	//グラフィックスパイプライン設定にルートシグネチャをセット
 	desc.pRootSignature = rootSignature.Get();
@@ -1289,97 +1295,7 @@ std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<
 	D3D12_COMPUTE_PIPELINE_STATE_DESC  desc = { 0 };
 
 	//ルートパラメータ
-	ComPtr<ID3D12RootSignature>rootSignature;
-	{
-		std::vector<CD3DX12_ROOT_PARAMETER>rootParameters;
-		std::vector< CD3DX12_DESCRIPTOR_RANGE>rangeArray;
-
-		//各レンジタイプでレジスターがいくつ登録されたか
-		int registerNum[D3D12_DESCRIPTOR_RANGE_TYPE_NUM] = { 0 };
-		for (auto& param : RootParams)
-		{
-			//ディスクリプタとして初期化
-			if (param.descriptor)
-			{
-				//タイプの取得
-				auto& type = param.descriptorRangeType;
-
-				//ディスクリプタレンジ初期化
-				CD3DX12_DESCRIPTOR_RANGE range{};
-				range.Init(type, 1, registerNum[(int)type]);
-
-				registerNum[(int)type]++;
-				rangeArray.emplace_back(range);
-			}
-			//ビューで初期化
-			else
-			{
-				rootParameters.emplace_back();
-				if (param.viewType == SRV)
-				{
-					auto type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-					rootParameters.back().InitAsShaderResourceView(registerNum[(int)type]);
-					registerNum[(int)type]++;
-				}
-				else if (param.viewType == CBV)
-				{
-					auto type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-					rootParameters.back().InitAsConstantBufferView(registerNum[(int)type]);
-					registerNum[(int)type]++;
-				}
-				else if (param.viewType == UAV)
-				{
-					auto type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-					rootParameters.back().InitAsUnorderedAccessView(registerNum[(int)type]);
-					registerNum[(int)type]++;
-				}
-				else
-				{
-					assert(0);	//コンストラクタで避けられてるはずだけど一応
-				}
-			}
-		}
-
-		for (int i = 0; i < rangeArray.size(); ++i)
-		{
-			rootParameters.emplace_back();
-			rootParameters.back().InitAsDescriptorTable(1, &rangeArray[i]);
-		}
-
-		for (int i = 0; i < Samplers.size(); ++i)
-		{
-			Samplers[i].ShaderRegister = i;
-		}
-
-		// ルートシグネチャの設定
-		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init_1_0(static_cast<UINT>(rootParameters.size()), rootParameters.data(), 
-			static_cast<UINT>(Samplers.size()), Samplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-		ComPtr<ID3DBlob> rootSigBlob;
-		ComPtr<ID3DBlob> errorBlob = nullptr;	//エラーオブジェクト
-		// バージョン自動判定のシリアライズ
-		auto hr = D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob, &errorBlob);
-		if (FAILED(hr))
-		{
-			//errorBlobからエラー内容string型にコピー
-			std::string errstr;
-			errstr.resize(errorBlob->GetBufferSize());
-
-			std::copy_n((char*)errorBlob->GetBufferPointer(),
-				errorBlob->GetBufferSize(),
-				errstr.begin());
-			errstr += '\n';
-
-			KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateComputePipeline", errstr);
-		}
-
-		// ルートシグネチャの生成
-		hr = device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-
-		//ルートシグネチャ生成に失敗
-		KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateComputePipeline", "ルートシグネチャの生成に失敗\n");
-	}
+	ComPtr<ID3D12RootSignature>rootSignature = GenerateRootSignature(RootParams, Samplers);
 
 	//グラフィックスパイプライン設定にルートシグネチャをセット
 	desc.pRootSignature = rootSignature.Get();
@@ -1393,6 +1309,70 @@ std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateComputePipeline", "コンピュートパイプライン生成に失敗\n");
 
 	return std::make_shared<ComputePipeline>(pipeline, rootSignature);
+}
+
+std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_INDIRECT_TYPE& ExcuteIndirectType, const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers)
+{
+	//Indirectの形式？
+	static std::array<D3D12_INDIRECT_ARGUMENT_TYPE, EXCUTE_INDIRECT_TYPE_NUM>EXCUTE_ARG_TYPE =
+	{
+		D3D12_INDIRECT_ARGUMENT_TYPE_DRAW,
+		D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED,
+		D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH
+	};
+	//不適切な値
+	assert(0 <= ExcuteIndirectType && ExcuteIndirectType < EXCUTE_INDIRECT_TYPE_NUM);
+
+	//セットするGPUバッファの数
+	int gpuBuffNum = RootParams.size();
+
+	//引数バッファをGPUにどう解釈させるか
+	std::vector<D3D12_INDIRECT_ARGUMENT_DESC>argDescArray;
+	for (int paramIdx = 0; paramIdx < gpuBuffNum; ++paramIdx)
+	{
+		//設定を末尾に追加、参照を取得
+		auto& argDesc = argDescArray.emplace_back();
+		//RootParamから情報読み取り
+		auto& param = RootParams[paramIdx];
+
+		//各バッファービュー
+		if (param.viewType == CBV)
+		{
+			argDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT_BUFFER_VIEW;
+			argDesc.ConstantBufferView.RootParameterIndex = paramIdx;
+		}
+		else if (param.viewType == SRV)
+		{
+			argDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_SHADER_RESOURCE_VIEW;
+			argDesc.ShaderResourceView.RootParameterIndex = paramIdx;
+		}
+		else if (param.viewType == UAV)
+		{
+			argDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_UNORDERED_ACCESS_VIEW;
+			argDesc.UnorderedAccessView.RootParameterIndex = paramIdx;
+		}
+		else assert(0);//用意していない
+	}
+
+	//末尾にIndirect形式の要素追加
+	auto& excuteArgDesc = argDescArray.emplace_back();
+	excuteArgDesc.Type = EXCUTE_ARG_TYPE[ExcuteIndirectType];
+
+	//ルートパラメータ生成
+	auto rootSignature = GenerateRootSignature(RootParams, Samplers);
+
+	//コマンドシグネチャ情報
+	D3D12_COMMAND_SIGNATURE_DESC cmdSignatureDesc = {};
+	cmdSignatureDesc.pArgumentDescs = argDescArray.data();
+	cmdSignatureDesc.NumArgumentDescs = gpuBuffNum;
+	cmdSignatureDesc.ByteStride = IndirectCommand::GetSize(gpuBuffNum);
+
+	//コマンドシグネチャ生成
+	ComPtr<ID3D12CommandSignature>cmdSignature;
+	auto hr = device->CreateCommandSignature(&cmdSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&cmdSignature));
+	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateIndirectDevice", "インダイレクト機構生成に失敗\n");
+
+	return std::make_shared<IndirectDevice>(cmdSignature, gpuBuffNum);
 }
 
 void D3D12App::SetBackBufferRenderTarget()

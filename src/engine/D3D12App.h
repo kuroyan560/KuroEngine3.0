@@ -90,6 +90,7 @@ private:
 	std::shared_ptr<ComputePipeline>splitImgPipeline;
 
 	void Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const bool& UseHDR, const Color& ClearValue, const bool& IsFullScreen);
+	ComPtr<ID3D12RootSignature>GenerateRootSignature(const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC>& Samplers);
 
 public:
 	D3D12App(const HWND& Hwnd, const Vec2<int>& ScreenSize, const bool& UseHDR, const Color& ClearValue, const bool& IsFullScreen = false)
@@ -178,6 +179,9 @@ public:
 		const ComPtr<ID3DBlob>& ComputeShader,
 		const std::vector<RootParam>& RootParams,
 		std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers);
+
+	//インダイレクト機構
+	std::shared_ptr<IndirectDevice>GenerateIndirectDevice(const EXCUTE_INDIRECT_TYPE& ExcuteIndirectType, const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers);
 
 	//バックバッファレンダーターゲットをセット
 	void SetBackBufferRenderTarget();

@@ -118,3 +118,19 @@ void ComputePipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdLi
 	CmdList->SetComputeRootSignature(rootSignature.Get());
 }
 
+void IndirectDevice::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
+	int MaxCommandCount,
+	ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
+	ID3D12Resource* CountBuffer, UINT CountBufferOffset)
+{
+	CmdList->ExecuteIndirect(
+		cmdSignature.Get(),
+		MaxCommandCount,
+		ArgBuffer,
+		ArgBufferOffset,
+		CountBuffer, 
+		CountBufferOffset);
+}
+
+
+
