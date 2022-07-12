@@ -218,7 +218,7 @@ void GameScene::OnDraw()
 
 void GameScene::OnImguiDebug()
 {
-	ImGui::Begin("Button");
+	/*ImGui::Begin("Button");
 	ImGui::Text("RB - Player's attack");
 	ImGui::Text("A  - Emit hit effect");
 	ImGui::Text("X - Turn collider's draw flag");
@@ -262,7 +262,7 @@ void GameScene::OnImguiDebug()
 	{
 		noise.ResetNoise();
 	}
-	ImGui::End();
+	ImGui::End();*/
 
 	GameManager::Instance()->ImGuiDebug();
 }
