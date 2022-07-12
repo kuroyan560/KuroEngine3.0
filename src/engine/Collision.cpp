@@ -109,6 +109,10 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 		{ Cam.GetBuff(),constBuff }, { CBV,CBV }, GetTransformZ(), true);
 }
 
+void CollisionPlane::DebugDraw(const bool& Hit, Camera& Cam)
+{
+}
+
 void CollisionCapsule::DebugDraw(const bool& Hit, Camera& Cam)
 {
 }
@@ -256,6 +260,26 @@ bool Collision::SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* Spher
 	return false;
 }
 
+bool Collision::SphereAndPlane(CollisionSphere* Sphere, CollisionPlane* Plane, Vec3<float>* Inter)
+{
+	//球のワールド中心座標を求める
+	const auto center = Sphere->GetCenter();
+
+	// 座標系の原点から球の中心座標への距離から
+	// 平面の原点距離を減算することで、平面と球の中心との距離が出る
+	float dist = XMVector3Dot(center, Plane->normal).m128_f32[0] - Plane->distance;
+	// 距離の絶対値が半径より大きければ当たっていない
+	if (fabsf(dist) > Sphere->radius)	return false;
+
+	// 擬似交点を計算
+	if (Inter)
+	{
+		// 平面上の再接近点を、疑似交点とする
+		*Inter = Plane->normal * -dist + center;
+	}
+	return true;
+}
+
 bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter)
 {
 	//球の中心座標とAABBとの最短距離を求める
@@ -295,47 +319,6 @@ bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec
 		return true;
 	}
 	return false;
-
-	//Vec3<float>obbCenter(ptVal.x.GetCenter(), ptVal.y.GetCenter(), ptVal.z.GetCenter());
-	//obbCenter = KuroMath::TransformVec3(obbCenter, AABB->GetWorldMat());
-	//Vec3<float>vec(0, 0, 0);
-
-	//static const Vec3<float>DIR[3] =
-	//{
-	//	Vec3<float>(-1,0,0),
-	//	Vec3<float>(0,1,0),
-	//	Vec3<float>(0,0,1)
-	//};
-
-	////各軸についてはみ出た部分のベクトルを算術
-	//for (int i = 0; i < 3; ++i)
-	//{
-	//	const auto dir = KuroMath::TransformVec3(DIR[i], AABB->GetWorldMat()).GetNormal();
-
-	//	float len = ptVal[i].max - ptVal[i].min;
-	//	if (len <= 0)continue;
-	//	float s = (spCenter - obbCenter).Dot(dir);
-
-	//	//sの値からはみ出した部分があればそのベクトルを加算
-	//	s = fabs(s);
-	//	if (1 < s)
-	//	{
-	//		vec += dir * (1 - s) * len;
-	//	}
-	//}
-
-	//float distSq = vec.Length();
-	//if (distSq <= pow(SphereA->radius, 2))
-	//{
-	//	if (Inter)
-	//	{
-	//		//球の中心とAABBの中心間の中心点
-	//		Vec3<float>aabbCenter(ptVal.x.GetCenter(), ptVal.y.GetCenter(), ptVal.z.GetCenter());
-	//		*Inter = spCenter.GetCenter(aabbCenter);
-	//	}
-	//	return true;
-	//}
-	//return false;
 }
 
 Vec3<float> Collision::ClosestPtPoint2Triangle(const Vec3<float>& Pt, const CollisionTriangle& Tri, const Matrix& MeshWorld)
@@ -431,6 +414,11 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 		{
 			return SphereAndSphere(sphereA, (CollisionSphere*)PrimitiveB, Inter);
 		}
+		//板B
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::PLANE)
+		{
+			return SphereAndPlane(sphereA, (CollisionPlane*)PrimitiveB, Inter);
+		}
 		//(AABB)B
 		else if (PrimitiveB->GetShape() == CollisionPrimitive::AABB)
 		{
@@ -440,6 +428,29 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 		else if (PrimitiveB->GetShape() == CollisionPrimitive::MESH)
 		{
 			return SphereAndMesh(sphereA, (CollisionMesh*)PrimitiveB, Inter);
+		}
+	}
+	//板Aと
+	else if (PrimitiveA->GetShape() == CollisionPrimitive::PLANE)
+	{
+		CollisionPlane* planeA = (CollisionPlane*)PrimitiveA;
+
+		//球B
+		if (PrimitiveB->GetShape() == CollisionPrimitive::SPHERE)
+		{
+			return SphereAndPlane((CollisionSphere*)PrimitiveB, planeA, Inter);
+		}
+		//板B
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::PLANE)
+		{
+		}
+		//(AABB)B
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::AABB)
+		{
+		}
+		//メッシュB
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::MESH)
+		{
 		}
 	}
 	//(AABB)Aと
@@ -486,3 +497,4 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 	assert(0);
 	return false;
 }
+

@@ -191,8 +191,8 @@ void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std
 		Vec3<float>otherCenter = otherSphere->GetCenter();
 
 		//‰Ÿ‚µ–ß‚µ•ûŒü
-		//Vec3<float>pushBackVec = (myCenter - otherCenter).GetNormal();
-		Vec3<float>pushBackVec = (prePos - nowPos).GetNormal();
+		Vec3<float>pushBackVec = (myCenter - otherCenter).GetNormal();
+		//Vec3<float>pushBackVec = (prePos - nowPos).GetNormal();
 
 		//‰Ÿ‚µ–ß‚µ—Ê
 		float pushBackAmount = mySphere->radius + otherSphere->radius + 0.1f;

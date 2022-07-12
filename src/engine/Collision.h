@@ -9,7 +9,7 @@ class Camera;
 class CollisionPrimitive
 {
 public:
-	enum SHAPE { SPHERE, CAPSULE, AABB, MESH };
+	enum SHAPE { SPHERE, PLANE, CAPSULE, AABB, MESH };
 
 private:
 	friend class Collider;
@@ -76,6 +76,22 @@ public:
 	{
 		return KuroMath::TransformVec3(offset, GetLocalMat() * GetWorldMat());
 	}
+};
+
+//平面
+class CollisionPlane : public CollisionPrimitive
+{
+private:
+	friend class Collision;
+
+private:
+	void DebugDraw(const bool& Hit, Camera& Cam)override;
+
+public:
+	Vec3<float>normal = { 0,1,0 };	//板ポリの法線
+	float distance = 0.0f;				//原点からの距離
+	CollisionPlane(const Vec3<float>& Normal = { 0,1,0 }, const float& Distance = 0.0f)
+		:CollisionPrimitive(PLANE, nullptr, nullptr), normal(Normal), distance(Distance) {}
 };
 
 //カプセル
@@ -175,6 +191,8 @@ class Collision
 {
 	//球と球
 	static bool SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter);
+	//球と板
+	static bool SphereAndPlane(CollisionSphere* Sphere, CollisionPlane* Plane, Vec3<float>* Inter);
 	//球とAABB
 	static bool SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter);
 	//球とメッシュ
