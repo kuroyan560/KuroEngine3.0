@@ -3,11 +3,8 @@
 #include"Color.h"
 #include<array>
 #include<memory>
-class StructuredBuffer;
-class IndirectDevice;
-class GraphicsPipeline;
+#include"D3D12Data.h"
 class Camera;
-class VertexBuffer;
 
 class IndirectSample
 {
@@ -21,6 +18,7 @@ class IndirectSample
 		Vec3<float>vel = { 0,1,0 };
 		Vec3<float>offset = { 0,0,0 };
 		Color color;
+		float pad[53];
 	};
 	//ブロックの各個体情報（CPU）
 	std::array<Block, BLOCK_NUM>blockDataArray;
@@ -28,7 +26,11 @@ class IndirectSample
 	std::shared_ptr<StructuredBuffer>blockBuff;
 
 	//コマンドバッファ
-	std::shared_ptr<StructuredBuffer>commandBuffer;
+	//std::shared_ptr<StructuredBuffer>commandBuffer;
+	//コマンドバッファ（生）
+	Microsoft::WRL::ComPtr<ID3D12Resource1>commandBuffer;
+	//コマンドバッファの更新用受け皿（Mappingが出来ないため）
+	Microsoft::WRL::ComPtr<ID3D12Resource1>uploadCommandBuffer;
 
 	//グラフィックスパイプライン
 	std::shared_ptr<GraphicsPipeline>gPipeline;
@@ -38,6 +40,10 @@ class IndirectSample
 
 	//頂点バッファ
 	std::shared_ptr<VertexBuffer>vertBuff;
+
+
+
+	void GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM>&UploadCommands);
 
 public:
 	IndirectSample();

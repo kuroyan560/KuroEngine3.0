@@ -11,6 +11,56 @@ static const float MAX_OFFSET = 6.0f;
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 1.0f;
 
+void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM>& UploadCommands)
+{
+	auto device = D3D12App::Instance()->GetDevice();
+	auto cmdList = D3D12App::Instance()->GetCmdList();
+
+	const auto commandSize = IndirectCommand::GetSize(2);
+	const auto commandArraySize = commandSize * BLOCK_NUM;
+
+	D3D12_RESOURCE_DESC commandBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(commandArraySize);
+	auto heapDescDef = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	device->CreateCommittedResource(
+		&heapDescDef,
+		D3D12_HEAP_FLAG_NONE,
+		&commandBufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&commandBuffer));
+	commandBuffer->SetName(L"IndirectSample - CommandBuffer");
+
+	auto heapDescUpload = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	device->CreateCommittedResource(
+		&heapDescUpload,
+		D3D12_HEAP_FLAG_NONE,
+		&commandBufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&uploadCommandBuffer));
+	uploadCommandBuffer->SetName(L"IndirectSample - UploadCommandBuffer");
+
+	D3D12_SUBRESOURCE_DATA commandData = {};
+	commandData.pData = reinterpret_cast<UINT8*>(&UploadCommands[0]);
+	commandData.RowPitch = commandArraySize;
+	commandData.SlicePitch = commandData.RowPitch;
+
+	UpdateSubresources<1>(cmdList.Get(), commandBuffer.Get(), uploadCommandBuffer.Get(), 0, 0, 1, &commandData);
+	auto barrierTransition = CD3DX12_RESOURCE_BARRIER::Transition(commandBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	cmdList->ResourceBarrier(1, &barrierTransition);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.NumElements = BLOCK_NUM;
+	srvDesc.Buffer.StructureByteStride = commandSize;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+	auto srvDescHandle = D3D12App::Instance()->CreateSRV(commandBuffer, srvDesc);
+	//commandBuffer = std::make_shared<StructuredBuffer>(commandBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvDescHandle, commandSize, BLOCK_NUM);
+}
+
 IndirectSample::IndirectSample()
 {
 	//ブロックの個体情報生成
@@ -68,6 +118,7 @@ void IndirectSample::Init(Camera& Cam)
 	std::array<IndirectCommand, BLOCK_NUM>commands;
 	D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = blockBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
+	auto incrementSize = sizeof(Block);
 	for (auto& com : commands)
 	{
 		com.drawArgs.VertexCountPerInstance = 1;
@@ -80,11 +131,11 @@ void IndirectSample::Init(Camera& Cam)
 
 		//CBV1（ブロック情報）
 		com.gpuAddressArray.emplace_back(blockBuffAddress);
-		blockBuffAddress += sizeof(Block);
+		blockBuffAddress += incrementSize;
 
 		//SRV0（テクスチャ情報）
 	}
-	commandBuffer = D3D12App::Instance()->GenerateStructuredBuffer(commands.front().GetSize(), BLOCK_NUM, commands.data(), "IndirectSample - CommandBuffer");
+	GenerateCommandBuffer(commands);
 }
 
 void IndirectSample::Update()
@@ -113,11 +164,24 @@ void IndirectSample::Draw()
 
 	cmdList->IASetVertexBuffers(0, 0, &vertBuff->GetVBView());
 
+	//commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	D3D12_RESOURCE_BARRIER commandBuffBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		commandBuffer.Get(),
+		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+		D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	cmdList->ResourceBarrier(1, &commandBuffBarrier);
+
 	indirectDev->Excute(
 		cmdList,
 		BLOCK_NUM,
-		commandBuffer->GetResource()->GetBuff().Get(),
+		//commandBuffer->GetResource()->GetBuff().Get(),
+		commandBuffer.Get(),
 		0,
 		nullptr,
 		0);
+
+	//commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	commandBuffBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+	commandBuffBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+	cmdList->ResourceBarrier(1, &commandBuffBarrier);
 }

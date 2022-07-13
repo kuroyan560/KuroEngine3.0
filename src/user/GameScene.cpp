@@ -262,9 +262,10 @@ void GameScene::OnImguiDebug()
 	{
 		noise.ResetNoise();
 	}
-	ImGui::End();*/
+	ImGui::End();
 
 	GameManager::Instance()->ImGuiDebug();
+	*/
 }
 
 void GameScene::OnFinalize()
