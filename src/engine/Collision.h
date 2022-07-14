@@ -9,7 +9,7 @@ class Camera;
 class CollisionPrimitive
 {
 public:
-	enum SHAPE { SPHERE, PLANE, CAPSULE, AABB, MESH };
+	enum SHAPE { SPHERE, PLANE, CAPSULE, AABB, MESH, FLOOR_MESH };
 
 private:
 	friend class Collider;
@@ -174,8 +174,8 @@ private:
 
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 public:
-	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr, Matrix* Local = nullptr)
-		: CollisionPrimitive(MESH, World, Local)
+	CollisionMesh(const std::vector<CollisionTriangle>& Triangles, Transform* World = nullptr, Matrix* Local = nullptr, const bool& IsFloor = false)
+		: CollisionPrimitive(IsFloor ? FLOOR_MESH : MESH, World, Local)
 	{
 		SetTriangles(Triangles);
 	}
