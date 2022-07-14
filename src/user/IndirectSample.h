@@ -14,10 +14,10 @@ class IndirectSample
 	//ブロック個体情報構造体
 	struct Block
 	{
+		Color color;
 		float scale = 1.0f;
 		Vec3<float>vel = { 0,1,0 };
 		Vec3<float>offset = { 0,0,0 };
-		Color color;
 		float pad[53];
 	};
 	//ブロックの各個体情報（CPU）

@@ -7,10 +7,10 @@ cbuffer cbuff0 : register(b0)
 
 cbuffer cbuff1 : register(b1)
 {
+	float4 color;
     float scale;
 	float3 vel;
 	float3 offset;
-	float4 color;
 };
 
 SamplerState smp : register(s0);
@@ -113,6 +113,7 @@ void GSmain(
     element.color = color;
     
     float4 center = input[0]; //’†S
+    center.xyz += offset;
     //matrix rotateMat = GetRoateMat(input[0].rotate); //‰ñ“]Šp“x
     float radius = scale;
     

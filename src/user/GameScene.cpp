@@ -64,7 +64,7 @@ GameScene::GameScene()
 void GameScene::OnInitialize()
 {
 	player.Init();
-	GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
+	//GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
 	indirectSample.Init(*GameManager::Instance()->GetNowCamera());
 }
 
