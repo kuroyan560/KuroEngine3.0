@@ -2,15 +2,15 @@
 #include"D3D12App.h"
 #include"Camera.h"
 
-static const float MIN_SCALE = 0.1f;
-static const float MAX_SCALE = 1.0f;
-static const float MIN_VEL = 0.02f;
-static const float MAX_VEL = 0.5f;
-static const float RANGE = 8.0f;
+static const float MIN_SCALE = 0.01f;
+static const float MAX_SCALE = 0.1f;
+static const float MIN_VEL = 0.003f;
+static const float MAX_VEL = 0.05f;
+static const float RANGE = 15.0f;
 static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
 static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
 static const float COL_MIN = 0.5f;
-static const float COL_MAX = 1.0f;
+static const float COL_MAX = 0.9f;
 
 template<int GpuAddressNum>
 void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand<GpuAddressNum>, BLOCK_NUM>& UploadCommands)

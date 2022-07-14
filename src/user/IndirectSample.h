@@ -9,7 +9,7 @@ class Camera;
 class IndirectSample
 {
 	//ブロック数
-	static const int BLOCK_NUM = 1024;
+	static const int BLOCK_NUM = 30000;
 
 	//ブロック個体情報構造体
 	struct Block
@@ -18,7 +18,7 @@ class IndirectSample
 		float scale = 1.0f;
 		Vec3<float>vel = { 0,1,0 };
 		Vec3<float>offset = { 0,0,0 };
-		float pad[53];
+		float pad;
 	};
 	//ブロックの各個体情報（CPU）
 	std::array<Block, BLOCK_NUM>m_blockDataArray;
