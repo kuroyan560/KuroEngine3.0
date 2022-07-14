@@ -245,7 +245,10 @@ public:
 
 	void CopyBuffOnGPU(const ComPtr<ID3D12GraphicsCommandList>& CmdList, GPUResource& Dest) { Dest.CopyGPUResource(CmdList, *this->resource); }
 
-	std::weak_ptr<GPUResource>GetResource() { return resource; }
+	void Mapping(void* SendData)
+	{
+		resource->Mapping(dataSize, elementNum, SendData);
+	}
 };
 
 //テクスチャリソース基底クラス

@@ -26,11 +26,7 @@ class IndirectSample
 	std::shared_ptr<StructuredBuffer>m_blockBuff;
 
 	//コマンドバッファ
-	//std::shared_ptr<StructuredBuffer>m_commandBuffer;
-	//コマンドバッファ（生）
-	Microsoft::WRL::ComPtr<ID3D12Resource1>m_commandBuffer;
-	//コマンドバッファの更新用受け皿（Mappingが出来ないため）
-	Microsoft::WRL::ComPtr<ID3D12Resource1>m_uploadCommandBuffer;
+	std::shared_ptr<RWStructuredBuffer>m_commandBuffer;
 
 	//グラフィックスパイプライン
 	std::shared_ptr<GraphicsPipeline>m_gPipeline;
@@ -40,9 +36,6 @@ class IndirectSample
 
 	//頂点バッファ
 	std::shared_ptr<VertexBuffer>m_vertBuff;
-
-	template<int GpuAddressNum>
-	void GenerateCommandBuffer(std::array<IndirectCommand<GpuAddressNum>, BLOCK_NUM>&UploadCommands);
 
 public:
 	IndirectSample();

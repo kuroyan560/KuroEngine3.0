@@ -121,7 +121,7 @@ public:
 	//構造化バッファ生成
 	std::shared_ptr<StructuredBuffer>GenerateStructuredBuffer(const size_t& DataSize, const int& ElementNum, void* InitSendData = nullptr, const char* Name = nullptr);
 	//出力用バッファ作成
-	std::shared_ptr<RWStructuredBuffer>GenerateRWStructuredBuffer(const size_t& DataSize, const int& ElementNum, const char* Name = nullptr);
+	std::shared_ptr<RWStructuredBuffer>GenerateRWStructuredBuffer(const size_t& DataSize, const int& ElementNum, void* InitSendData = nullptr, const char* Name = nullptr);
 	//テクスチャバッファ生成
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const Color& Color, const int& Width = 1, const DXGI_FORMAT& Format = DXGI_FORMAT_R32G32B32A32_FLOAT);	//単色塗りつぶしテクスチャ生成
 	std::shared_ptr<TextureBuffer>GenerateTextureBuffer(const std::string& LoadImgFilePath, const bool& SRVAsCube = false);	//画像ファイル
@@ -185,4 +185,6 @@ public:
 
 	//バックバッファレンダーターゲットをセット
 	void SetBackBufferRenderTarget();
+
+	//
 };

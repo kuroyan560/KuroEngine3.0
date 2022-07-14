@@ -499,7 +499,7 @@ std::shared_ptr<StructuredBuffer> D3D12App::GenerateStructuredBuffer(const size_
 	return result;
 }
 
-std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const size_t& DataSize, const int& ElementNum, const char* Name)
+std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const size_t& DataSize, const int& ElementNum, void* InitSendData, const char* Name)
 {
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(DataSize * ElementNum);
 	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -539,6 +539,7 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 	//専用の構造化バッファクラスにまとめる
 	std::shared_ptr<RWStructuredBuffer>result;
 	result = std::make_shared<RWStructuredBuffer>(buff, barrier, handles, DataSize, ElementNum);
+	result->Mapping(InitSendData);
 
 	return result;
 }
