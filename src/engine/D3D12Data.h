@@ -659,7 +659,7 @@ public:
 
 public:
 	//各コマンドでの描画で使用するバッファ
-	D3D12_GPU_VIRTUAL_ADDRESS gpuAddressArray[GpuAddressNum];
+	std::array<D3D12_GPU_VIRTUAL_ADDRESS, GpuAddressNum>gpuAddressArray;
 	//通常描画の引数に使われるパラメータ
 	D3D12_DRAW_ARGUMENTS drawArgs;
 };
