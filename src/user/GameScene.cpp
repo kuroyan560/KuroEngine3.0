@@ -141,6 +141,7 @@ void GameScene::OnDraw()
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
 	dsv->Clear(cmdList);
 
+	GameManager::Instance()->GetNowCamera()->GetBuff();
 	//GraphicsManager‚ÌŠÇŠŠO
 	{
 		auto backRT = D3D12App::Instance()->GetBackBuffRenderTarget();

@@ -6,8 +6,9 @@ static const float MIN_SCALE = 0.1f;
 static const float MAX_SCALE = 1.0f;
 static const float MIN_VEL = 0.02f;
 static const float MAX_VEL = 0.5f;
-static const float MIN_OFFSET = 0.0f;
-static const float MAX_OFFSET = 6.0f;
+static const float RANGE = 8.0f;
+static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
+static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 1.0f;
 
@@ -69,7 +70,7 @@ IndirectSample::IndirectSample()
 	{
 		b.scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
 		b.vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
-		b.offset = { 0,KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET),0 };
+		b.offset = KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
 		b.color.r = KuroFunc::GetRand(COL_MIN, COL_MAX);
 		b.color.g = KuroFunc::GetRand(COL_MIN, COL_MAX);
 		b.color.b = KuroFunc::GetRand(COL_MIN, COL_MAX);
@@ -144,10 +145,10 @@ void IndirectSample::Update()
 	for (auto& b : m_blockDataArray)
 	{
 		b.offset += b.vel;
-		if (MAX_OFFSET < b.offset.y)
+		if (MAX_OFFSET.y < b.offset.y)
 		{
-			b.offset.y = MIN_OFFSET;
-
+			b.offset = KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
+			b.offset.y = MIN_OFFSET.y;
 			b.scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
 			b.vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
 			b.color.r = KuroFunc::GetRand(COL_MIN, COL_MAX);
