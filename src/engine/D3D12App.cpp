@@ -1375,7 +1375,7 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 	auto hr = device->CreateCommandSignature(&cmdSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&cmdSignature));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateIndirectDevice", "インダイレクト機構生成に失敗\n");
 
-	return std::make_shared<IndirectDevice>(cmdSignature, gpuBuffNum);
+	return std::make_shared<IndirectDevice>(device, cmdSignature, gpuBuffNum);
 }
 
 void D3D12App::SetBackBufferRenderTarget()

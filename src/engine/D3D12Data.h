@@ -675,10 +675,13 @@ private:
 	ComPtr<ID3D12CommandSignature>cmdSignature;
 	//１つの描画コマンドにつき使用するGPUバッファの数
 	int gpuBuffNum;
+	//カウントバッファー
+	ComPtr<ID3D12Resource>countBuffer;
+	//カウントリセット用コピー元バッファ
+	ComPtr<ID3D12Resource>countResetBuffer;
 
 public:
-	IndirectDevice(const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum)
-		:cmdSignature(CmdSignature), gpuBuffNum(GPUBufferNum) {}
+	IndirectDevice(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum);
 
 	void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
 		int MaxCommandCount,
