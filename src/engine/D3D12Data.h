@@ -648,24 +648,20 @@ public:
 	const int& GetPipelineHandle() { return handle; }
 };
 
+template<int GpuAddressNum>
 class IndirectCommand
 {
 public:
-	static size_t GetSize(const int& GPUBufferNum)
+	static size_t GetSize()
 	{
-		return sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * GPUBufferNum + sizeof(D3D12_DRAW_ARGUMENTS);
+		return sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * GpuAddressNum + sizeof(D3D12_DRAW_ARGUMENTS);
 	}
 
 public:
 	//各コマンドでの描画で使用するバッファ
-	std::vector<D3D12_GPU_VIRTUAL_ADDRESS>gpuAddressArray;
+	D3D12_GPU_VIRTUAL_ADDRESS gpuAddressArray[GpuAddressNum];
 	//通常描画の引数に使われるパラメータ
 	D3D12_DRAW_ARGUMENTS drawArgs;
-
-	size_t GetSize()
-	{
-		return GetSize(gpuAddressArray.size());
-	}
 };
 
 enum EXCUTE_INDIRECT_TYPE { DRAW, DRAW_INDEXED, DISPATCH, EXCUTE_INDIRECT_TYPE_NUM };

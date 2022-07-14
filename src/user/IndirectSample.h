@@ -41,7 +41,8 @@ class IndirectSample
 	//頂点バッファ
 	std::shared_ptr<VertexBuffer>m_vertBuff;
 
-	void GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM>&UploadCommands);
+	template<int GpuAddressNum>
+	void GenerateCommandBuffer(std::array<IndirectCommand<GpuAddressNum>, BLOCK_NUM>&UploadCommands);
 
 public:
 	IndirectSample();

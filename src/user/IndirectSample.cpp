@@ -11,12 +11,13 @@ static const float MAX_OFFSET = 6.0f;
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 1.0f;
 
-void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM>& UploadCommands)
+template<int GpuAddressNum>
+void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand<GpuAddressNum>, BLOCK_NUM>& UploadCommands)
 {
 	auto device = D3D12App::Instance()->GetDevice();
 	auto cmdList = D3D12App::Instance()->GetCmdList();
 
-	const auto commandSize = IndirectCommand::GetSize(2);
+	const auto commandSize = IndirectCommand<GpuAddressNum>::GetSize();
 	const auto commandArraySize = commandSize * BLOCK_NUM;
 
 	D3D12_RESOURCE_DESC commandBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(commandArraySize);
@@ -115,7 +116,7 @@ IndirectSample::IndirectSample()
 
 void IndirectSample::Init(Camera& Cam)
 {
-	std::array<IndirectCommand, BLOCK_NUM>commands;
+	std::array<IndirectCommand<2>, BLOCK_NUM>commands;
 	D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_blockBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	auto incrementSize = sizeof(Block);
@@ -127,10 +128,10 @@ void IndirectSample::Init(Camera& Cam)
 		com.drawArgs.StartVertexLocation = 0;
 
 		//CBV0（カメラ情報）
-		com.gpuAddressArray.emplace_back(camBuffAddress);
+		com.gpuAddressArray[0] = camBuffAddress;
 
 		//CBV1（ブロック情報）
-		com.gpuAddressArray.emplace_back(blockBuffAddress);
+		com.gpuAddressArray[1] = blockBuffAddress;
 		blockBuffAddress += incrementSize;
 
 		//SRV0（テクスチャ情報）
