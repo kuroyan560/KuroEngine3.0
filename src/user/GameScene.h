@@ -33,13 +33,13 @@ class GameScene : public BaseScene
 	std::shared_ptr<StaticallyCubeMap>staticCubeMap;
 	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
 
-	struct Noise
+	/*struct Noise
 	{
 		std::shared_ptr<TextureBuffer>tex;
 		NoiseInitializer initializer;
 
 		void ResetNoise();
-	}noise;
+	}noise;*/
 
 	IndirectSample indirectSample;
 

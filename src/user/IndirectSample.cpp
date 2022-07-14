@@ -27,8 +27,8 @@ void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM
 		&commandBufferDesc,
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
-		IID_PPV_ARGS(&commandBuffer));
-	commandBuffer->SetName(L"IndirectSample - CommandBuffer");
+		IID_PPV_ARGS(&m_commandBuffer));
+	m_commandBuffer->SetName(L"IndirectSample - CommandBuffer");
 
 	auto heapDescUpload = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	device->CreateCommittedResource(
@@ -37,16 +37,16 @@ void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM
 		&commandBufferDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&uploadCommandBuffer));
-	uploadCommandBuffer->SetName(L"IndirectSample - UploadCommandBuffer");
+		IID_PPV_ARGS(&m_uploadCommandBuffer));
+	m_uploadCommandBuffer->SetName(L"IndirectSample - UploadCommandBuffer");
 
 	D3D12_SUBRESOURCE_DATA commandData = {};
 	commandData.pData = reinterpret_cast<UINT8*>(&UploadCommands[0]);
 	commandData.RowPitch = commandArraySize;
 	commandData.SlicePitch = commandData.RowPitch;
 
-	UpdateSubresources<1>(cmdList.Get(), commandBuffer.Get(), uploadCommandBuffer.Get(), 0, 0, 1, &commandData);
-	auto barrierTransition = CD3DX12_RESOURCE_BARRIER::Transition(commandBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	UpdateSubresources<1>(cmdList.Get(), m_commandBuffer.Get(), m_uploadCommandBuffer.Get(), 0, 0, 1, &commandData);
+	auto barrierTransition = CD3DX12_RESOURCE_BARRIER::Transition(m_commandBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	cmdList->ResourceBarrier(1, &barrierTransition);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -57,14 +57,14 @@ void IndirectSample::GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM
 	srvDesc.Buffer.StructureByteStride = commandSize;
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-	auto srvDescHandle = D3D12App::Instance()->CreateSRV(commandBuffer, srvDesc);
-	//commandBuffer = std::make_shared<StructuredBuffer>(commandBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvDescHandle, commandSize, BLOCK_NUM);
+	auto srvDescHandle = D3D12App::Instance()->CreateSRV(m_commandBuffer, srvDesc);
+	//m_commandBuffer = std::make_shared<StructuredBuffer>(m_commandBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvDescHandle, commandSize, BLOCK_NUM);
 }
 
 IndirectSample::IndirectSample()
 {
 	//ブロックの個体情報生成
-	for (auto& b : blockDataArray)
+	for (auto& b : m_blockDataArray)
 	{
 		b.scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
 		b.vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
@@ -73,7 +73,7 @@ IndirectSample::IndirectSample()
 		b.color.g = KuroFunc::GetRand(COL_MIN, COL_MAX);
 		b.color.b = KuroFunc::GetRand(COL_MIN, COL_MAX);
 	}
-	blockBuff = D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Block), BLOCK_NUM, blockDataArray.data(), "IndirectSample - BlockBuffer");
+	m_blockBuff = D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Block), BLOCK_NUM, m_blockDataArray.data(), "IndirectSample - BlockBuffer");
 
 	//ルートパラメータ
 	std::vector<RootParam>rootParams
@@ -98,7 +98,7 @@ IndirectSample::IndirectSample()
 		std::vector<RenderTargetInfo>renderTargetInfo = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_None) };
 
 		//パイプライン生成
-		gPipeline = D3D12App::Instance()->GenerateGraphicsPipeline(
+		m_gPipeline = D3D12App::Instance()->GenerateGraphicsPipeline(
 			gPipelineOption, 
 			gPipelineShaders,
 			{ InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT) },
@@ -107,17 +107,17 @@ IndirectSample::IndirectSample()
 			{ WrappedSampler(false, false) });
 	}
 
-	indirectDev = D3D12App::Instance()->GenerateIndirectDevice(EXCUTE_INDIRECT_TYPE::DRAW, rootParams, { WrappedSampler(false,false) });
+	m_indirectDev = D3D12App::Instance()->GenerateIndirectDevice(EXCUTE_INDIRECT_TYPE::DRAW, rootParams, { WrappedSampler(false,false) });
 
 	Vec3<float>initPos = { 0,0,0 };
-	vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), 1, &initPos, "IndirectSample - VertexBuffer");
+	m_vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), 1, &initPos, "IndirectSample - VertexBuffer");
 }
 
 void IndirectSample::Init(Camera& Cam)
 {
 	std::array<IndirectCommand, BLOCK_NUM>commands;
 	D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
-	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = blockBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
+	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_blockBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	auto incrementSize = sizeof(Block);
 	for (auto& com : commands)
 	{
@@ -140,7 +140,7 @@ void IndirectSample::Init(Camera& Cam)
 
 void IndirectSample::Update()
 {
-	for (auto& b : blockDataArray)
+	for (auto& b : m_blockDataArray)
 	{
 		b.offset += b.vel;
 		if (MAX_OFFSET < b.offset.y)
@@ -154,33 +154,33 @@ void IndirectSample::Update()
 			b.color.b = KuroFunc::GetRand(COL_MIN, COL_MAX);
 		}
 	}
-	blockBuff->Mapping(blockDataArray.data());
+	m_blockBuff->Mapping(m_blockDataArray.data());
 }
 
 void IndirectSample::Draw()
 {
 	auto cmdList = D3D12App::Instance()->GetCmdList();
-	gPipeline->SetPipeline(cmdList);
+	m_gPipeline->SetPipeline(cmdList);
 
-	cmdList->IASetVertexBuffers(0, 0, &vertBuff->GetVBView());
+	cmdList->IASetVertexBuffers(0, 0, &m_vertBuff->GetVBView());
 
-	//commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	//m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 	D3D12_RESOURCE_BARRIER commandBuffBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		commandBuffer.Get(),
+		m_commandBuffer.Get(),
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 	cmdList->ResourceBarrier(1, &commandBuffBarrier);
 
-	indirectDev->Excute(
+	m_indirectDev->Excute(
 		cmdList,
 		BLOCK_NUM,
-		//commandBuffer->GetResource()->GetBuff().Get(),
-		commandBuffer.Get(),
+		//m_commandBuffer->GetResource()->GetBuff().Get(),
+		m_commandBuffer.Get(),
 		0,
 		nullptr,
 		0);
 
-	//commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	//m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	commandBuffBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
 	commandBuffBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 	cmdList->ResourceBarrier(1, &commandBuffBarrier);

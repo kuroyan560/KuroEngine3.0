@@ -21,27 +21,25 @@ class IndirectSample
 		float pad[53];
 	};
 	//ブロックの各個体情報（CPU）
-	std::array<Block, BLOCK_NUM>blockDataArray;
+	std::array<Block, BLOCK_NUM>m_blockDataArray;
 	//ブロックの各個体情報（GPU）
-	std::shared_ptr<StructuredBuffer>blockBuff;
+	std::shared_ptr<StructuredBuffer>m_blockBuff;
 
 	//コマンドバッファ
-	//std::shared_ptr<StructuredBuffer>commandBuffer;
+	//std::shared_ptr<StructuredBuffer>m_commandBuffer;
 	//コマンドバッファ（生）
-	Microsoft::WRL::ComPtr<ID3D12Resource1>commandBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource1>m_commandBuffer;
 	//コマンドバッファの更新用受け皿（Mappingが出来ないため）
-	Microsoft::WRL::ComPtr<ID3D12Resource1>uploadCommandBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource1>m_uploadCommandBuffer;
 
 	//グラフィックスパイプライン
-	std::shared_ptr<GraphicsPipeline>gPipeline;
+	std::shared_ptr<GraphicsPipeline>m_gPipeline;
 
 	//Indirect機構
-	std::shared_ptr<IndirectDevice>indirectDev;
+	std::shared_ptr<IndirectDevice>m_indirectDev;
 
 	//頂点バッファ
-	std::shared_ptr<VertexBuffer>vertBuff;
-
-
+	std::shared_ptr<VertexBuffer>m_vertBuff;
 
 	void GenerateCommandBuffer(std::array<IndirectCommand, BLOCK_NUM>&UploadCommands);
 

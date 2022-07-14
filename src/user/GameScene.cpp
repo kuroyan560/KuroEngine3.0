@@ -58,7 +58,7 @@ GameScene::GameScene()
 
 	dynamicCubeMap = std::make_shared<DynamicCubeMap>();
 
-	noise.ResetNoise();
+	//noise.ResetNoise();
 }
 
 void GameScene::OnInitialize()
@@ -272,6 +272,7 @@ void GameScene::OnFinalize()
 {
 }
 
+/*
 void GameScene::Noise::ResetNoise()
 {
 	if (!tex)
@@ -283,3 +284,4 @@ void GameScene::Noise::ResetNoise()
 		NoiseGenerator::PerlinNoise2D(tex, initializer);
 	}
 }
+*/
