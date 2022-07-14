@@ -1368,7 +1368,7 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 	D3D12_COMMAND_SIGNATURE_DESC cmdSignatureDesc = {};
 	cmdSignatureDesc.pArgumentDescs = argDescArray.data();
 	cmdSignatureDesc.NumArgumentDescs = argDescArray.size();
-	cmdSignatureDesc.ByteStride = IndirectCommand<2>::GetSize();
+	cmdSignatureDesc.ByteStride = sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * gpuBuffNum + sizeof(D3D12_DRAW_ARGUMENTS);
 
 	//コマンドシグネチャ生成
 	ComPtr<ID3D12CommandSignature>cmdSignature;
