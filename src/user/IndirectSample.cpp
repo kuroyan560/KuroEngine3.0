@@ -124,8 +124,7 @@ void IndirectSample::Draw()
 		BLOCK_NUM,
 		m_commandBuffer->GetResource()->GetBuff().Get(),
 		0,
-		nullptr,
-		0);
+		false);
 
 	m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 }

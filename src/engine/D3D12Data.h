@@ -659,8 +659,6 @@ public:
 	{
 		return sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * GpuAddressNum + sizeof(D3D12_DRAW_ARGUMENTS);
 	}
-
-public:
 	//各コマンドでの描画で使用するバッファ
 	std::array<D3D12_GPU_VIRTUAL_ADDRESS, GpuAddressNum>gpuAddressArray;
 	//通常描画の引数に使われるパラメータ
@@ -689,5 +687,5 @@ public:
 	void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
 		int MaxCommandCount,
 		ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
-		ID3D12Resource* CountBuffer, UINT CountBufferOffset);
+		bool UseCountBuffer);
 };

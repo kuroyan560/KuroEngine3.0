@@ -154,9 +154,9 @@ IndirectDevice::IndirectDevice(const ComPtr<ID3D12Device>& Device, const ComPtr<
 void IndirectDevice::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
 	int MaxCommandCount,
 	ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
-	ID3D12Resource* CountBuffer, UINT CountBufferOffset)
+	bool UseCountBuffer)
 {
-	if (CountBuffer != nullptr)
+	if (UseCountBuffer)
 	{
 		//カウントバッファのリセット
 		CmdList->CopyBufferRegion(countBuffer.Get(), 0, countResetBuffer.Get(), 0, sizeof(UINT));
@@ -164,21 +164,30 @@ void IndirectDevice::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
 		//カウントバッファリソースバリア切り替え（前）
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(countBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 		CmdList->ResourceBarrier(1, &barrier);
-	}
 
-	CmdList->ExecuteIndirect(
-		cmdSignature.Get(),
-		MaxCommandCount,
-		ArgBuffer,
-		ArgBufferOffset,
-		CountBuffer,
-		CountBufferOffset);
+		//実行（カウントバッファ有り）
+		CmdList->ExecuteIndirect(
+			cmdSignature.Get(),
+			MaxCommandCount,
+			ArgBuffer,
+			ArgBufferOffset,
+			countBuffer.Get(),
+			0);
 
-	if (CountBuffer != nullptr)
-	{
 		//カウントバッファリソースバリア切り替え（後）
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(countBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST);
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(countBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST);
 		CmdList->ResourceBarrier(1, &barrier);
+	}
+	else
+	{
+		//実行（カウントバッファ無し）
+		CmdList->ExecuteIndirect(
+			cmdSignature.Get(),
+			MaxCommandCount,
+			ArgBuffer,
+			ArgBufferOffset,
+			nullptr,
+			0);
 	}
 }
 
