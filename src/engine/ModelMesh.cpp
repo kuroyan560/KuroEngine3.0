@@ -117,9 +117,9 @@ std::vector<CollisionTriangle> ModelMesh::GetCollisionTriangles()
 	{
 		triangles.emplace_back();
 		auto& tri = triangles.back();
-		tri.p0 = mesh->vertices[mesh->indices[idx]].pos;
-		tri.p1 = mesh->vertices[mesh->indices[idx + 1]].pos;
-		tri.p2 = mesh->vertices[mesh->indices[idx + 2]].pos;
+		tri.m_p0 = mesh->vertices[mesh->indices[idx]].pos;
+		tri.m_p1 = mesh->vertices[mesh->indices[idx + 1]].pos;
+		tri.m_p2 = mesh->vertices[mesh->indices[idx + 2]].pos;
 		tri.CalculateNormal();
 	}
 
@@ -135,12 +135,12 @@ Vec3<ValueMinMax> ModelMesh::GetPosMinMax()const
 
 	for (const auto& v : mesh->vertices)
 	{
-		if (result.x.max < v.pos.x)result.x.max = v.pos.x;
-		if (v.pos.x < result.x.min)result.x.min = v.pos.x;
-		if (result.y.max < v.pos.y)result.y.max = v.pos.y;
-		if (v.pos.y < result.y.min)result.y.min = v.pos.y;
-		if (result.z.max < v.pos.z)result.z.max = v.pos.z;
-		if (v.pos.z < result.z.min)result.z.min = v.pos.z;
+		if (result.x.m_max < v.pos.x)result.x.m_max = v.pos.x;
+		if (v.pos.x < result.x.m_min)result.x.m_min = v.pos.x;
+		if (result.y.m_max < v.pos.y)result.y.m_max = v.pos.y;
+		if (v.pos.y < result.y.m_min)result.y.m_min = v.pos.y;
+		if (result.z.m_max < v.pos.z)result.z.m_max = v.pos.z;
+		if (v.pos.z < result.z.m_min)result.z.m_min = v.pos.z;
 	}
 	return result;
 }

@@ -13,9 +13,9 @@ public:
 
 private:
 	friend class Collider;
-	const SHAPE shape;
-	Transform* world = nullptr;	//ワールドトランスフォーム
-	Matrix* local = nullptr;
+	const SHAPE m_shape;
+	Transform* m_world = nullptr;	//ワールドトランスフォーム
+	Matrix* m_local = nullptr;
 
 protected:
 	//基本的なプリミティブ当たり判定のデバッグ描画
@@ -23,39 +23,39 @@ protected:
 	//定数バッファ用データ
 	struct ConstData
 	{
-		Matrix world = XMMatrixIdentity();
-		unsigned int hit = 0;
+		Matrix m_world = XMMatrixIdentity();
+		unsigned int m_hit = 0;
 	};
 
 	CollisionPrimitive() = delete;
 	CollisionPrimitive(CollisionPrimitive&& arg) = delete;
 	CollisionPrimitive(const CollisionPrimitive& arg) = delete;
-	CollisionPrimitive(const SHAPE& Shape, Transform* World, Matrix* Local) :shape(Shape), world(World), local(Local) {}
+	CollisionPrimitive(const SHAPE& Shape, Transform* World, Matrix* Local) :m_shape(Shape), m_world(World), m_local(Local) {}
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
-	Vec3<float>offset = { 0,0,0 };
+	Vec3<float>m_offset = { 0,0,0 };
 
 	//ゲッタ
-	const SHAPE& GetShape()const { return shape; }
+	const SHAPE& GetShape()const { return m_shape; }
 	const Matrix& GetWorldMat()
 	{
-		if (!world)return XMMatrixIdentity();
-		return world->GetMat();
+		if (!m_world)return XMMatrixIdentity();
+		return m_world->GetMat();
 	}
 	const Matrix& GetLocalMat()
 	{
-		if (!local)return XMMatrixIdentity();
-		return *local;
+		if (!m_local)return XMMatrixIdentity();
+		return *m_local;
 	}
 	const float& GetTransformZ()
 	{
-		return world ? world->GetPos().z : 0.0f;
+		return m_world ? m_world->GetPos().z : 0.0f;
 	}
 
 	//セッタ
-	void AttachWorldTransform(Transform* World) { world = World; }
-	void AttachLocalMatrix(Matrix* Local) { local = Local; }
+	void AttachWorldTransform(Transform* World) { m_world = World; }
+	void AttachLocalMatrix(Matrix* Local) { m_local = Local; }
 };
 
 //球
@@ -65,16 +65,16 @@ private:
 	friend class Collision;
 
 private:
-	std::shared_ptr<ConstantBuffer>constBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 	
 public:
-	float radius;					//半径
+	float m_radius;					//半径
 	CollisionSphere(const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr)
-		:CollisionPrimitive(SPHERE, World, Local), radius(Radius) {}
+		:CollisionPrimitive(SPHERE, World, Local), m_radius(Radius) {}
 	Vec3<float>GetCenter()
 	{
-		return KuroMath::TransformVec3(offset, GetLocalMat() * GetWorldMat());
+		return KuroMath::TransformVec3(m_offset, GetLocalMat() * GetWorldMat());
 	}
 };
 
@@ -85,16 +85,16 @@ private:
 	friend class Collision;
 
 private:
-	std::shared_ptr<ConstantBuffer>constBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 
 public:
-	Vec3<float>sPoint;	//始点
-	Vec3<float>ePoint;	//終点
-	float radius;
-	Vec3<float>offset;
+	Vec3<float>m_sPoint;	//始点
+	Vec3<float>m_ePoint;	//終点
+	float m_radius;
+	Vec3<float>m_offset;
 	CollisionCapsule(const Vec3<float>& StartPt, const Vec3<float>& EndPt, const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr, const Vec3<float>& Offset = Vec3<float>(0, 0, 0))
-		:CollisionPrimitive(CAPSULE, World, Local), sPoint(StartPt), ePoint(EndPt), radius(Radius), offset(Offset) {}
+		:CollisionPrimitive(CAPSULE, World, Local), m_sPoint(StartPt), m_ePoint(EndPt), m_radius(Radius), m_offset(Offset) {}
 };
 
 //AABB(軸並行境界ボックス）、色んな軸で回転すると判定がだめになる
@@ -109,20 +109,20 @@ private:
 	};
 
 private:
-	std::shared_ptr<ConstantBuffer>constBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 
 	//頂点バッファ
-	std::shared_ptr<VertexBuffer>vertBuff;
+	std::shared_ptr<VertexBuffer>m_vertBuff;
 	//各軸の最小値と最大値
-	Vec3<ValueMinMax>pValues;
+	Vec3<ValueMinMax>m_pValues;
 
 public:
 	CollisionAABB(const Vec3<ValueMinMax>& PValues, Transform* World = nullptr, Matrix* Local = nullptr)
 		:CollisionPrimitive(AABB, World, Local) { StructBox(PValues); }
 
 	//ゲッタ
-	const Vec3<ValueMinMax>& GetPtValue() { return pValues; }
+	const Vec3<ValueMinMax>& GetPtValue() { return m_pValues; }
 	//セッタ
 	void StructBox(const Vec3<ValueMinMax>& PValues);
 };
@@ -130,19 +130,19 @@ public:
 //法線つき三角形（ローカル座標）
 struct CollisionTriangle
 {
-	Vec3<float>p0;
-	Vec3<float>p1;
-	Vec3<float>p2;
-	Vec3<float>normal;
+	Vec3<float>m_p0;
+	Vec3<float>m_p1;
+	Vec3<float>m_p2;
+	Vec3<float>m_normal;
 
 	//法線の計算
 	void CalculateNormal()
 	{
-		Vec3<float>p0_p1 = p1 - p0;
-		Vec3<float>p0_p2 = p2 - p0;
+		Vec3<float>p0_p1 = m_p1 - m_p0;
+		Vec3<float>p0_p2 = m_p2 - m_p0;
 
 		//外積により、２辺に垂直なベクトルを算出
-		normal = p0_p1.Cross(p0_p2).GetNormal();
+		m_normal = p0_p1.Cross(p0_p2).GetNormal();
 	}
 };
 
@@ -152,9 +152,9 @@ private:
 	friend class Collision;
 
 private:
-	std::shared_ptr<VertexBuffer>vertBuff;
-	std::shared_ptr<ConstantBuffer>constBuff;
-	std::vector<CollisionTriangle>triangles;
+	std::shared_ptr<VertexBuffer>m_vertBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
+	std::vector<CollisionTriangle>m_triangles;
 
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 public:
@@ -165,7 +165,7 @@ public:
 	}
 
 	//ゲッタ
-	const std::vector<CollisionTriangle>& GetTriangles()const { return triangles; }
+	const std::vector<CollisionTriangle>& GetTriangles()const { return m_triangles; }
 
 	//セッタ
 	void SetTriangles(const std::vector<CollisionTriangle>& Triangles);

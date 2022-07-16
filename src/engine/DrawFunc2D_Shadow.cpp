@@ -2,16 +2,16 @@
 #include"KuroEngine.h"
 #include"LightManager.h"
 
-std::shared_ptr<ConstantBuffer>DrawFunc2D_Shadow::EYE_POS_BUFF;
-std::shared_ptr<TextureBuffer>DrawFunc2D_Shadow::DEFAULT_TEX;
-std::shared_ptr<TextureBuffer>DrawFunc2D_Shadow::DEFAULT_NORMAL_MAP;
-std::shared_ptr<TextureBuffer>DrawFunc2D_Shadow::DEFAULT_EMISSIVE_MAP;
+std::shared_ptr<ConstantBuffer>DrawFunc2D_Shadow::s_eyePosBuff;
+std::shared_ptr<TextureBuffer>DrawFunc2D_Shadow::s_defaultTex;
+std::shared_ptr<TextureBuffer>DrawFunc2D_Shadow::s_defaultNormalMap;
+std::shared_ptr<TextureBuffer>DrawFunc2D_Shadow::s_defaultEmissiveMap;
 
 //DrawExtendGraph
-int DrawFunc2D_Shadow::DRAW_EXTEND_GRAPH_COUNT = 0;
+int DrawFunc2D_Shadow::s_drawExtendGraphCount = 0;
 
 //DrawRotaGraph
-int DrawFunc2D_Shadow::DRAW_ROTA_GRAPH_COUNT = 0;
+int DrawFunc2D_Shadow::s_drawRotaGraphCount = 0;
 
 static std::vector<RootParam>ROOT_PARAMETER =
 {
@@ -29,25 +29,25 @@ static std::vector<RootParam>ROOT_PARAMETER =
 
 void DrawFunc2D_Shadow::StaticInit()
 {
-	if (EYE_POS_BUFF)return;
+	if (s_eyePosBuff)return;
 
 	//視点座標
 	Vec3<float>INIT_EYE_POS = { WinApp::Instance()->GetExpandWinCenter().x,WinApp::Instance()->GetExpandWinCenter().y,-5.0f };
-	EYE_POS_BUFF = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Vec3<float>), 1, &INIT_EYE_POS, "DrawFunc_Shadow - EYE_POS");
+	s_eyePosBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Vec3<float>), 1, &INIT_EYE_POS, "DrawFunc_Shadow - EYE_POS");
 
 	//白テクスチャ
-	DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	s_defaultTex = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// (0,0,-1) ノーマルマップ
-	DEFAULT_NORMAL_MAP = D3D12App::Instance()->GenerateTextureBuffer(Color(0.5f, 0.5f, 1.0f, 1.0f));
+	s_defaultNormalMap = D3D12App::Instance()->GenerateTextureBuffer(Color(0.5f, 0.5f, 1.0f, 1.0f));
 
 	//黒テクスチャ
-	DEFAULT_EMISSIVE_MAP = D3D12App::Instance()->GenerateTextureBuffer(Color(0.0f, 0.0f, 0.0f, 1.0f));
+	s_defaultEmissiveMap = D3D12App::Instance()->GenerateTextureBuffer(Color(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void DrawFunc2D_Shadow::SetEyePos(Vec3<float> EyePos)
 {
-	EYE_POS_BUFF->Mapping(&EyePos);
+	s_eyePosBuff->Mapping(&EyePos);
 }
 
 void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<float>& LeftUpPos, const Vec2<float>& RightBottomPos, const std::shared_ptr<TextureBuffer>& Tex, const std::shared_ptr<TextureBuffer>& NormalMap, const std::shared_ptr<TextureBuffer>& EmissiveMap, const float& SpriteDepth, const Vec2<bool>& Miror, const float& Diffuse, const float& Specular, const float& Lim)
@@ -77,13 +77,13 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -114,21 +114,21 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
 
-	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (DRAW_EXTEND_GRAPH_COUNT + 1))
+	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (s_drawExtendGraphCount + 1))
 	{
-		EXTEND_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(ExtendGraphVertex), 1, nullptr, ("DrawExtendGraph_Shadow -" + std::to_string(DRAW_EXTEND_GRAPH_COUNT)).c_str()));
+		EXTEND_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(ExtendGraphVertex), 1, nullptr, ("DrawExtendGraph_Shadow -" + std::to_string(s_drawExtendGraphCount)).c_str()));
 	}
 
 	ExtendGraphVertex vertex(LeftUpPos, RightBottomPos, Miror, SpriteDepth, Diffuse, Specular, Lim);
-	EXTEND_GRAPH_VERTEX_BUFF[DRAW_EXTEND_GRAPH_COUNT]->Mapping(&vertex);
+	EXTEND_GRAPH_VERTEX_BUFF[s_drawExtendGraphCount]->Mapping(&vertex);
 
-	auto normalMap = NormalMap ? NormalMap : DEFAULT_NORMAL_MAP;
-	auto emissiveMap = EmissiveMap ? EmissiveMap : DEFAULT_EMISSIVE_MAP;
+	auto normalMap = NormalMap ? NormalMap : s_defaultNormalMap;
+	auto emissiveMap = EmissiveMap ? EmissiveMap : s_defaultEmissiveMap;
 
-	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[DRAW_EXTEND_GRAPH_COUNT],
+	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_drawExtendGraphCount],
 		{
 			KuroEngine::Instance().GetParallelMatProjBuff(),
-			EYE_POS_BUFF,	//視点座標
+			s_eyePosBuff,	//視点座標
 			LigManager.GetLigNumInfo(),	//アクティブ中のライト数
 			LigManager.GetLigInfo(Light::DIRECTION),	//ディレクションライト
 			LigManager.GetLigInfo(Light::POINT),	//ポイントライト
@@ -138,7 +138,7 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 		},
 		{ CBV,CBV,CBV,SRV,SRV,SRV,SRV,SRV,SRV,SRV }, 0.0f, true);
 
-	DRAW_EXTEND_GRAPH_COUNT++;
+	s_drawExtendGraphCount++;
 }
 
 void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<float>& Center, const Vec2<float>& ExtRate, const float& Radian, const std::shared_ptr<TextureBuffer>& Tex, const std::shared_ptr<TextureBuffer>& NormalMap, const std::shared_ptr<TextureBuffer>& EmissiveMap, const float& SpriteDepth, const Vec2<float>& RotaCenterUV, const Vec2<bool>& Miror, const float& Diffuse, const float& Specular, const float& Lim)
@@ -171,13 +171,13 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -210,21 +210,21 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
 
-	if (ROTA_GRAPH_VERTEX_BUFF.size() < (DRAW_ROTA_GRAPH_COUNT + 1))
+	if (ROTA_GRAPH_VERTEX_BUFF.size() < (s_drawRotaGraphCount + 1))
 	{
-		ROTA_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(RotaGraphVertex), 1, nullptr, ("DrawRotaGraph_Shadow -" + std::to_string(DRAW_ROTA_GRAPH_COUNT)).c_str()));
+		ROTA_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(RotaGraphVertex), 1, nullptr, ("DrawRotaGraph_Shadow -" + std::to_string(s_drawRotaGraphCount)).c_str()));
 	}
 
 	RotaGraphVertex vertex(Center, ExtRate, Radian, RotaCenterUV, Miror, SpriteDepth, Diffuse, Specular, Lim);
-	ROTA_GRAPH_VERTEX_BUFF[DRAW_ROTA_GRAPH_COUNT]->Mapping(&vertex);
+	ROTA_GRAPH_VERTEX_BUFF[s_drawRotaGraphCount]->Mapping(&vertex);
 
-	auto normalMap = NormalMap ? NormalMap : DEFAULT_NORMAL_MAP;
-	auto emissiveMap = EmissiveMap ? EmissiveMap : DEFAULT_EMISSIVE_MAP;
+	auto normalMap = NormalMap ? NormalMap : s_defaultNormalMap;
+	auto emissiveMap = EmissiveMap ? EmissiveMap : s_defaultEmissiveMap;
 
-	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[DRAW_ROTA_GRAPH_COUNT],
+	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_drawRotaGraphCount],
 		{
 			KuroEngine::Instance().GetParallelMatProjBuff(),
-			EYE_POS_BUFF,	//視点座標
+			s_eyePosBuff,	//視点座標
 			LigManager.GetLigNumInfo(),	//アクティブ中のライト数
 			LigManager.GetLigInfo(Light::DIRECTION),	//ディレクションライト
 			LigManager.GetLigInfo(Light::POINT),	//ポイントライト
@@ -234,5 +234,5 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 		},
 		{ CBV,CBV,CBV,SRV,SRV,SRV,SRV,SRV,SRV,SRV }, 0.0f, true);
 
-	DRAW_ROTA_GRAPH_COUNT++;
+	s_drawRotaGraphCount++;
 }

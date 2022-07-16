@@ -21,9 +21,9 @@ bool Importer::SaveData(FILE* Fp, const void* Data, const size_t& Size, const in
 
 void Importer::FbxDeviceDestroy()
 {
-	if (fbxImporter)fbxImporter->Destroy();
-	if (ioSettings)ioSettings->Destroy();
-	if (fbxManager)fbxManager->Destroy();
+	if (m_fbxImporter)m_fbxImporter->Destroy();
+	if (m_ioSettings)m_ioSettings->Destroy();
+	if (m_fbxManager)m_fbxManager->Destroy();
 }
 
 void Importer::ParseNodeRecursive(std::vector<LoadFbxNode>& LoadFbxNodeArray, FbxNode* FbxNode, LoadFbxNode* Parent)
@@ -34,37 +34,37 @@ void Importer::ParseNodeRecursive(std::vector<LoadFbxNode>& LoadFbxNodeArray, Fb
 	LoadFbxNode& node = LoadFbxNodeArray.back();
 
 	//FBX上のノードのポインタ格納
-	node.fbxNode = FbxNode;
+	node.m_fbxNode = FbxNode;
 
 	//ノード名取得
-	node.name = FbxNode->GetName();
+	node.m_name = FbxNode->GetName();
 
 	// ローカル変形行列の計算
 	FbxDouble3 rotation = FbxNode->LclRotation.Get();
 	FbxDouble3 scaling = FbxNode->LclScaling.Get();
 	FbxDouble3 translation = FbxNode->LclTranslation.Get();
-	node.rotation = { (float)rotation[0], (float)rotation[1], (float)rotation[2], 0.0f };
-	node.scaling = { (float)scaling[0], (float)scaling[1], (float)scaling[2], 0.0f };
-	node.translation = { (float)translation[0], (float)translation[1], (float)translation[2], 1.0f };
+	node.m_rotation = { (float)rotation[0], (float)rotation[1], (float)rotation[2], 0.0f };
+	node.m_scaling = { (float)scaling[0], (float)scaling[1], (float)scaling[2], 0.0f };
+	node.m_translation = { (float)translation[0], (float)translation[1], (float)translation[2], 1.0f };
 
 	XMMATRIX matScaling, matRotation, matTranslation;
-	matScaling = XMMatrixScalingFromVector(node.scaling);
-	matRotation = XMMatrixRotationRollPitchYawFromVector(node.rotation);
-	matTranslation = XMMatrixTranslationFromVector(node.translation);
+	matScaling = XMMatrixScalingFromVector(node.m_scaling);
+	matRotation = XMMatrixRotationRollPitchYawFromVector(node.m_rotation);
+	matTranslation = XMMatrixTranslationFromVector(node.m_translation);
 
-	node.transform = XMMatrixIdentity();
-	node.transform *= matScaling;
-	node.transform *= matRotation;
-	node.transform *= matTranslation;
+	node.m_transform = XMMatrixIdentity();
+	node.m_transform *= matScaling;
+	node.m_transform *= matRotation;
+	node.m_transform *= matTranslation;
 
 	//親設定
 	if (Parent) 
 	{
-		node.parent = Parent;
+		node.m_parent = Parent;
 	}
 
 	// FBXノードのメッシュ情報を解析
-	node.attribute = FbxNode->GetNodeAttribute();
+	node.m_attribute = FbxNode->GetNodeAttribute();
 
 	// 子ノードに対して再帰呼び出し
 	const int childCount = FbxNode->GetChildCount();
@@ -124,11 +124,11 @@ void Importer::LoadBoneAffectTable(const Skeleton& Skel, FbxMesh* FbxMesh, BoneT
 
 				//影響テーブルに格納
 				FbxBoneAffect info;
-				info.index = affectBoneIdx;
-				info.weight = (float)weightArray[pointIdx];
-				info.weight = std::clamp(info.weight, 0.0f, 1.0f);
+				info.m_index = affectBoneIdx;
+				info.m_weight = (float)weightArray[pointIdx];
+				info.m_weight = std::clamp(info.m_weight, 0.0f, 1.0f);
 
-				if (info.weight == 0.0f)continue;	//０なら格納する必要なし
+				if (info.m_weight == 0.0f)continue;	//０なら格納する必要なし
 
 				//頂点インデックス(添字)ごとにリストとして影響を受けるボーンは管理している。
 				BoneTable[vertIdx].emplace_front(info);
@@ -220,8 +220,8 @@ void Importer::LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& 
 				{
 					//ボーン未登録でないなら
 					if (vertex.boneIdx[affectBoneIdx] != -1)continue;	
-					vertex.boneIdx[affectBoneIdx] = itr->index;
-					vertex.boneWeight[affectBoneIdx] = itr->weight;
+					vertex.boneIdx[affectBoneIdx] = itr->m_index;
+					vertex.boneWeight[affectBoneIdx] = itr->m_weight;
 					break;
 				}
 				count++;
@@ -479,8 +479,8 @@ void Importer::LoadBoneAnim(const LoadFbxNode& BoneNode, Skeleton::ModelAnimatio
 	assert(0);
 
 	//ボーン単位アニメーション取得
-	auto& boneAnim = ModelAnimation.boneAnim[BoneNode.name];
-	auto fbxNode = BoneNode.fbxNode;
+	auto& boneAnim = ModelAnimation.boneAnim[BoneNode.m_name];
+	auto fbxNode = BoneNode.m_fbxNode;
 
 	FbxAnimCurve* animCurve;
 
@@ -788,7 +788,7 @@ void Importer::PrintResourceInfo(const Microsoft::glTF::Document& document, cons
 std::shared_ptr<Model> Importer::CheckAlreadyExsit(const std::string& Dir, const std::string& FileName)
 {
 	//生成済
-	for (auto& m : models)
+	for (auto& m : m_models)
 	{
 		//既に生成しているものを渡す
 		if (m.first == Dir + FileName)return m.second;
@@ -1010,16 +1010,16 @@ Importer::Importer()
 	static const std::string FUNC_NAME = "コンストラクタ";
 
 	//マネージャ生成
-	fbxManager = FbxManager::Create();
-	ErrorMessage(FUNC_NAME, fbxManager == nullptr, "FBXマネージャ生成に失敗\n");
+	m_fbxManager = FbxManager::Create();
+	ErrorMessage(FUNC_NAME, m_fbxManager == nullptr, "FBXマネージャ生成に失敗\n");
 
 	//IOSettingを生成
-	ioSettings = FbxIOSettings::Create(fbxManager, IOSROOT);
-	ErrorMessage(FUNC_NAME, ioSettings == nullptr, "FBXIOSetting生成に失敗\n");
+	m_ioSettings = FbxIOSettings::Create(m_fbxManager, IOSROOT);
+	ErrorMessage(FUNC_NAME, m_ioSettings == nullptr, "FBXIOSetting生成に失敗\n");
 
 	//インポータ生成
-	fbxImporter = FbxImporter::Create(fbxManager, "");
-	ErrorMessage(FUNC_NAME, fbxImporter == nullptr, "FBXインポータ生成に失敗\n");
+	m_fbxImporter = FbxImporter::Create(m_fbxManager, "");
+	ErrorMessage(FUNC_NAME, m_fbxImporter == nullptr, "FBXインポータ生成に失敗\n");
 }
 
 std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std::string& FileName, const std::string& Ext)
@@ -1082,17 +1082,17 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 	ErrorMessage(FUNC_NAME, !KuroFunc::ExistFile(path), "ファイルが存在しません\n");
 
 	//ファイルを初期化する
-	ErrorMessage(FUNC_NAME, fbxImporter->Initialize(path.c_str(), -1, fbxManager->GetIOSettings()) == false, "ファイルの初期化に失敗\n");
+	ErrorMessage(FUNC_NAME, m_fbxImporter->Initialize(path.c_str(), -1, m_fbxManager->GetIOSettings()) == false, "ファイルの初期化に失敗\n");
 
 	//シーンオブジェクト生成
-	FbxScene* fbxScene = FbxScene::Create(fbxManager, "scene");
+	FbxScene* fbxScene = FbxScene::Create(m_fbxManager, "scene");
 	ErrorMessage(FUNC_NAME, fbxScene == nullptr, "FBXシーン生成に失敗\n");
 
 	//シーンオブジェクトにfbxファイル内の情報を流し込む
-	ErrorMessage(FUNC_NAME, fbxImporter->Import(fbxScene) == false, "FBXシーンへのFBXファイル情報流し込みに失敗\n");
+	ErrorMessage(FUNC_NAME, m_fbxImporter->Import(fbxScene) == false, "FBXシーンへのFBXファイル情報流し込みに失敗\n");
 
 	//シーン内のノードのポリゴンを全て三角形にする
-	FbxGeometryConverter converter(fbxManager);
+	FbxGeometryConverter converter(m_fbxManager);
 
 	//ポリゴンを三角形にする
 	converter.Triangulate(fbxScene, true);
@@ -1113,24 +1113,24 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 	//先にボーンの情報取得（頂点に与える影響を取得するのに必要）
 	for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
 	{
-		if (!itr->attribute)continue;	//Attributeを持たない
-		if (itr->attribute->GetAttributeType() != FbxNodeAttribute::eSkeleton)continue;	//スケルトンノードではない
+		if (!itr->m_attribute)continue;	//Attributeを持たない
+		if (itr->m_attribute->GetAttributeType() != FbxNodeAttribute::eSkeleton)continue;	//スケルトンノードではない
 
 		//新規ボーン
 		skel.bones.emplace_back();
 		auto& newBone = skel.bones.back();
 
 		//情報取得
-		newBone.name = itr->name;
-		newBone.invBindMat = XMMatrixInverse(nullptr, itr->transform);
+		newBone.name = itr->m_name;
+		newBone.invBindMat = XMMatrixInverse(nullptr, itr->m_transform);
 
 		//親がいないならスルー
-		if (!itr->parent)continue;
+		if (!itr->m_parent)continue;
 
 		//既に追加されているボーンから親を探す（親より子が先に存在することはない）
 		for (int boneIdx = 0; boneIdx < skel.bones.size(); ++boneIdx)
 		{
-			if (skel.bones[boneIdx].name != itr->parent->name)continue;
+			if (skel.bones[boneIdx].name != itr->m_parent->m_name)continue;
 			newBone.parent = boneIdx;
 			break;
 		}
@@ -1139,14 +1139,14 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 	//次にメッシュ情報読み込み
 	for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
 	{
-		if (!itr->attribute)continue;	//Attributeを持たない
-		if (itr->attribute->GetAttributeType() != FbxNodeAttribute::eMesh)continue;	//メッシュノードではない
+		if (!itr->m_attribute)continue;	//Attributeを持たない
+		if (itr->m_attribute->GetAttributeType() != FbxNodeAttribute::eMesh)continue;	//メッシュノードではない
 
 		// 複数のAttributeからメッシュ読み込み（マテリアル単位で分割しているため必要）
-		int meshCount = itr->fbxNode->GetNodeAttributeCount();
+		int meshCount = itr->m_fbxNode->GetNodeAttributeCount();
 		for (int meshIdx = 0; meshIdx < meshCount; ++meshIdx)
 		{
-			FbxNodeAttribute* nodeAttribute = itr->fbxNode->GetNodeAttributeByIndex(meshIdx);
+			FbxNodeAttribute* nodeAttribute = itr->m_fbxNode->GetNodeAttributeByIndex(meshIdx);
 			if (nodeAttribute->GetAttributeType() != FbxNodeAttribute::EType::eMesh)continue;	//メッシュではない
 
 			FbxMesh* fbxMesh = (FbxMesh*)nodeAttribute;
@@ -1163,12 +1163,12 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 			mesh.material->CreateBuff();
 			mesh.mesh->CreateBuff();
 
-			result->meshes.emplace_back(mesh);
+			result->m_meshes.emplace_back(mesh);
 		}
 	}
 
 	//アニメーションの読み込み
-	int animStackCount = fbxImporter->GetAnimStackCount();	//アニメーションの数
+	int animStackCount = m_fbxImporter->GetAnimStackCount();	//アニメーションの数
 	for (int animIdx = 0; animIdx < animStackCount; ++animIdx)
 	{
 		Skeleton::ModelAnimation animation;
@@ -1186,8 +1186,8 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 
 			for (auto itr = loadFbxNodes.begin(); itr != loadFbxNodes.end(); ++itr)
 			{
-				if (!itr->attribute)continue;	//Attributeを持たない
-				if (itr->attribute->GetAttributeType() != FbxNodeAttribute::eSkeleton)continue;	//スケルトンノードではない
+				if (!itr->m_attribute)continue;	//Attributeを持たない
+				if (itr->m_attribute->GetAttributeType() != FbxNodeAttribute::eSkeleton)continue;	//スケルトンノードではない
 
 				LoadBoneAnim(*itr, animation, animLayer);
 			}
@@ -1196,7 +1196,7 @@ std::shared_ptr<Model> Importer::LoadFBXModel(const std::string& Dir, const std:
 	}
 
 	skel.CreateBoneTree();
-	result->skelton = std::make_shared<Skeleton>(skel);
+	result->m_skelton = std::make_shared<Skeleton>(skel);
 
 	//SaveHSMModel(HSM_TAIL, result, fbxLastWriteTime);
 
@@ -1426,7 +1426,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 	}
 
 	skel.CreateBoneTree();
-	result->skelton = std::make_shared<Skeleton>(skel);
+	result->m_skelton = std::make_shared<Skeleton>(skel);
 
 	//マテリアル読み込み
 	std::vector<std::shared_ptr<Material>>loadMaterials;
@@ -1516,7 +1516,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 			}
 
 			mesh.mesh->CreateBuff();
-			result->meshes.emplace_back(mesh);
+			result->m_meshes.emplace_back(mesh);
 		}
 	}
 

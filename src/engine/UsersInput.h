@@ -36,47 +36,47 @@ private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	static UsersInput* INSTANCE;
+	static UsersInput* s_instance;
 public:
 	static UsersInput* Instance()
 	{
-		if (INSTANCE == nullptr)
+		if (s_instance == nullptr)
 		{
 			printf("UsersInputのインスタンスを呼び出そうとしましたがnullptrでした\n");
 			assert(0);
 		}
-		return INSTANCE;
+		return s_instance;
 	}
 
 	struct MouseMove
 	{
-		LONG IX;
-		LONG IY;
-		LONG IZ;
+		LONG m_inputX;
+		LONG m_inputY;
+		LONG m_inputZ;
 	};
 
 private:
-	ComPtr<IDirectInput8> dinput = nullptr;
+	ComPtr<IDirectInput8> m_dinput = nullptr;
 
 	//キーボード
-	ComPtr<IDirectInputDevice8> keyDev;
-	static const int KEY_NUM = 256;
-	BYTE keys[KEY_NUM] = {};
-	BYTE oldkeys[KEY_NUM] = {};
+	ComPtr<IDirectInputDevice8> m_keyDev;
+	static const int s_keyNum = 256;
+	BYTE m_keys[s_keyNum] = {};
+	BYTE m_oldkeys[s_keyNum] = {};
 
 	//マウス
-	ComPtr<IDirectInputDevice8>mouseDev;
-	DIMOUSESTATE2 mouseState = {};
-	DIMOUSESTATE2 oldMouseState = {};
+	ComPtr<IDirectInputDevice8>m_mouseDev;
+	DIMOUSESTATE2 m_mouseState = {};
+	DIMOUSESTATE2 m_oldMouseState = {};
 	//マウスのゲーム空間内でのレイ
-	Vec2<float> mousePos;
+	Vec2<float> m_mousePos;
 
 	//XINPUT(コントローラー用)
-	static const int CONTROLLER_NUM = 3;
-	XINPUT_STATE xinputState[CONTROLLER_NUM];
-	XINPUT_STATE oldXinputState[CONTROLLER_NUM];
-	float shakePower[CONTROLLER_NUM] = { 0.0f };
-	int shakeTimer[CONTROLLER_NUM] = { 0 };
+	static const int s_controllerNum = 3;
+	XINPUT_STATE m_xinputState[s_controllerNum];
+	XINPUT_STATE m_oldXinputState[s_controllerNum];
+	float m_shakePower[s_controllerNum] = { 0.0f };
+	int m_shakeTimer[s_controllerNum] = { 0 };
 	//デッドゾーンに入っているか(DeadRate : デッドゾーン判定の度合い、1.0fだとデフォルト)
 	bool StickInDeadZone(Vec2<float>& Thumb, const Vec2<float>& DeadRate);
 
@@ -85,12 +85,12 @@ private:
 public:
 	UsersInput(const WNDCLASSEX& WinClass, const HWND& Hwnd)
 	{
-		if (INSTANCE != nullptr)
+		if (s_instance != nullptr)
 		{
 			printf("既にインスタンスがあります。UsersInputは１つのインスタンスしか持てません\n");
 			assert(0);
 		}
-		INSTANCE = this;
+		s_instance = this;
 		Initialize(WinClass, Hwnd);
 	}
 	~UsersInput() {};
@@ -107,7 +107,7 @@ public:
 	bool MouseInput(MOUSE_BUTTON Button);
 	bool MouseOffTrigger(MOUSE_BUTTON Button);
 
-	const Vec2<float>& GetMousePos()const { return mousePos; }
+	const Vec2<float>& GetMousePos()const { return m_mousePos; }
 	MouseMove GetMouseMove();
 	//Ray GetMouseRay();
 

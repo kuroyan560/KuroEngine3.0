@@ -25,69 +25,69 @@ class D3D12App
 private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
-	static D3D12App* INSTANCE;
+	static D3D12App* s_instance;
 	//ダブルバッファ
-	static const UINT FRAME_BUFFER_COUNT = 2;
+	static const UINT s_frameBufferCount = 2;
 
 	//ロード用のラムダ式のための型
 	using LoadLambda_t = std::function<HRESULT(const std::wstring& Path, TexMetadata* Meta, ScratchImage& Img)>;
-	static std::map<std::string, LoadLambda_t>loadLambdaTable;
+	static std::map<std::string, LoadLambda_t>s_loadLambdaTable;
 
 public:
 	static D3D12App* Instance()
 	{
-		KuroFunc::ErrorMessage(INSTANCE == nullptr, "D3D12App", "シングルトンインスタンス", "インスタンスがnullptrでした\n");
-		return INSTANCE;
+		KuroFunc::ErrorMessage(s_instance == nullptr, "D3D12App", "シングルトンインスタンス", "インスタンスがnullptrでした\n");
+		return s_instance;
 	}
 
 private:
 	//DirectX12デバイス
-	ComPtr<ID3D12Device> device;
+	ComPtr<ID3D12Device> m_device;
 	//DXGIファクトリ
-	ComPtr<IDXGIFactory6>dxgiFactory = nullptr;
+	ComPtr<IDXGIFactory6>m_dxgiFactory = nullptr;
 	//コマンドアロケータ
-	std::vector<ComPtr<ID3D12CommandAllocator>> commandAllocators;
-	ComPtr<ID3D12CommandAllocator>oneshotCommandAllocator;
+	std::vector<ComPtr<ID3D12CommandAllocator>> m_commandAllocators;
+	ComPtr<ID3D12CommandAllocator>m_oneshotCommandAllocator;
 	//コマンドリスト
-	ComPtr<ID3D12GraphicsCommandList> commandList;
+	ComPtr<ID3D12GraphicsCommandList> m_commandList;
 	//コマンドキュー
-	ComPtr<ID3D12CommandQueue> commandQueue;
+	ComPtr<ID3D12CommandQueue> m_commandQueue;
 
 	//ディスクリプタヒープ
-	std::unique_ptr<DescriptorHeap_CBV_SRV_UAV> descHeapCBV_SRV_UAV;
-	std::unique_ptr<DescriptorHeap_RTV> descHeapRTV;
-	std::unique_ptr<DescriptorHeap_DSV> descHeapDSV;
+	std::unique_ptr<DescriptorHeap_CBV_SRV_UAV> m_descHeapCBV_SRV_UAV;
+	std::unique_ptr<DescriptorHeap_RTV> m_descHeapRTV;
+	std::unique_ptr<DescriptorHeap_DSV> m_descHeapDSV;
 
 	//スワップチェイン
-	std::unique_ptr<Swapchain>swapchain;
-	DXGI_FORMAT backBuffFormat = DXGI_FORMAT_UNKNOWN;	//バックバッファのフォーマット
+	std::unique_ptr<Swapchain>m_swapchain;
+	DXGI_FORMAT m_backBuffFormat = DXGI_FORMAT_UNKNOWN;	//バックバッファのフォーマット
 
 	//生成したカラーテクスチャ記録用
 	struct ColorTexture
 	{
-		Color color;
-		int width;
-		std::shared_ptr<TextureBuffer>tex;
+		Color m_color;
+		int m_width;
+		std::shared_ptr<TextureBuffer>m_tex;
 	};
-	std::list<ColorTexture>colorTextures;
+	std::list<ColorTexture>m_colorTextures;
 
 	//生成した画像テクスチャ記録用
 	struct LoadImgTexture
 	{
-		std::string path;
-		std::vector<std::shared_ptr<TextureBuffer>>textures;
+		std::string m_path;
+		std::vector<std::shared_ptr<TextureBuffer>>m_textures;
 	};
-	std::list<LoadImgTexture>loadImgTextures;
+	std::list<LoadImgTexture>m_loadImgTextures;
 
 	//画像を分割するパイプライン
 	struct SplitImgConstData
 	{
-		Vec2<int> imgNum = { 0,0 };
-		Vec2<int> splitSize;
+		Vec2<int> m_imgNum = { 0,0 };
+		Vec2<int> m_splitSize;
 	};
-	int splitTexBuffCount = 0;	//SpliteTexBufferが呼ばれた回数
-	std::vector<std::shared_ptr<ConstantBuffer>>splitImgConstBuff;
-	std::shared_ptr<ComputePipeline>splitImgPipeline;
+	int m_splitTexBuffCount = 0;	//SpliteTexBufferが呼ばれた回数
+	std::vector<std::shared_ptr<ConstantBuffer>>m_splitImgConstBuff;
+	std::shared_ptr<ComputePipeline>m_splitImgPipeline;
 
 	void Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const bool& UseHDR, const Color& ClearValue, const bool& IsFullScreen);
 	ComPtr<ID3D12RootSignature>GenerateRootSignature(const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC>& Samplers);
@@ -95,16 +95,16 @@ private:
 public:
 	D3D12App(const HWND& Hwnd, const Vec2<int>& ScreenSize, const bool& UseHDR, const Color& ClearValue, const bool& IsFullScreen = false)
 	{
-		KuroFunc::ErrorMessage(INSTANCE != nullptr, "D3D12App", "コンストラクタ", "既にインスタンスが生成済です\n");
-		INSTANCE = this;
+		KuroFunc::ErrorMessage(s_instance != nullptr, "D3D12App", "コンストラクタ", "既にインスタンスが生成済です\n");
+		s_instance = this;
 		Initialize(Hwnd, ScreenSize, UseHDR, ClearValue, IsFullScreen);
 	}
 
 	//ゲッタ
-	const ComPtr<ID3D12Device>& GetDevice() { return device; }
-	const ComPtr<ID3D12GraphicsCommandList>& GetCmdList() { return commandList; }
-	const DXGI_FORMAT& GetBackBuffFormat() { return backBuffFormat; }
-	const std::shared_ptr<RenderTarget>& GetBackBuffRenderTarget() { return swapchain->GetBackBufferRenderTarget(); }
+	const ComPtr<ID3D12Device>& GetDevice() { return m_device; }
+	const ComPtr<ID3D12GraphicsCommandList>& GetCmdList() { return m_commandList; }
+	const DXGI_FORMAT& GetBackBuffFormat() { return m_backBuffFormat; }
+	const std::shared_ptr<RenderTarget>& GetBackBuffRenderTarget() { return m_swapchain->GetBackBufferRenderTarget(); }
 
 	//ディスクリプタデータヒープのセット(コンピュートシェーダーを利用するときはユーザーからも呼び出せるように)
 	void SetDescHeaps();

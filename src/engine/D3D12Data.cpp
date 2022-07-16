@@ -6,26 +6,26 @@ void GPUResource::Mapping(const size_t& DataSize, const int& ElementNum, const v
 	KuroFunc::ErrorMessage(SendData == nullptr, "GPUResource", "Mapping", "データのマッピングに失敗、引数がnullptrです\n");
 
 	//まだマッピングしていなければマッピング
-	if (!mapped)
+	if (!m_mapped)
 	{
 		//マップ、アンマップのオーバーヘッドを軽減するためにはこのインスタンスが生きている間はUnmapしない
-		auto hr = buff->Map(0, nullptr, (void**)&buffOnCPU);
+		auto hr = m_buff->Map(0, nullptr, (void**)&m_buffOnCPU);
 		KuroFunc::ErrorMessage(FAILED(hr), "GPUResource", "Mapping", "データのマッピングに失敗\n");
-		mapped = true;
+		m_mapped = true;
 	}
 
-	memcpy(buffOnCPU, SendData, DataSize * ElementNum);
+	memcpy(m_buffOnCPU, SendData, DataSize * ElementNum);
 }
 
 void GPUResource::ChangeBarrier(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const D3D12_RESOURCE_STATES& NewBarrier)
 {
     //リソースバリア変化なし
-    if (barrier == NewBarrier)return;
+    if (m_barrier == NewBarrier)return;
 
     //リソースバリア変更
 	auto changeBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		buff.Get(),
-		barrier,
+		m_buff.Get(),
+		m_barrier,
 		NewBarrier);
 
     CmdList->ResourceBarrier(
@@ -33,23 +33,23 @@ void GPUResource::ChangeBarrier(const ComPtr<ID3D12GraphicsCommandList>& CmdList
         &changeBarrier);
 
     //リソースバリア状態記録
-    barrier = NewBarrier;
+    m_barrier = NewBarrier;
 }
 
 void GPUResource::CopyGPUResource(const ComPtr<ID3D12GraphicsCommandList>& CmdList, GPUResource& CopySource)
 {
 	//コピー元のリソースの状態を記録
-	auto oldBarrierCopySource = CopySource.barrier;
+	auto oldBarrierCopySource = CopySource.m_barrier;
 	//コピー元のリソースバリアをコピー元用に変更
 	CopySource.ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
 	//コピー先である自身のリソースの状態を記録
-	auto oldBarrierThis = barrier;
+	auto oldBarrierThis = m_barrier;
 	//コピー先である自身のリソースバリアをコピー先用に変更
 	this->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_COPY_DEST);
 
 	//コピー実行
-	CmdList->CopyResource(this->buff.Get(), CopySource.buff.Get());
+	CmdList->CopyResource(this->m_buff.Get(), CopySource.m_buff.Get());
 
 	//コピー元を元のリソースバリアに戻す
 	CopySource.ChangeBarrier(CmdList, oldBarrierCopySource);
@@ -61,26 +61,26 @@ void GPUResource::CopyGPUResource(const ComPtr<ID3D12GraphicsCommandList>& CmdLi
 void DescriptorData::SetGraphicsDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam)
 {
 	OnSetDescriptorBuffer(CmdList,Type);
-	CmdList->SetGraphicsRootDescriptorTable(RootParam, handles.GetHandle(Type));
+	CmdList->SetGraphicsRootDescriptorTable(RootParam, m_handles.GetHandle(Type));
 }
 
 void DescriptorData::SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam)
 {
 	OnSetDescriptorBuffer(CmdList,Type);
-	CmdList->SetComputeRootDescriptorTable(RootParam, handles.GetHandle(Type));
+	CmdList->SetComputeRootDescriptorTable(RootParam, m_handles.GetHandle(Type));
 }
 
 void TextureBuffer::CopyTexResource(const ComPtr<ID3D12GraphicsCommandList>& CmdList, TextureBuffer* CopySource)
 {
-	resource->CopyGPUResource(CmdList, *CopySource->resource);
+	m_resource->CopyGPUResource(CmdList, *CopySource->m_resource);
 }
 
 void RenderTarget::Clear(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
-	resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	CmdList->ClearRenderTargetView(
-		handles.GetHandle(RTV),
-		&clearValue[0],
+		m_handles.GetHandle(RTV),
+		&m_clearValue[0],
 		0,
 		nullptr);
 }
@@ -88,38 +88,40 @@ void RenderTarget::Clear(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 void DepthStencil::Clear(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	CmdList->ClearDepthStencilView(
-		handles.GetHandle(DSV),
+		m_handles.GetHandle(DSV),
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-		clearValue,
+		m_clearValue,
 		0,
 		0,
 		nullptr);
 }
 
-int GraphicsPipeline::PIPELINE_NUM = 0;
+int GraphicsPipeline::s_pipelineNum = 0;
 
 void GraphicsPipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	//パイプラインステートの設定
-	CmdList->SetPipelineState(pipeline.Get());
+	CmdList->SetPipelineState(m_pipeline.Get());
 	//ルートシグネチャの設定
-	CmdList->SetGraphicsRootSignature(rootSignature.Get());
+	CmdList->SetGraphicsRootSignature(m_rootSignature.Get());
 	//プリミティブ形状を設定
-	CmdList->IASetPrimitiveTopology(topology);
+	CmdList->IASetPrimitiveTopology(m_topology);
 }
 
-int ComputePipeline::PIPELINE_NUM = 0;
+int ComputePipeline::s_pipelineNum = 0;
 
 void ComputePipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	//パイプラインステートの設定
-	CmdList->SetPipelineState(pipeline.Get());
+	CmdList->SetPipelineState(m_pipeline.Get());
 	//ルートシグネチャの設定
-	CmdList->SetComputeRootSignature(rootSignature.Get());
+	CmdList->SetComputeRootSignature(m_rootSignature.Get());
 }
 
+Microsoft::WRL::ComPtr<ID3D12Resource>IndirectDevice::s_countResetBuffer;
+
 IndirectDevice::IndirectDevice(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum)
-	:cmdSignature(CmdSignature), gpuBuffNum(GPUBufferNum)
+	:m_cmdSignature(CmdSignature), m_gpuBuffNum(GPUBufferNum)
 {
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	auto desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(UINT), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
@@ -129,7 +131,7 @@ IndirectDevice::IndirectDevice(const ComPtr<ID3D12Device>& Device, const ComPtr<
 		&desc,
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
-		IID_PPV_ARGS(&countBuffer));
+		IID_PPV_ARGS(&m_countBuffer));
 	assert(SUCCEEDED(hr));
 
 	heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -140,15 +142,15 @@ IndirectDevice::IndirectDevice(const ComPtr<ID3D12Device>& Device, const ComPtr<
 		&desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&countResetBuffer));
+		IID_PPV_ARGS(&s_countResetBuffer));
 	assert(SUCCEEDED(hr));
 
 	UINT8* countResetMap = nullptr;
 	CD3DX12_RANGE readRange(0, 0);
-	hr = countResetBuffer->Map(0, &readRange, reinterpret_cast<void**>(&countResetMap));
+	hr = s_countResetBuffer->Map(0, &readRange, reinterpret_cast<void**>(&countResetMap));
 	assert(SUCCEEDED(hr));
 	ZeroMemory(countResetMap, sizeof(UINT));
-	countResetBuffer->Unmap(0, nullptr);
+	s_countResetBuffer->Unmap(0, nullptr);
 }
 
 void IndirectDevice::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
@@ -159,30 +161,30 @@ void IndirectDevice::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
 	if (UseCountBuffer)
 	{
 		//カウントバッファのリセット
-		CmdList->CopyBufferRegion(countBuffer.Get(), 0, countResetBuffer.Get(), 0, sizeof(UINT));
+		CmdList->CopyBufferRegion(m_countBuffer.Get(), 0, s_countResetBuffer.Get(), 0, sizeof(UINT));
 
 		//カウントバッファリソースバリア切り替え（前）
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(countBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_countBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 		CmdList->ResourceBarrier(1, &barrier);
 
 		//実行（カウントバッファ有り）
 		CmdList->ExecuteIndirect(
-			cmdSignature.Get(),
+			m_cmdSignature.Get(),
 			MaxCommandCount,
 			ArgBuffer,
 			ArgBufferOffset,
-			countBuffer.Get(),
+			m_countBuffer.Get(),
 			0);
 
 		//カウントバッファリソースバリア切り替え（後）
-		barrier = CD3DX12_RESOURCE_BARRIER::Transition(countBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST);
+		barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_countBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_COPY_DEST);
 		CmdList->ResourceBarrier(1, &barrier);
 	}
 	else
 	{
 		//実行（カウントバッファ無し）
 		CmdList->ExecuteIndirect(
-			cmdSignature.Get(),
+			m_cmdSignature.Get(),
 			MaxCommandCount,
 			ArgBuffer,
 			ArgBufferOffset,

@@ -2,10 +2,10 @@
 #include"KuroEngine.h"
 
 //DrawExtendGraph
-int DrawFunc2D_Mask::DRAW_EXTEND_GRAPH_COUNT = 0;
+int DrawFunc2D_Mask::s_DrawExtendGraphCount = 0;
 
 //DrawRotaGraph
-int DrawFunc2D_Mask::DRAW_ROTA_GRAPH_COUNT = 0;
+int DrawFunc2D_Mask::s_DrawRotaGraphCount = 0;
 
 static std::vector<RootParam>ROOT_PARAMETER =
 {
@@ -41,13 +41,13 @@ void DrawFunc2D_Mask::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Mask.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Mask.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Mask.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Mask.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Mask.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Mask.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -68,18 +68,18 @@ void DrawFunc2D_Mask::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
 
-	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (DRAW_EXTEND_GRAPH_COUNT + 1))
+	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (s_DrawExtendGraphCount + 1))
 	{
-		EXTEND_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(ExtendGraphVertex), 1, nullptr, ("DrawExtendGraph_Mask -" + std::to_string(DRAW_EXTEND_GRAPH_COUNT)).c_str()));
+		EXTEND_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(ExtendGraphVertex), 1, nullptr, ("DrawExtendGraph_Mask -" + std::to_string(s_DrawExtendGraphCount)).c_str()));
 	}
 
 	ExtendGraphVertex vertex(LeftUpPos, RightBottomPos, MaskLeftUpPos, MaskRightBottomPos, Miror, MaskAlpha);
-	EXTEND_GRAPH_VERTEX_BUFF[DRAW_EXTEND_GRAPH_COUNT]->Mapping(&vertex);
+	EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[DRAW_EXTEND_GRAPH_COUNT],
+	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount],
 		{ KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
-	DRAW_EXTEND_GRAPH_COUNT++;
+	s_DrawExtendGraphCount++;
 }
 
 void DrawFunc2D_Mask::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& ExtRate, const float& Radian, const std::shared_ptr<TextureBuffer>& Tex, const Vec2<float>& MaskCenterPos, const Vec2<float>& MaskSize, const Vec2<float>& RotaCenterUV, const Vec2<bool>& Miror, const float& MaskAlpha)
@@ -112,13 +112,13 @@ void DrawFunc2D_Mask::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<floa
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Mask.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Mask.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Mask.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Mask.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Mask.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Mask.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -141,18 +141,18 @@ void DrawFunc2D_Mask::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<floa
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
 
-	if (ROTA_GRAPH_VERTEX_BUFF.size() < (DRAW_ROTA_GRAPH_COUNT + 1))
+	if (ROTA_GRAPH_VERTEX_BUFF.size() < (s_DrawRotaGraphCount + 1))
 	{
-		ROTA_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(RotaGraphVertex), 1, nullptr, ("DrawRotaGraph_Mask -" + std::to_string(DRAW_ROTA_GRAPH_COUNT)).c_str()));
+		ROTA_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(RotaGraphVertex), 1, nullptr, ("DrawRotaGraph_Mask -" + std::to_string(s_DrawRotaGraphCount)).c_str()));
 	}
 
 	RotaGraphVertex vertex(Center, ExtRate, Radian, MaskCenterPos, MaskSize, RotaCenterUV, Miror, MaskAlpha);
-	ROTA_GRAPH_VERTEX_BUFF[DRAW_ROTA_GRAPH_COUNT]->Mapping(&vertex);
+	ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[DRAW_ROTA_GRAPH_COUNT],
+	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount],
 		{ KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
-	DRAW_ROTA_GRAPH_COUNT++;
+	s_DrawRotaGraphCount++;
 }
 
 #include"KuroMath.h"

@@ -18,10 +18,10 @@ DescriptorHeapBase::DescriptorHeapBase(ComPtr<ID3D12Device>Device, const D3D12_D
       flag,
       0
     };
-    result = Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&heap));
-    headHandleCpu = heap.Get()->GetCPUDescriptorHandleForHeapStart();
-  /*  if(flag == D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE)*/headHandleGpu = heap.Get()->GetGPUDescriptorHandleForHeapStart();
-    incrementSize = Device->GetDescriptorHandleIncrementSize(heapDesc.Type);
+    result = Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_heap));
+    m_headHandleCpu = m_heap.Get()->GetCPUDescriptorHandleForHeapStart();
+  /*  if(flag == D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE)*/m_headHandleGpu = m_heap.Get()->GetGPUDescriptorHandleForHeapStart();
+    m_incrementSize = Device->GetDescriptorHandleIncrementSize(heapDesc.Type);
 }
 
 void DescriptorHeap_CBV_SRV_UAV::CreateCBV(const ComPtr<ID3D12Device>& Device, const D3D12_CONSTANT_BUFFER_VIEW_DESC& Desc)

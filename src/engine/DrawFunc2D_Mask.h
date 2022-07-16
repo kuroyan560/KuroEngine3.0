@@ -8,17 +8,17 @@
 class DrawFunc2D_Mask
 {
 	//DrawExtendGraph
-	static int DRAW_EXTEND_GRAPH_COUNT;
+	static int s_DrawExtendGraphCount;
 
 	//DrawRotaGraph
-	static int DRAW_ROTA_GRAPH_COUNT;
+	static int s_DrawRotaGraphCount;
 
 public:
 	//呼び出しカウントリセット
 	static void CountReset()
 	{
-		DRAW_EXTEND_GRAPH_COUNT = 0;
-		DRAW_ROTA_GRAPH_COUNT = 0;
+		s_DrawExtendGraphCount = 0;
+		s_DrawRotaGraphCount = 0;
 	}
 
 	/// <summary>

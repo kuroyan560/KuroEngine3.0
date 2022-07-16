@@ -17,22 +17,22 @@
 
 GameScene::GameScene()
 {
-	floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
-	floorModel->transform.SetPos({ 0,-1,0 });
-	floorModel->transform.SetScale({ 20.0f,0.0f,20.0f });
-	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
+	m_floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
+	m_floorModel->m_transform.SetPos({ 0,-1,0 });
+	m_floorModel->m_transform.SetScale({ 20.0f,0.0f,20.0f });
+	m_floorModel->m_model->m_meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
 
-	shadowMapDevice.SetHeight(100.0f);
-	shadowMapDevice.SetBlurPower(4.0f);
+	m_shadowMapDevice.SetHeight(100.0f);
+	m_shadowMapDevice.SetBlurPower(4.0f);
 
-	dirLig.SetDir(Vec3<float>(0, 0, -1));
-	ligMgr.RegisterDirLight(&dirLig);
-	ligMgr.RegisterPointLight(&ptLig);
-	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	ligMgr.RegisterHemiSphereLight(&hemiLig);
+	m_dirLig.SetDir(Vec3<float>(0, 0, -1));
+	m_ligMgr.RegisterDirLight(&m_dirLig);
+	m_ligMgr.RegisterPointLight(&m_ptLig);
+	m_hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	m_hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	m_ligMgr.RegisterHemiSphereLight(&m_hemiLig);
 
-	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
+	GameManager::Instance()->RegisterCamera(Player::s_cameraKey, Player::GetCam());
 
 	Transform sandbagTrans;
 
@@ -50,22 +50,22 @@ GameScene::GameScene()
 	sandbagTrans.SetPos({ 0,6,0 });
 	EnemyManager::Instance()->Spawn(SANDBAG, sandbagTrans);
 
-	staticCubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
+	m_staticCubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
 	const std::string cubeMpaDir = "resource/user/hdri/";
-	staticCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
-	staticCubeMap->AttachTex(cubeMpaDir, ".png");
-	staticCubeMap->transform.SetScale(30);
+	m_staticCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
+	m_staticCubeMap->AttachTex(cubeMpaDir, ".png");
+	m_staticCubeMap->m_transform.SetScale(30);
 
-	dynamicCubeMap = std::make_shared<DynamicCubeMap>();
+	m_dynamicCubeMap = std::make_shared<DynamicCubeMap>();
 
 	//noise.ResetNoise();
 }
 
 void GameScene::OnInitialize()
 {
-	player.Init();
+	m_player.Init();
 	//GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
-	indirectSample.Init(*GameManager::Instance()->GetNowCamera());
+	m_indirectSample.Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -75,7 +75,7 @@ void GameScene::OnUpdate()
 
 	//テストモデルの位置
 	//auto modelPos = testModel->transform.GetPos();
-	auto modelPos = ptLig.GetPos();
+	auto modelPos = m_ptLig.GetPos();
 	if (UsersInput::Instance()->KeyInput(DIK_E))
 	{
 		modelPos.y += UINT;
@@ -102,15 +102,15 @@ void GameScene::OnUpdate()
 	}
 
 	//testModel->transform.SetPos(modelPos);
-	ptLig.SetPos(modelPos);
+	m_ptLig.SetPos(modelPos);
 
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_2))
 	{
-		dirLig.SetActive();
+		m_dirLig.SetActive();
 	}
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_3))
 	{
-		hemiLig.SetActive();
+		m_hemiLig.SetActive();
 	}
 
 	if (UsersInput::Instance()->ControllerOnTrigger(0,XBOX_BUTTON::A))
@@ -120,7 +120,7 @@ void GameScene::OnUpdate()
 
 	GameManager::Instance()->Update();
 
-	player.Update();
+	m_player.Update();
 
 	EnemyManager::Instance()->Update();
 
@@ -128,7 +128,7 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	indirectSample.Update();
+	m_indirectSample.Update();
 }
 
 
@@ -160,7 +160,7 @@ void GameScene::OnDraw()
 
 		cmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, dsv->AsDSV(cmdList));
 
-		indirectSample.Draw();
+		m_indirectSample.Draw();
 	}
 
 	/*

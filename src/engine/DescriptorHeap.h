@@ -10,61 +10,61 @@ protected:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 public:
-	static const int MAX_SRV_CBV_UAV = 2048;
-	static const int MAX_SAMPLER = 100;
-	static const int MAX_RTV = 100;
-	static const int MAX_DSV = 100;
+	static const int s_maxSrvCbvUav = 2048;
+	static const int s_maxSampler = 100;
+	static const int s_maxRtv = 100;
+	static const int s_maxDsv = 100;
 
 protected:
 	DescriptorHeapBase(ComPtr<ID3D12Device> Device, const D3D12_DESCRIPTOR_HEAP_TYPE& Type, const int& MaxDescriptorNum);
 
-	ComPtr<ID3D12DescriptorHeap>heap;	//ディスクリプタヒープ
-	D3D12_CPU_DESCRIPTOR_HANDLE headHandleCpu;	//ヒープ先頭のCPUハンドル
-	D3D12_GPU_DESCRIPTOR_HANDLE headHandleGpu;	//ヒープ先頭のGPUハンドル
-	UINT incrementSize;	//１つのディスクリプタのサイズ（ヒープタイプに依存）
+	ComPtr<ID3D12DescriptorHeap>m_heap;	//ディスクリプタヒープ
+	D3D12_CPU_DESCRIPTOR_HANDLE m_headHandleCpu;	//ヒープ先頭のCPUハンドル
+	D3D12_GPU_DESCRIPTOR_HANDLE m_headHandleGpu;	//ヒープ先頭のGPUハンドル
+	UINT m_incrementSize;	//１つのディスクリプタのサイズ（ヒープタイプに依存）
 
-	int num = 0;	//生成済ディスクリプタの数
-	void OnCreateView() { num++; }
+	int m_descriptorNum = 0;	//生成済ディスクリプタの数
+	void OnCreateView() { m_descriptorNum++; }
 
 public:
 	//ディスクリプタヒープゲッタ
-	const ComPtr<ID3D12DescriptorHeap>&GetHeap() { return heap; }
+	const ComPtr<ID3D12DescriptorHeap>&GetHeap() { return m_heap; }
 	//GPUハンドルゲッタ
 	CD3DX12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(const int& Index)	//場所指定
 	{
-		return CD3DX12_GPU_DESCRIPTOR_HANDLE(headHandleGpu, Index, incrementSize);
+		return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_headHandleGpu, Index, m_incrementSize);
 	}
 	CD3DX12_GPU_DESCRIPTOR_HANDLE GetGpuHandleTail()		//最後に生成されたディスクリプタハンドル
 	{
-		if (num == 0)
+		if (m_descriptorNum == 0)
 		{
 			printf("まだディスクリプタハンドルが生成されていません\n");
 			assert(0);
 		}
-		return CD3DX12_GPU_DESCRIPTOR_HANDLE(headHandleGpu, num - 1, incrementSize);
+		return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_headHandleGpu, m_descriptorNum - 1, m_incrementSize);
 	}
 	CD3DX12_GPU_DESCRIPTOR_HANDLE GetGpuHandleEnd()		//最後尾
 	{
-		return CD3DX12_GPU_DESCRIPTOR_HANDLE(headHandleGpu, num , incrementSize);
+		return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_headHandleGpu, m_descriptorNum , m_incrementSize);
 	}
 
 	//CPUハンドルゲッタ
 	CD3DX12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(const int& Index)	//場所指定
 	{
-		return CD3DX12_CPU_DESCRIPTOR_HANDLE(headHandleCpu, Index, incrementSize);
+		return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_headHandleCpu, Index, m_incrementSize);
 	}
 	CD3DX12_CPU_DESCRIPTOR_HANDLE GetCpuHandleTail()		//最後に生成されたディスクリプタハンドル
 	{
-		if (num == 0)
+		if (m_descriptorNum == 0)
 		{
 			printf("まだディスクリプタハンドルが生成されていません\n");
 			assert(0);
 		}
-		return CD3DX12_CPU_DESCRIPTOR_HANDLE(headHandleCpu, num - 1, incrementSize);
+		return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_headHandleCpu, m_descriptorNum - 1, m_incrementSize);
 	}
 	CD3DX12_CPU_DESCRIPTOR_HANDLE GetCpuHandleEnd()	//最後尾
 	{
-		return CD3DX12_CPU_DESCRIPTOR_HANDLE(headHandleCpu, num, incrementSize);
+		return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_headHandleCpu, m_descriptorNum, m_incrementSize);
 	}
 };
 

@@ -4,8 +4,8 @@
 #pragma comment(lib,"dxgi.lib")
 #include<array>
 
-D3D12App* D3D12App::INSTANCE = nullptr;
-std::map<std::string, D3D12App::LoadLambda_t> D3D12App::loadLambdaTable;
+D3D12App* D3D12App::s_instance = nullptr;
+std::map<std::string, D3D12App::LoadLambda_t> D3D12App::s_loadLambdaTable;
 
 void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const bool& UseHDR, const Color& ClearValue, const bool& IsFullScreen)
 {
@@ -24,14 +24,14 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 
 	//グラフィックスボードのアダプタを列挙
 	//DXGIファクトリーの生成
-	result = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
+	result = CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory));
 	//アダプターの列挙用
 	std::vector<ComPtr<IDXGIAdapter>>adapters;
 	//ここに特定の名前を持つアダプターオブジェクトが入る
 	ComPtr<IDXGIAdapter> tmpAdapter = nullptr;
-	for (int i = 0; dxgiFactory->EnumAdapters(i, &tmpAdapter) != DXGI_ERROR_NOT_FOUND; i++)
+	for (int i = 0; m_dxgiFactory->EnumAdapters(i, &tmpAdapter) != DXGI_ERROR_NOT_FOUND; i++)
 	{
-		result = dxgiFactory->EnumAdapters(i, &tmpAdapter);
+		result = m_dxgiFactory->EnumAdapters(i, &tmpAdapter);
 		adapters.push_back(tmpAdapter);		//動的配列に追加する
 	}
 	for (int i = 0; i < adapters.size(); i++)
@@ -63,7 +63,7 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 	for (int i = 0; i < _countof(levels); i++)
 	{
 		//採用したアダプターでデバイスを生成
-		result = D3D12CreateDevice(tmpAdapter.Get(), levels[i], IID_PPV_ARGS(&device));
+		result = D3D12CreateDevice(tmpAdapter.Get(), levels[i], IID_PPV_ARGS(&m_device));
 		if (result == S_OK)
 		{
 			//デバイスを生成できた時点でループを抜ける
@@ -72,17 +72,17 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 		}
 	}
 
-	descHeapCBV_SRV_UAV = std::make_unique<DescriptorHeap_CBV_SRV_UAV>(device);
-	descHeapRTV = std::make_unique<DescriptorHeap_RTV>(device);
-	descHeapDSV = std::make_unique<DescriptorHeap_DSV>(device);
+	m_descHeapCBV_SRV_UAV = std::make_unique<DescriptorHeap_CBV_SRV_UAV>(m_device);
+	m_descHeapRTV = std::make_unique<DescriptorHeap_RTV>(m_device);
+	m_descHeapDSV = std::make_unique<DescriptorHeap_DSV>(m_device);
 
 	//コマンドアロケータを生成
-	commandAllocators.resize(FRAME_BUFFER_COUNT);
-	for (UINT i = 0; i < FRAME_BUFFER_COUNT; ++i)
+	m_commandAllocators.resize(s_frameBufferCount);
+	for (UINT i = 0; i < s_frameBufferCount; ++i)
 	{
-		result = device->CreateCommandAllocator(
+		result = m_device->CreateCommandAllocator(
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&commandAllocators[i])
+			IID_PPV_ARGS(&m_commandAllocators[i])
 		);
 		if (FAILED(result))
 		{
@@ -90,20 +90,20 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 			assert(0);
 		}
 	}
-	result = device->CreateCommandAllocator(
+	result = m_device->CreateCommandAllocator(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(&oneshotCommandAllocator)
+		IID_PPV_ARGS(&m_oneshotCommandAllocator)
 	);
 	//バッファの転送を行うためにコマンドリストを使うので準備
-	commandAllocators[0]->Reset();
+	m_commandAllocators[0]->Reset();
 
 	//コマンドリストを生成（GPUに、まとめて命令を送るためのコマンドリストを生成する）
-	result = device->CreateCommandList(
+	result = m_device->CreateCommandList(
 		0, 
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		commandAllocators[0].Get(),
+		m_commandAllocators[0].Get(),
 		nullptr,
-		IID_PPV_ARGS(&commandList));
+		IID_PPV_ARGS(&m_commandList));
 
 	//コマンドキューの生成（コマンドリストをGPUに順に実行させていく為の仕組みを生成する）
 	//標準設定でコマンドキューを生成
@@ -113,12 +113,12 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 	  D3D12_COMMAND_QUEUE_FLAG_NONE,
 	  0
 	};
-	result = device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue));
+	result = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue));
 
 	// スワップチェインの生成
 	{
 		DXGI_SWAP_CHAIN_DESC1 scDesc{};
-		scDesc.BufferCount = FRAME_BUFFER_COUNT;
+		scDesc.BufferCount = s_frameBufferCount;
 		scDesc.Width = ScreenSize.x;
 		scDesc.Height = ScreenSize.y;
 		scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -148,7 +148,7 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 		if (useHDR)scDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		else scDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		backBuffFormat = scDesc.Format;	//バックバッファのフォーマットを保存しておく
+		m_backBuffFormat = scDesc.Format;	//バックバッファのフォーマットを保存しておく
 
 		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc{};
 		fsDesc.Windowed = IsFullScreen ? FALSE : TRUE;
@@ -158,8 +158,8 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 		fsDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
 
 		ComPtr<IDXGISwapChain1> swapchain1;
-		result = dxgiFactory->CreateSwapChainForHwnd(
-			commandQueue.Get(),
+		result = m_dxgiFactory->CreateSwapChainForHwnd(
+			m_commandQueue.Get(),
 			Hwnd,
 			&scDesc,
 			&fsDesc,
@@ -172,25 +172,25 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 			assert(0);
 		}
 
-		swapchain = std::make_unique<Swapchain>(device, swapchain1, *descHeapCBV_SRV_UAV, *descHeapRTV, useHDR, ClearValue);
+		m_swapchain = std::make_unique<Swapchain>(m_device, swapchain1, *m_descHeapCBV_SRV_UAV, *m_descHeapRTV, useHDR, ClearValue);
 	}
 
 	//画像ロードのラムダ式生成
-	loadLambdaTable["sph"]
-		= loadLambdaTable["spa"]
-		= loadLambdaTable["bmp"]
-		= loadLambdaTable["png"]
-		= loadLambdaTable["jpg"]
+	s_loadLambdaTable["sph"]
+		= s_loadLambdaTable["spa"]
+		= s_loadLambdaTable["bmp"]
+		= s_loadLambdaTable["png"]
+		= s_loadLambdaTable["jpg"]
 		= [](const std::wstring& Path, TexMetadata* Meta, ScratchImage& Img)->HRESULT
 	{
 		return LoadFromWICFile(Path.c_str(), WIC_FLAGS_NONE, Meta, Img);
 	};
-	loadLambdaTable["tga"]
+	s_loadLambdaTable["tga"]
 		= [](const std::wstring& Path, TexMetadata* Meta, ScratchImage& Img)->HRESULT
 	{
 		return LoadFromTGAFile(Path.c_str(), Meta, Img);
 	};
-	loadLambdaTable["dds"]
+	s_loadLambdaTable["dds"]
 		= [](const std::wstring& Path, TexMetadata* Meta, ScratchImage& Img)->HRESULT
 	{
 		return LoadFromDDSFile(Path.c_str(), DDS_FLAGS_NONE, Meta, Img);
@@ -208,7 +208,7 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"分割番号")
 		};
 		//パイプライン生成
-		splitImgPipeline = GenerateComputePipeline(cs, rootParams, { WrappedSampler(true, false) });
+		m_splitImgPipeline = GenerateComputePipeline(cs, rootParams, { WrappedSampler(true, false) });
 	}
 }
 
@@ -223,10 +223,10 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> D3D12App::GenerateRootSignature(cons
 	for (auto& param : RootParams)
 	{
 		//ディスクリプタとして初期化
-		if (param.descriptor)
+		if (param.m_descriptor)
 		{
 			//タイプの取得
-			auto& type = param.descriptorRangeType;
+			auto& type = param.m_descriptorRangeType;
 
 			//ディスクリプタレンジ初期化
 			CD3DX12_DESCRIPTOR_RANGE range{};
@@ -239,19 +239,19 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> D3D12App::GenerateRootSignature(cons
 		else
 		{
 			rootParameters.emplace_back();
-			if (param.viewType == SRV)
+			if (param.m_viewType == SRV)
 			{
 				auto type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 				rootParameters.back().InitAsShaderResourceView(registerNum[(int)type]);
 				registerNum[(int)type]++;
 			}
-			else if (param.viewType == CBV)
+			else if (param.m_viewType == CBV)
 			{
 				auto type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 				rootParameters.back().InitAsConstantBufferView(registerNum[(int)type]);
 				registerNum[(int)type]++;
 			}
-			else if (param.viewType == UAV)
+			else if (param.m_viewType == UAV)
 			{
 				auto type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 				rootParameters.back().InitAsUnorderedAccessView(registerNum[(int)type]);
@@ -299,7 +299,7 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> D3D12App::GenerateRootSignature(cons
 	}
 
 	// ルートシグネチャの生成
-	hr = device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	hr = m_device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 
 	//ルートシグネチャ生成に失敗
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRootSignature", "ルートシグネチャの生成に失敗\n");
@@ -330,7 +330,7 @@ std::shared_ptr<VertexBuffer> D3D12App::GenerateVertexBuffer(const size_t& Verte
 
 	//頂点バッファ生成
 	ComPtr<ID3D12Resource1>buff;
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&prop,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -356,10 +356,10 @@ std::shared_ptr<VertexBuffer> D3D12App::GenerateVertexBuffer(const size_t& Verte
 	if (RWStructuredBuff)
 	{
 		//シェーダリソースビュー作成
-		descHeapCBV_SRV_UAV->CreateUAV(device, buff, VertexSize, VertexNum);
+		m_descHeapCBV_SRV_UAV->CreateUAV(m_device, buff, VertexSize, VertexNum);
 
 		//ビューを作成した位置のディスクリプタハンドルを取得
-		DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+		DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 		result = std::make_shared<VertexBuffer>(buff, barrier, vbView, handles);
 	}
@@ -392,7 +392,7 @@ std::shared_ptr<IndexBuffer> D3D12App::GenerateIndexBuffer(const int& IndexNum, 
 	ComPtr<ID3D12Resource1>buff;
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto idxDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeIB);
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
 		&idxDesc,
@@ -432,7 +432,7 @@ std::shared_ptr<ConstantBuffer> D3D12App::GenerateConstantBuffer(const size_t& D
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto desc = CD3DX12_RESOURCE_DESC::Buffer(alignmentSize);
 	ComPtr<ID3D12Resource1>buff;
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -446,10 +446,10 @@ std::shared_ptr<ConstantBuffer> D3D12App::GenerateConstantBuffer(const size_t& D
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
 
 	//定数バッファビュー作成
-	descHeapCBV_SRV_UAV->CreateCBV(device, buff->GetGPUVirtualAddress(), alignmentSize);
+	m_descHeapCBV_SRV_UAV->CreateCBV(m_device, buff->GetGPUVirtualAddress(), alignmentSize);
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用の定数バッファクラスにまとめる
 	std::shared_ptr<ConstantBuffer>result;
@@ -470,7 +470,7 @@ std::shared_ptr<StructuredBuffer> D3D12App::GenerateStructuredBuffer(const size_
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto desc = CD3DX12_RESOURCE_DESC::Buffer(DataSize * ElementNum);
 	ComPtr<ID3D12Resource1>buff;
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -484,10 +484,10 @@ std::shared_ptr<StructuredBuffer> D3D12App::GenerateStructuredBuffer(const size_
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
 
 	//シェーダリソースビュー作成
-	descHeapCBV_SRV_UAV->CreateSRV(device, buff, DataSize, ElementNum);
+	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, DataSize, ElementNum);
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用の構造化バッファクラスにまとめる
 	std::shared_ptr<StructuredBuffer>result;
@@ -517,7 +517,7 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 
 	//定数バッファ生成
 	ComPtr<ID3D12Resource1>buff;
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&prop,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -531,10 +531,10 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
 
 	//シェーダリソースビュー作成
-	descHeapCBV_SRV_UAV->CreateUAV(device, buff, DataSize, ElementNum);
+	m_descHeapCBV_SRV_UAV->CreateUAV(m_device, buff, DataSize, ElementNum);
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用の構造化バッファクラスにまとめる
 	std::shared_ptr<RWStructuredBuffer>result;
@@ -547,11 +547,11 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Color, const int& Width, const DXGI_FORMAT& Format)
 {
 	//既にあるか確認
-	for (auto itr = colorTextures.begin(); itr != colorTextures.end(); ++itr)
+	for (auto itr = m_colorTextures.begin(); itr != m_colorTextures.end(); ++itr)
 	{
-		if (itr->color == Color && itr->width == Width)
+		if (itr->m_color == Color && itr->m_width == Width)
 		{
-			return itr->tex;
+			return itr->m_tex;
 		}
 	}
 
@@ -564,10 +564,10 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 	//全ピクセルの色を初期化
 	for (int i = 0; i < texDataCount; ++i)
 	{
-		texturedata[i].x = Color.r;	//R
-		texturedata[i].y = Color.g;	//G
-		texturedata[i].z = Color.b;	//B
-		texturedata[i].w =Color.a;	//A
+		texturedata[i].x = Color.m_r;	//R
+		texturedata[i].y = Color.m_g;	//G
+		texturedata[i].z = Color.m_b;	//B
+		texturedata[i].w =Color.m_a;	//A
 	}
 
 	//テクスチャヒープ設定
@@ -591,7 +591,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 
 	//テクスチャ用リソースバッファの生成
 	ComPtr<ID3D12Resource1>buff;
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&texHeapProp,
 		D3D12_HEAP_FLAG_NONE,
 		&texDesc,
@@ -603,10 +603,10 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 
 	//バッファに名前セット
 	std::wstring name = L"ColorTexture - ";
-	name += std::to_wstring(Color.r) + L" , ";
-	name += std::to_wstring(Color.g) + L" , ";
-	name += std::to_wstring(Color.b) + L" , ";
-	name += std::to_wstring(Color.a);
+	name += std::to_wstring(Color.m_r) + L" , ";
+	name += std::to_wstring(Color.m_g) + L" , ";
+	name += std::to_wstring(Color.m_b) + L" , ";
+	name += std::to_wstring(Color.m_a);
 	buff->SetName(name.c_str());
 
 	//テクスチャバッファにデータ転送
@@ -622,24 +622,24 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "単色塗りつぶしテクスチャバッファへのデータ転送に失敗\n");
 
 	//シェーダーリソースビュー作成
-	descHeapCBV_SRV_UAV->CreateSRV(device, buff, Format);
+	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, Format);
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用のシェーダーリソースクラスにまとめる
 	std::shared_ptr<TextureBuffer>result;
 	result = std::make_shared<TextureBuffer>(buff, barrier, handles, texDesc);
 	
 	//テクスチャ用のリソースバリアに変更
-	result->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	result->ChangeBarrier(m_commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	//作成したカラーテクスチャ情報を記録
 	ColorTexture colorTexData;
-	colorTexData.color = Color;
-	colorTexData.width = Width;
-	colorTexData.tex = result;
-	colorTextures.emplace_back(colorTexData);
+	colorTexData.m_color = Color;
+	colorTexData.m_width = Width;
+	colorTexData.m_tex = result;
+	m_colorTextures.emplace_back(colorTexData);
 
 	return result;
 }
@@ -647,11 +647,11 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string& LoadImgFilePath, const bool& SRVAsCube)
 {
 	//既にあるか確認
-	for (auto itr = loadImgTextures.begin(); itr != loadImgTextures.end(); ++itr)
+	for (auto itr = m_loadImgTextures.begin(); itr != m_loadImgTextures.end(); ++itr)
 	{
-		if (itr->path == LoadImgFilePath)
+		if (itr->m_path == LoadImgFilePath)
 		{
-			return itr->textures[0];
+			return itr->m_textures[0];
 		}
 	}
 
@@ -665,29 +665,29 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 	auto ext = KuroFunc::GetExtension(LoadImgFilePath);
 
 	//ロード
-	auto hr = loadLambdaTable[ext](
+	auto hr = s_loadLambdaTable[ext](
 		wtexpath,
 		&metadata,
 		image);
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "画像データ抽出に失敗\n");
 
 	ComPtr<ID3D12Resource>buff;
-	CreateTexture(device.Get(), metadata, &buff);
+	CreateTexture(m_device.Get(), metadata, &buff);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subresources;
-	PrepareUpload(device.Get(), image.GetImages(), image.GetImageCount(), metadata, subresources);
+	PrepareUpload(m_device.Get(), image.GetImages(), image.GetImageCount(), metadata, subresources);
 	const auto totalBytes = GetRequiredIntermediateSize(buff.Get(), 0, UINT(subresources.size()));
 
 	auto texDesc = CD3DX12_RESOURCE_DESC::Buffer(totalBytes);
 
 	ComPtr<ID3D12GraphicsCommandList> command;
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, oneshotCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&command));
+	hr = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_oneshotCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&command));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "CreateCommandList(OneShot) Failed.");
 	command->SetName(L"OneShotCommand");
 
 	ComPtr<ID3D12Resource1>staging;
 	CD3DX12_HEAP_PROPERTIES heapPropForTex(D3D12_HEAP_TYPE_UPLOAD);
-	hr = device->CreateCommittedResource(
+	hr = m_device->CreateCommittedResource(
 		&heapPropForTex,
 		D3D12_HEAP_FLAG_NONE,
 		&texDesc,
@@ -710,16 +710,16 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 		srvDesc.TextureCube.ResourceMinLODClamp = 0;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-		descHeapCBV_SRV_UAV->CreateSRV(device, buff, srvDesc);
+		m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, srvDesc);
 	}
 	else
 	{
-		descHeapCBV_SRV_UAV->CreateSRV(device, buff, metadata.format);
+		m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, metadata.format);
 		texDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, metadata.width, metadata.height);
 	}
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用のシェーダーリソースクラスにまとめる
 	std::shared_ptr<TextureBuffer>result;
@@ -732,17 +732,17 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
    command.Get()
 	};
 	command->Close();
-	commandQueue->ExecuteCommandLists(1, commandList);
+	m_commandQueue->ExecuteCommandLists(1, commandList);
 	
 	ComPtr<ID3D12Fence1> fence;
-	hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "CreateFence Failed.");
 	const UINT64 expectValue = 1;
-	commandQueue->Signal(fence.Get(), expectValue);
+	m_commandQueue->Signal(fence.Get(), expectValue);
 	do
 	{
 	} while (fence->GetCompletedValue() != expectValue);
-	oneshotCommandAllocator->Reset();
+	m_oneshotCommandAllocator->Reset();
 
 	return result;
 }
@@ -764,7 +764,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Vec2<int>& 
 	//テクスチャ用リソースバッファの生成
 	ComPtr<ID3D12Resource1>buff;
 	CD3DX12_HEAP_PROPERTIES heapPropForTex(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK, D3D12_MEMORY_POOL_L0);
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&heapPropForTex,
 		D3D12_HEAP_FLAG_NONE,
 		&texDesc,
@@ -780,12 +780,12 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Vec2<int>& 
 	}
 
 	//シェーダーリソースビュー作成
-	descHeapCBV_SRV_UAV->CreateSRV(device, buff, texDesc.Format);
-	DescHandles srvHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, texDesc.Format);
+	DescHandles srvHandles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//アンオーダードアクセスビュー作成
-	descHeapCBV_SRV_UAV->CreateUAV(device, buff, 4, static_cast<int>(texDesc.Width * texDesc.Height), D3D12_UAV_DIMENSION_TEXTURE2D, texDesc.Format);
-	DescHandles uavHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	m_descHeapCBV_SRV_UAV->CreateUAV(m_device, buff, 4, static_cast<int>(texDesc.Width * texDesc.Height), D3D12_UAV_DIMENSION_TEXTURE2D, texDesc.Format);
+	DescHandles uavHandles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用のシェーダーリソースクラスにまとめる
 	std::shared_ptr<TextureBuffer>result;
@@ -849,7 +849,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 	//テクスチャ用リソースバッファの生成
 	ComPtr<ID3D12Resource1>buff;
 	CD3DX12_HEAP_PROPERTIES heapPropForTex(D3D12_CPU_PAGE_PROPERTY_WRITE_BACK, D3D12_MEMORY_POOL_L0);
-	hr = device->CreateCommittedResource(
+	hr = m_device->CreateCommittedResource(
 		&heapPropForTex,
 		D3D12_HEAP_FLAG_NONE,
 		&texDesc,
@@ -872,23 +872,23 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "ロード画像テクスチャバッファへのデータ転送に失敗\n");
 
 	//シェーダーリソースビュー作成
-	descHeapCBV_SRV_UAV->CreateSRV(device, buff, metadata.format);
+	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, metadata.format);
 
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//専用のシェーダーリソースクラスにまとめる
 	std::shared_ptr<TextureBuffer>result;
 	result = std::make_shared<TextureBuffer>(buff, barrier, handles, texDesc);
 
 	//テクスチャ用のリソースバリアに変更
-	result->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	result->ChangeBarrier(m_commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	//作成したカラーテクスチャ情報を記録
 	LoadImgTexture loadImgTexData;
 	//loadImgTexData.path = LoadImgFilePath;
-	loadImgTexData.textures = { result };
-	loadImgTextures.emplace_back(loadImgTexData);
+	loadImgTexData.m_textures = { result };
+	m_loadImgTextures.emplace_back(loadImgTexData);
 
 	return result;
 }
@@ -896,56 +896,56 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 void D3D12App::GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::shared_ptr<TextureBuffer>& SorceTexBuffer, const int& AllNum, const Vec2<int>& SplitNum, const std::string& Name)
 {
 	//ディスクリプタヒープをセット
-	ID3D12DescriptorHeap* heaps[] = { descHeapCBV_SRV_UAV->GetHeap().Get() };
-	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	ID3D12DescriptorHeap* heaps[] = { m_descHeapCBV_SRV_UAV->GetHeap().Get() };
+	m_commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-	splitImgPipeline->SetPipeline(commandList);
-	SorceTexBuffer->SetComputeDescriptorBuffer(commandList, SRV, 1);
+	m_splitImgPipeline->SetPipeline(m_commandList);
+	SorceTexBuffer->SetComputeDescriptorBuffer(m_commandList, SRV, 1);
 
 	SplitImgConstData constData;
 
 	//分割前のサイズを記録
-	constData.splitSize = { static_cast<int>(SorceTexBuffer->GetDesc().Width) / SplitNum.x,static_cast<int>(SorceTexBuffer->GetDesc().Height) / SplitNum.y };
+	constData.m_splitSize = { static_cast<int>(SorceTexBuffer->GetDesc().Width) / SplitNum.x,static_cast<int>(SorceTexBuffer->GetDesc().Height) / SplitNum.y };
 
 	for (int i = 0; i < AllNum; ++i)
 	{
-		if (splitImgConstBuff.size() < splitTexBuffCount + 1)
+		if (m_splitImgConstBuff.size() < m_splitTexBuffCount + 1)
 		{
 			std::string name = "SplitImgConstBuff - " + std::to_string(i);
-			splitImgConstBuff.emplace_back(GenerateConstantBuffer(sizeof(SplitImgConstData), 1, nullptr, name.c_str()));
+			m_splitImgConstBuff.emplace_back(GenerateConstantBuffer(sizeof(SplitImgConstData), 1, nullptr, name.c_str()));
 		}
 
 		//描き込み先用のテクスチャバッファ
-		auto splitResult = GenerateTextureBuffer(constData.splitSize, SorceTexBuffer->GetDesc().Format, (Name + " - " + std::to_string(i)).c_str());
+		auto splitResult = GenerateTextureBuffer(constData.m_splitSize, SorceTexBuffer->GetDesc().Format, (Name + " - " + std::to_string(i)).c_str());
 
-		splitResult->SetComputeDescriptorBuffer(commandList, UAV, 0);
+		splitResult->SetComputeDescriptorBuffer(m_commandList, UAV, 0);
 
 		//splitImgConstBuff[i]->Mapping(&constData);
 		//splitImgConstBuff[i]->SetComputeDescriptorBuffer(commandList, CBV, 2);
-		splitImgConstBuff[splitTexBuffCount]->Mapping(&constData);
-		splitImgConstBuff[splitTexBuffCount]->SetComputeDescriptorBuffer(commandList, CBV, 2);
+		m_splitImgConstBuff[m_splitTexBuffCount]->Mapping(&constData);
+		m_splitImgConstBuff[m_splitTexBuffCount]->SetComputeDescriptorBuffer(m_commandList, CBV, 2);
 
 		static const int THREAD_NUM = 8;
 		const Vec2<UINT>thread =
 		{
-			static_cast<UINT>(constData.splitSize.x / THREAD_NUM),
-			static_cast<UINT>(constData.splitSize.y / THREAD_NUM)
+			static_cast<UINT>(constData.m_splitSize.x / THREAD_NUM),
+			static_cast<UINT>(constData.m_splitSize.y / THREAD_NUM)
 		};
-		commandList->Dispatch(thread.x, thread.y, 1);
+		m_commandList->Dispatch(thread.x, thread.y, 1);
 
 		//テクスチャ用のリソースバリア変更
-		splitResult->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		splitResult->ChangeBarrier(m_commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 		Array[i] = splitResult;
 
-		constData.imgNum.x++;
-		if (SplitNum.x <= constData.imgNum.x)
+		constData.m_imgNum.x++;
+		if (SplitNum.x <= constData.m_imgNum.x)
 		{
-			constData.imgNum.x = 0;
-			constData.imgNum.y++;
+			constData.m_imgNum.x = 0;
+			constData.m_imgNum.y++;
 		}
 
-		splitTexBuffCount++;
+		m_splitTexBuffCount++;
 	}
 }
 
@@ -957,22 +957,22 @@ void D3D12App::GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, cons
 
 DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc)
 {
-	descHeapCBV_SRV_UAV->CreateSRV(device, Buff, ViewDesc);
-	return DescHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, Buff, ViewDesc);
+	return DescHandles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 }
 
 DescHandles D3D12App::CreateRTV(const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc)
 {
-	descHeapRTV->CreateRTV(device, Buff, ViewDesc);
+	m_descHeapRTV->CreateRTV(m_device, Buff, ViewDesc);
 	//return DescHandles(descHeapRTV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
-	return DescHandles(descHeapRTV->GetCpuHandleTail(), descHeapRTV->GetGpuHandleTail());
+	return DescHandles(m_descHeapRTV->GetCpuHandleTail(), m_descHeapRTV->GetGpuHandleTail());
 }
 
 DescHandles D3D12App::CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc)
 {
-	descHeapDSV->CreateDSV(device, Buff, ViewDesc);
+	m_descHeapDSV->CreateDSV(m_device, Buff, ViewDesc);
 	//return DescHandles(descHeapDSV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
-	return DescHandles(descHeapDSV->GetCpuHandleTail(), descHeapDSV->GetGpuHandleTail());
+	return DescHandles(m_descHeapDSV->GetCpuHandleTail(), m_descHeapDSV->GetGpuHandleTail());
 }
 
 std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& Format, const Color& ClearValue, const Vec2<int> Size, const wchar_t* TargetName, D3D12_RESOURCE_STATES InitState, int MipLevel, int ArraySize)
@@ -996,15 +996,15 @@ std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& 
 
 	D3D12_CLEAR_VALUE clearValue;
 	clearValue.Format = Format;
-	clearValue.Color[0] = ClearValue.r;
-	clearValue.Color[1] = ClearValue.g;
-	clearValue.Color[2] = ClearValue.b;
-	clearValue.Color[3] = ClearValue.a;
+	clearValue.Color[0] = ClearValue.m_r;
+	clearValue.Color[1] = ClearValue.m_g;
+	clearValue.Color[2] = ClearValue.m_b;
+	clearValue.Color[3] = ClearValue.m_a;
 
 	//リソース生成
 	ComPtr<ID3D12Resource1>buff;
 	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&prop,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -1017,14 +1017,14 @@ std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& 
 	if (TargetName != nullptr)buff->SetName(TargetName);
 
 	//SRV作成
-	descHeapCBV_SRV_UAV->CreateSRV(device, buff, Format);
+	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, Format);
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles srvHandles(descHeapCBV_SRV_UAV->GetCpuHandleTail(), descHeapCBV_SRV_UAV->GetGpuHandleTail());
+	DescHandles srvHandles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 
 	//RTV作成
-	descHeapRTV->CreateRTV(device, buff);
+	m_descHeapRTV->CreateRTV(m_device, buff);
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles rtvHandles(descHeapRTV->GetCpuHandleTail(), descHeapRTV->GetGpuHandleTail());
+	DescHandles rtvHandles(m_descHeapRTV->GetCpuHandleTail(), m_descHeapRTV->GetGpuHandleTail());
 
 	//専用のレンダーターゲットクラスにまとめる
 	std::shared_ptr<RenderTarget>result;
@@ -1051,7 +1051,7 @@ std::shared_ptr<DepthStencil> D3D12App::GenerateDepthStencil(const Vec2<int>& Si
 	ComPtr<ID3D12Resource1>buff;
 	auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	auto clearVal = CD3DX12_CLEAR_VALUE(Format, ClearValue, 0);
-	auto hr = device->CreateCommittedResource(
+	auto hr = m_device->CreateCommittedResource(
 		&heapProp,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -1061,9 +1061,9 @@ std::shared_ptr<DepthStencil> D3D12App::GenerateDepthStencil(const Vec2<int>& Si
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateDepthStencil", "デプスステンシルバッファ生成に失敗\n");
 
 	//DSV作成
-	descHeapDSV->CreateDSV(device, buff);
+	m_descHeapDSV->CreateDSV(m_device, buff);
 	//ビューを作成した位置のディスクリプタハンドルを取得
-	DescHandles handles(descHeapDSV->GetCpuHandleTail(), descHeapDSV->GetGpuHandleTail());
+	DescHandles handles(m_descHeapDSV->GetCpuHandleTail(), m_descHeapDSV->GetGpuHandleTail());
 
 	//専用のレンダーターゲットクラスにまとめる
 	std::shared_ptr<DepthStencil>result;
@@ -1075,8 +1075,8 @@ std::shared_ptr<DepthStencil> D3D12App::GenerateDepthStencil(const Vec2<int>& Si
 void D3D12App::SetDescHeaps()
 {
 	//ディスクリプタヒープをセット
-	ID3D12DescriptorHeap* heaps[] = { descHeapCBV_SRV_UAV->GetHeap().Get() };
-	commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	ID3D12DescriptorHeap* heaps[] = { m_descHeapCBV_SRV_UAV->GetHeap().Get() };
+	m_commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 }
 
 void D3D12App::Render(D3D12AppUser* User)
@@ -1084,45 +1084,45 @@ void D3D12App::Render(D3D12AppUser* User)
 	SetDescHeaps();
 
 	//スワップチェイン表示可能からレンダーターゲット描画可能へ
-	swapchain->GetBackBufferRenderTarget()->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_swapchain->GetBackBufferRenderTarget()->ChangeBarrier(m_commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	//レンダーターゲットをクリア
-	swapchain->GetBackBufferRenderTarget()->Clear(commandList);
+	m_swapchain->GetBackBufferRenderTarget()->Clear(m_commandList);
 
 	//レンダリング処理
 	User->Render();
 
 	//レンダーターゲットからスワップチェイン表示可能へ
-	swapchain->GetBackBufferRenderTarget()->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_PRESENT);
+	m_swapchain->GetBackBufferRenderTarget()->ChangeBarrier(m_commandList, D3D12_RESOURCE_STATE_PRESENT);
 
 	//命令のクローズ
-	auto hr = commandList->Close();
+	auto hr = m_commandList->Close();
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "コマンドリスト命令のクローズに失敗\n");
 
 	//コマンドリストの実行
-	ID3D12CommandList* cmdLists[] = { commandList.Get() };	//コマンドリストの配列
-	commandQueue->ExecuteCommandLists(1, cmdLists);
+	ID3D12CommandList* cmdLists[] = { m_commandList.Get() };	//コマンドリストの配列
+	m_commandQueue->ExecuteCommandLists(1, cmdLists);
 
 	//バッファをフリップ（裏表の入れ替え）
-	hr = swapchain->GetSwapchain()->Present(1, 0);
+	hr = m_swapchain->GetSwapchain()->Present(1, 0);
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "バックバッファのフリップに失敗\n");
 
 	//バックバッファ番号取得
-	auto frameIdx = swapchain->GetSwapchain()->GetCurrentBackBufferIndex();
+	auto frameIdx = m_swapchain->GetSwapchain()->GetCurrentBackBufferIndex();
 
 	//コマンドアロケータリセット
-	hr = commandAllocators[frameIdx]->Reset();	//キューをクリア
+	hr = m_commandAllocators[frameIdx]->Reset();	//キューをクリア
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "コマンドアロケータリセットに失敗\n");
 
 	//コマンドリスト
-	hr = commandList->Reset(commandAllocators[frameIdx].Get(), nullptr);		//コマンドリストを貯める準備
+	hr = m_commandList->Reset(m_commandAllocators[frameIdx].Get(), nullptr);		//コマンドリストを貯める準備
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "コマンドリストのリセットに失敗\n");
 
 	//コマンドリストの実行完了を待つ
-	swapchain->WaitPreviousFrame(commandQueue, frameIdx);
+	m_swapchain->WaitPreviousFrame(m_commandQueue, frameIdx);
 
 	//SplitTexBuff呼ばれた回数リセット
-	splitTexBuffCount = 0;
+	m_splitTexBuffCount = 0;
 }
 
 #include<d3dcompiler.h>
@@ -1181,9 +1181,9 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 		{
 			D3D12_INPUT_ELEMENT_DESC input =
 			{
-				param.semantics.c_str(),	//セマンティック名
+				param.m_semantics.c_str(),	//セマンティック名
 				0,				//同じセマンティック名が複数あるときに使うインデックス（０でよい）
-				param.format,	//要素数とビット数を表す（XYZの３つでfloat型なので R32G32B32_FLOAT)
+				param.m_format,	//要素数とビット数を表す（XYZの３つでfloat型なので R32G32B32_FLOAT)
 				0,	//入力スロットインデックス（０でよい）
 				D3D12_APPEND_ALIGNED_ELEMENT,	//データのオフセット値（D3D12_APPEND_ALIGNED_ELEMENTだと自動設定）
 				D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,		//入力データ種別（標準はD3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA）
@@ -1209,39 +1209,39 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 		// ラスタライザステート
 		desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		//カリングモード
-		if (!Option.calling)
+		if (!Option.m_calling)
 		{
 			desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 		}
 		//ワイヤーフレーム
-		if (Option.wireFrame)
+		if (Option.m_wireFrame)
 		{
 			desc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		}
 		//深度テスト
-		if (Option.depthTest)
+		if (Option.m_depthTest)
 		{
 			desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 			//デプスの書き込みを禁止（深度テストは行う）
-			if (!Option.depthWriteMask)
+			if (!Option.m_depthWriteMask)
 			{
 				desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 			}
 		}
 		//三角形の表を判断する際の向き
-		desc.RasterizerState.FrontCounterClockwise = Option.frontCounterClockWise;
+		desc.RasterizerState.FrontCounterClockwise = Option.m_frontCounterClockWise;
 		//デプスステンシルバッファフォーマット
-		desc.DSVFormat = Option.dsvFormat;
+		desc.DSVFormat = Option.m_dsvFormat;
 
 		desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		//同時レンダーターゲットで独立したブレンディングを有効にするか
-		desc.BlendState.IndependentBlendEnable = Option.independetBlendEnable;
+		desc.BlendState.IndependentBlendEnable = Option.m_independetBlendEnable;
 
 		// 1ピクセルにつき1回サンプリング
 		desc.SampleDesc.Count = 1;
 
 		// 図形の形状設定
-		desc.PrimitiveTopologyType = Option.primitiveTopologyType;
+		desc.PrimitiveTopologyType = Option.m_primitiveTopologyType;
 
 		//書き込み先レンダーターゲット
 		desc.NumRenderTargets = 0;
@@ -1252,17 +1252,17 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 			KuroFunc::ErrorMessage(D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT < desc.NumRenderTargets, "D3D12App", "GenerateGraphicsPipeline", "描画先レンダーターゲットの数が最大を超えています\n");
 
 			//描画先レンダーターゲットのフォーマット
-			desc.RTVFormats[idx] = info.format;
+			desc.RTVFormats[idx] = info.m_format;
 
 			//アルファブレンディング設定
-			if (info.blendMode == AlphaBlendMode_Trans)	//半透明合成
+			if (info.m_blendMode == AlphaBlendMode_Trans)	//半透明合成
 			{
 				desc.BlendState.RenderTarget[idx].BlendEnable = true;
 				desc.BlendState.RenderTarget[idx].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 				desc.BlendState.RenderTarget[idx].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 				desc.BlendState.RenderTarget[idx].BlendOp = D3D12_BLEND_OP_ADD;
 			}
-			else if (info.blendMode == AlphaBlendMode_Add)	//加算合成
+			else if (info.m_blendMode == AlphaBlendMode_Add)	//加算合成
 			{
 				//加算合成のブレンドステート作成
 				desc.BlendState.RenderTarget[idx].BlendEnable = true;
@@ -1275,18 +1275,18 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 	}
 
 	//シェーダーオブジェクトセット
-	if(ShaderInfo.vs.Get())desc.VS = CD3DX12_SHADER_BYTECODE(ShaderInfo.vs.Get());
-	if(ShaderInfo.ps.Get())desc.PS = CD3DX12_SHADER_BYTECODE(ShaderInfo.ps.Get());
-	if(ShaderInfo.ds.Get())desc.DS = CD3DX12_SHADER_BYTECODE(ShaderInfo.ds.Get());
-	if(ShaderInfo.hs.Get())desc.HS = CD3DX12_SHADER_BYTECODE(ShaderInfo.hs.Get());
-	if(ShaderInfo.gs.Get())desc.GS = CD3DX12_SHADER_BYTECODE(ShaderInfo.gs.Get());
+	if(ShaderInfo.m_vs.Get())desc.VS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_vs.Get());
+	if(ShaderInfo.m_ps.Get())desc.PS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_ps.Get());
+	if(ShaderInfo.m_ds.Get())desc.DS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_ds.Get());
+	if(ShaderInfo.m_hs.Get())desc.HS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_hs.Get());
+	if(ShaderInfo.m_gs.Get())desc.GS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_gs.Get());
 
 	//グラフィックスパイプラインの生成
 	ComPtr<ID3D12PipelineState>pipeline;
-	hr = device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline));
+	hr = m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateGraphicsPipeline", "グラフィックスパイプライン生成に失敗\n");
 
-	return std::make_shared<GraphicsPipeline>(pipeline, rootSignature, Option.primitiveTopology);
+	return std::make_shared<GraphicsPipeline>(pipeline, rootSignature, Option.m_primitiveTopology);
 }
 
 std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<ID3DBlob>& ComputeShader, const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers)
@@ -1307,7 +1307,7 @@ std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<
 	desc.NodeMask = 0;
 
 	ComPtr<ID3D12PipelineState>pipeline;
-	hr = device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pipeline));
+	hr = m_device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pipeline));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateComputePipeline", "コンピュートパイプライン生成に失敗\n");
 
 	return std::make_shared<ComputePipeline>(pipeline, rootSignature);
@@ -1338,17 +1338,17 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 		auto& param = RootParams[paramIdx];
 
 		//各バッファービュー
-		if (param.viewType == CBV)
+		if (param.m_viewType == CBV)
 		{
 			argDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT_BUFFER_VIEW;
 			argDesc.ConstantBufferView.RootParameterIndex = paramIdx;
 		}
-		else if (param.viewType == SRV)
+		else if (param.m_viewType == SRV)
 		{
 			argDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_SHADER_RESOURCE_VIEW;
 			argDesc.ShaderResourceView.RootParameterIndex = paramIdx;
 		}
-		else if (param.viewType == UAV)
+		else if (param.m_viewType == UAV)
 		{
 			argDesc.Type = D3D12_INDIRECT_ARGUMENT_TYPE_UNORDERED_ACCESS_VIEW;
 			argDesc.UnorderedAccessView.RootParameterIndex = paramIdx;
@@ -1373,15 +1373,15 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 
 	//コマンドシグネチャ生成
 	ComPtr<ID3D12CommandSignature>cmdSignature;
-	auto hr = device->CreateCommandSignature(&cmdSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&cmdSignature));
+	auto hr = m_device->CreateCommandSignature(&cmdSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&cmdSignature));
 	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateIndirectDevice", "インダイレクト機構生成に失敗\n");
 
-	return std::make_shared<IndirectDevice>(device, cmdSignature, gpuBuffNum);
+	return std::make_shared<IndirectDevice>(m_device, cmdSignature, gpuBuffNum);
 }
 
 void D3D12App::SetBackBufferRenderTarget()
 {
-	swapchain->GetBackBufferRenderTarget()->ChangeBarrier(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> BACK_BUFF_HANDLE = { swapchain->GetBackBufferRenderTarget()->AsRTV(commandList) };
-	commandList->OMSetRenderTargets(static_cast<UINT>(BACK_BUFF_HANDLE.size()), &BACK_BUFF_HANDLE[0], FALSE, nullptr);
+	m_swapchain->GetBackBufferRenderTarget()->ChangeBarrier(m_commandList, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> BACK_BUFF_HANDLE = { m_swapchain->GetBackBufferRenderTarget()->AsRTV(m_commandList) };
+	m_commandList->OMSetRenderTargets(static_cast<UINT>(BACK_BUFF_HANDLE.size()), &BACK_BUFF_HANDLE[0], FALSE, nullptr);
 }

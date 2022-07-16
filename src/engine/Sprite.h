@@ -12,29 +12,29 @@ class ConstantBuffer;
 class Sprite
 {
 private:
-	static std::shared_ptr<GraphicsPipeline>PIPELINE[AlphaBlendModeNum];
+	static std::shared_ptr<GraphicsPipeline>s_pipeline[AlphaBlendModeNum];
 	//白のベタ塗りテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_TEX;
+	static std::shared_ptr<TextureBuffer>s_defaultTex;
 
 private:
 	//定数バッファ送信用データ
 	struct ConstantData
 	{
-		Matrix mat;
-		Color color;
-	}constData;
+		Matrix m_mat;
+		Color m_color;
+	}m_constData;
 
 	//定数バッファ
-	std::shared_ptr<ConstantBuffer>constBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
 
 	//テクスチャバッファ
-	std::shared_ptr<TextureBuffer>texBuff;
+	std::shared_ptr<TextureBuffer>m_texBuff;
 
 public:
 	//トランスフォーム
-	Transform2D transform;
+	Transform2D m_transform;
 	//メッシュ（頂点情報）
-	SpriteMesh mesh;
+	SpriteMesh m_mesh;
 
 	//テクスチャ、スプライト名
 	Sprite(const std::shared_ptr<TextureBuffer>& Texture = nullptr, const char* Name = nullptr);

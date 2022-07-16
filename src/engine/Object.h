@@ -9,14 +9,14 @@ class Model;
 class ModelObject
 {
 private:
-	std::shared_ptr<ConstantBuffer>transformBuff;
-	std::shared_ptr<ConstantBuffer>boneBuff;
+	std::shared_ptr<ConstantBuffer>m_transformBuff;
+	std::shared_ptr<ConstantBuffer>m_boneBuff;
 	void AttachModel(const std::shared_ptr<Model>& Model);
 
 public:
-	std::shared_ptr<Model>model;
-	std::shared_ptr<ModelAnimator>animator;
-	Transform transform;
+	std::shared_ptr<Model>m_model;
+	std::shared_ptr<ModelAnimator>m_animator;
+	Transform m_transform;
 
 	ModelObject(const std::string& Dir, const std::string& FileName);
 	ModelObject(const std::shared_ptr<Model>& Model) { AttachModel(Model); }

@@ -18,20 +18,20 @@ class TextureBuffer;
 
 class GameScene : public BaseScene
 {
-	ShadowMapDevice shadowMapDevice;
-	LightBloomDevice lightBloomDevice;
+	ShadowMapDevice m_shadowMapDevice;
+	LightBloomDevice m_lightBloomDevice;
 
-	std::shared_ptr<ModelObject>floorModel;
+	std::shared_ptr<ModelObject>m_floorModel;
 
-	LightManager ligMgr;
-	Light::Direction dirLig;
-	Light::HemiSphere hemiLig;
-	Light::Point ptLig;
+	LightManager m_ligMgr;
+	Light::Direction m_dirLig;
+	Light::HemiSphere m_hemiLig;
+	Light::Point m_ptLig;
 	
-	Player player;
+	Player m_player;
 
-	std::shared_ptr<StaticallyCubeMap>staticCubeMap;
-	std::shared_ptr<DynamicCubeMap>dynamicCubeMap;
+	std::shared_ptr<StaticallyCubeMap>m_staticCubeMap;
+	std::shared_ptr<DynamicCubeMap>m_dynamicCubeMap;
 
 	/*struct Noise
 	{
@@ -41,7 +41,7 @@ class GameScene : public BaseScene
 		void ResetNoise();
 	}noise;*/
 
-	IndirectSample indirectSample;
+	IndirectSample m_indirectSample;
 
 public:
 	GameScene();

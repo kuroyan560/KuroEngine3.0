@@ -30,40 +30,40 @@ void BaseScene::Finalize()
 
 void KuroEngine::Render()
 {
-	scenes[nowScene]->Draw();
+	m_scenes[m_nowScene]->Draw();
 
 	//シーン遷移描画
-	if (nowSceneTransition != nullptr)
+	if (m_nowSceneTransition != nullptr)
 	{
-		nowSceneTransition->Draw();
+		m_nowSceneTransition->Draw();
 	}
 
 	//グラフィックスマネージャのコマンドリスト全実行
-	gManager.CommandsExcute(d3d12App->GetCmdList());
+	m_gManager.CommandsExcute(m_d3d12App->GetCmdList());
 
 	//Imgui
-	d3d12App->SetBackBufferRenderTarget();
-	imguiApp->BeginImgui();
-	scenes[nowScene]->ImguiDebug();
+	m_d3d12App->SetBackBufferRenderTarget();
+	m_imguiApp->BeginImgui();
+	m_scenes[m_nowScene]->ImguiDebug();
 
 	ImGui::Begin("Fps");
-	ImGui::Text("fps : %.5f", fps->GetNowFps());
+	ImGui::Text("fps : %.5f", m_fps->GetNowFps());
 	ImGui::End();
 
 	ImguiDebugInterface::DrawImguiDebugger();
 
-	imguiApp->EndImgui(d3d12App->GetCmdList());
+	m_imguiApp->EndImgui(m_d3d12App->GetCmdList());
 }
 
 KuroEngine::~KuroEngine()
 {
 	//XAudio2の解放
-	FreeLibrary(xaudioLib);
+	FreeLibrary(m_xaudioLib);
 
 	//シーンの削除
-	for (int i = 0; i < scenes.size(); ++i)
+	for (int i = 0; i < m_scenes.size(); ++i)
 	{
-		delete scenes[i];
+		delete m_scenes[i];
 	}
 
 	printf("KuroEngineシャットダウン\n");
@@ -71,7 +71,7 @@ KuroEngine::~KuroEngine()
 
 void KuroEngine::Initialize(const EngineOption& Option)
 {
-	if (!invalid)
+	if (!m_invalid)
 	{
 		printf("エラー：KuroEngineは起動済です\n");
 		return;
@@ -79,87 +79,87 @@ void KuroEngine::Initialize(const EngineOption& Option)
 	printf("KuroEngineを起動します\n");
 
 	//XAudioの読み込み
-	xaudioLib = LoadLibrary(L"XAudio2_9.dll");
+	m_xaudioLib = LoadLibrary(L"XAudio2_9.dll");
 
 	//乱数取得用シード生成
 	srand(static_cast<unsigned int>(time(NULL)));
 
 	//ウィンドウアプリ生成
-	winApp = std::make_unique<WinApp>(Option.windowName, Option.windowSize, Option.iconPath);
+	m_winApp = std::make_unique<WinApp>(Option.m_windowName, Option.m_windowSize, Option.m_iconPath);
 
 	//D3D12アプリ生成
-	d3d12App = std::make_unique<D3D12App>(winApp->GetHwnd(), Option.windowSize, Option.useHDR, Option.backBuffClearColor);
+	m_d3d12App = std::make_unique<D3D12App>(m_winApp->GetHwnd(), Option.m_windowSize, Option.m_useHDR, Option.m_backBuffClearColor);
 
 	//インプット管理アプリ生成
-	usersInput = std::make_unique<UsersInput>(winApp->GetWinClass(), winApp->GetHwnd());
+	m_usersInput = std::make_unique<UsersInput>(m_winApp->GetWinClass(), m_winApp->GetHwnd());
 
 	//音声関連アプリ
-	audioApp = std::make_unique<AudioApp>();
+	m_audioApp = std::make_unique<AudioApp>();
 
 	//Imguiアプリ
-	imguiApp = std::make_unique<ImguiApp>(d3d12App->GetDevice(), winApp->GetHwnd());
+	m_imguiApp = std::make_unique<ImguiApp>(m_d3d12App->GetDevice(), m_winApp->GetHwnd());
 
 	//FPS固定機能
-	fps = std::make_shared<Fps>(Option.frameRate);
+	m_fps = std::make_shared<Fps>(Option.m_frameRate);
 
 
 	//平行投影行列定数バッファ生成
-	auto parallelMatProj = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, winApp->GetExpandWinSize().x, winApp->GetExpandWinSize().y, 0.0f, 0.0f, 1.0f);
-	parallelMatProjBuff = d3d12App->GenerateConstantBuffer(sizeof(XMMATRIX), 1, 
+	auto parallelMatProj = DirectX::XMMatrixOrthographicOffCenterLH(0.0f, m_winApp->GetExpandWinSize().x, m_winApp->GetExpandWinSize().y, 0.0f, 0.0f, 1.0f);
+	m_parallelMatProjBuff = m_d3d12App->GenerateConstantBuffer(sizeof(XMMATRIX), 1, 
 		&parallelMatProj);
 
 	printf("KuroEngine起動成功\n");
-	invalid = false;
+	m_invalid = false;
 
 }
 
 void KuroEngine::SetSceneList(const std::vector<BaseScene*>& SceneList, const int& AwakeSceneNum)
 {
 	//シーンリスト移動
-	scenes = SceneList;
-	nowScene = AwakeSceneNum;
-	scenes[nowScene]->Initialize();
+	m_scenes = SceneList;
+	m_nowScene = AwakeSceneNum;
+	m_scenes[m_nowScene]->Initialize();
 }
 
 void KuroEngine::Update()
 {
 	//FPS更新
-	fps->Update();
+	m_fps->Update();
 
 	//音声関連アプリ更新
-	audioApp->Update();
+	m_audioApp->Update();
 
 	//シーン切り替えフラグ
 	bool sceneChangeFlg = false;
 
-	if (nowSceneTransition != nullptr) //シーン遷移中
+	if (m_nowSceneTransition != nullptr) //シーン遷移中
 	{
 		//シーン遷移クラスの更新関数は、シーン切り替えのタイミングで true を還す
-		sceneChangeFlg = nowSceneTransition->Update() && (nextScene != -1);
+		sceneChangeFlg = m_nowSceneTransition->Update() && (m_nextScene != -1);
 
 		//シーン遷移終了
-		if (nowSceneTransition->Finish())
+		if (m_nowSceneTransition->Finish())
 		{
-			nowSceneTransition = nullptr;
+			m_nowSceneTransition = nullptr;
 		}
 	}
 
 	//シーン切り替え
 	if (sceneChangeFlg)
 	{
-		scenes[nowScene]->Finalize();	//切り替え前のシーン終了処理
-		nowScene = nextScene;		//シーン切り替え
-		scenes[nowScene]->Initialize();	//切り替え後のシーン初期化処理
-		nextScene = -1;
+		m_scenes[m_nowScene]->Finalize();	//切り替え前のシーン終了処理
+		m_nowScene = m_nextScene;		//シーン切り替え
+		m_scenes[m_nowScene]->Initialize();	//切り替え後のシーン初期化処理
+		m_nextScene = -1;
 	}
 
 	//入力更新
-	usersInput->Update(winApp->GetHwnd(), winApp->GetExpandWinSize());
+	m_usersInput->Update(m_winApp->GetHwnd(), m_winApp->GetExpandWinSize());
 
-	scenes[nowScene]->Update();
+	m_scenes[m_nowScene]->Update();
 }
 
 void KuroEngine::Draw()
 {
-	d3d12App->Render(this);
+	m_d3d12App->Render(this);
 }

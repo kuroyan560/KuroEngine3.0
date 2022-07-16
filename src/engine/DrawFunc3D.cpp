@@ -6,17 +6,17 @@
 #include"ModelAnimator.h"
 
 //DrawLine
-int DrawFunc3D::DRAW_LINE_COUNT = 0;
+int DrawFunc3D::s_drawLineCount = 0;
 //DrawNonShadingModel
-int DrawFunc3D::DRAW_NON_SHADING_COUNT = 0;
+int DrawFunc3D::s_drawNonShadingCount = 0;
 //DrawADSShadingModel
-int DrawFunc3D::DRAW_ADS_SHADING_COUNT = 0;
+int DrawFunc3D::s_drawAdsShadingCount = 0;
 //DrawPBRShadingModel
-int DrawFunc3D::DRAW_PBR_SHADING_COUNT = 0;
+int DrawFunc3D::s_drawPbrShadingCount = 0;
 //DrawToonModel
-int DrawFunc3D::DRAW_TOON_COUNT = 0;
+int DrawFunc3D::s_drawToonCount = 0;
 //DrawShadowFallModel
-int DrawFunc3D::DRAW_SHADOW_FALL_COUNT = 0;
+int DrawFunc3D::s_drawShadowFallCount = 0;
 
 
 void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float>& To, const Color& LineColor, const float& Thickness, const AlphaBlendMode& BlendMode)
@@ -41,13 +41,13 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.calling = false;
+		PIPELINE_OPTION.m_calling = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine3D.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine3D.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawLine3D.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine3D.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine3D.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawLine3D.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -72,17 +72,17 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
-	if (LINE_VERTEX_BUFF.size() < (DRAW_LINE_COUNT + 1))
+	if (LINE_VERTEX_BUFF.size() < (s_drawLineCount + 1))
 	{
-		LINE_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(LineVertex), 1, nullptr, ("DrawLine3D -" + std::to_string(DRAW_LINE_COUNT)).c_str()));
+		LINE_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(LineVertex), 1, nullptr, ("DrawLine3D -" + std::to_string(s_drawLineCount)).c_str()));
 	}
 
 	LineVertex vertex(From, To, LineColor, Thickness);
-	LINE_VERTEX_BUFF[DRAW_LINE_COUNT]->Mapping(&vertex);
+	LINE_VERTEX_BUFF[s_drawLineCount]->Mapping(&vertex);
 	Vec3<float>center = From.GetCenter(To);
 
 	KuroEngine::Instance().Graphics().ObjectRender(
-		LINE_VERTEX_BUFF[DRAW_LINE_COUNT],
+		LINE_VERTEX_BUFF[s_drawLineCount],
 		{
 			Cam.GetBuff(),
 		},
@@ -90,7 +90,7 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 		center.z,
 		true);
 
-	DRAW_LINE_COUNT++;
+	s_drawLineCount++;
 }
 
 void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator, const AlphaBlendMode& BlendMode)
@@ -106,8 +106,8 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawNonShadingModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawNonShadingModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawNonShadingModel.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawNonShadingModel.hlsl", "PSmain", "ps_5_0");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -127,26 +127,26 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
-	if (TRANSFORM_BUFF.size() < (DRAW_NON_SHADING_COUNT + 1))
+	if (TRANSFORM_BUFF.size() < (s_drawNonShadingCount + 1))
 	{
-		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawShadingModel_Transform -" + std::to_string(DRAW_NON_SHADING_COUNT)).c_str()));
+		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawShadingModel_Transform -" + std::to_string(s_drawNonShadingCount)).c_str()));
 	}
 
-	TRANSFORM_BUFF[DRAW_NON_SHADING_COUNT]->Mapping(&Transform.GetMat());
+	TRANSFORM_BUFF[s_drawNonShadingCount]->Mapping(&Transform.GetMat());
 
 	auto model = Model.lock();
 	std::shared_ptr<ConstantBuffer>boneBuff;
 	if (Animator)boneBuff = Animator->GetBoneMatBuff();
 
-	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
+	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
-		const auto& mesh = model->meshes[meshIdx];
+		const auto& mesh = model->m_meshes[meshIdx];
 		KuroEngine::Instance().Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
 			{
 				Cam.GetBuff(),
-				TRANSFORM_BUFF[DRAW_NON_SHADING_COUNT],
+				TRANSFORM_BUFF[s_drawNonShadingCount],
 				boneBuff,
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->buff
@@ -156,7 +156,7 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 			true);
 	}
 
-	DRAW_NON_SHADING_COUNT++;
+	s_drawNonShadingCount++;
 }
 
 void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator, const AlphaBlendMode& BlendMode)
@@ -172,8 +172,8 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawADSShadingModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawADSShadingModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawADSShadingModel.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawADSShadingModel.hlsl", "PSmain", "ps_5_0");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -200,20 +200,20 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
-	if (TRANSFORM_BUFF.size() < (DRAW_ADS_SHADING_COUNT + 1))
+	if (TRANSFORM_BUFF.size() < (s_drawAdsShadingCount + 1))
 	{
-		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawADSShadingModel_Transform -" + std::to_string(DRAW_ADS_SHADING_COUNT)).c_str()));
+		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawADSShadingModel_Transform -" + std::to_string(s_drawAdsShadingCount)).c_str()));
 	}
 
-	TRANSFORM_BUFF[DRAW_ADS_SHADING_COUNT]->Mapping(&Transform.GetMat());
+	TRANSFORM_BUFF[s_drawAdsShadingCount]->Mapping(&Transform.GetMat());
 
 	auto model = Model.lock();
 	std::shared_ptr<ConstantBuffer>boneBuff;
 	if (Animator)boneBuff = Animator->GetBoneMatBuff();
 	
-	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
+	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
-		const auto& mesh = model->meshes[meshIdx];
+		const auto& mesh = model->m_meshes[meshIdx];
 		KuroEngine::Instance().Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
@@ -224,7 +224,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 				LigManager.GetLigInfo(Light::POINT),
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
-				TRANSFORM_BUFF[DRAW_ADS_SHADING_COUNT],
+				TRANSFORM_BUFF[s_drawAdsShadingCount],
 				boneBuff,
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[NORMAL_TEX],
@@ -235,7 +235,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 			true);
 	}
 
-	DRAW_ADS_SHADING_COUNT++;
+	s_drawAdsShadingCount++;
 }
 
 void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator, std::shared_ptr<CubeMap>AttachCubeMap, const AlphaBlendMode& BlendMode)
@@ -251,8 +251,8 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawPBRShadingModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawPBRShadingModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawPBRShadingModel.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawPBRShadingModel.hlsl", "PSmain", "ps_5_0");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -282,12 +282,12 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
-	if (TRANSFORM_BUFF.size() < (DRAW_PBR_SHADING_COUNT + 1))
+	if (TRANSFORM_BUFF.size() < (s_drawPbrShadingCount + 1))
 	{
-		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawPBRShadingModel_Transform -" + std::to_string(DRAW_PBR_SHADING_COUNT)).c_str()));
+		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawPBRShadingModel_Transform -" + std::to_string(s_drawPbrShadingCount)).c_str()));
 	}
 
-	TRANSFORM_BUFF[DRAW_PBR_SHADING_COUNT]->Mapping(&Transform.GetMat());
+	TRANSFORM_BUFF[s_drawPbrShadingCount]->Mapping(&Transform.GetMat());
 
 
 	//ボーン行列バッファ取得（アニメーターがnullptrなら空）
@@ -299,9 +299,9 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 	std::shared_ptr<CubeMap>cubeMap = StaticallyCubeMap::GetDefaultCubeMap();
 	if (AttachCubeMap)cubeMap = AttachCubeMap;
 
-	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
+	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
-		const auto& mesh = model->meshes[meshIdx];
+		const auto& mesh = model->m_meshes[meshIdx];
 		KuroEngine::Instance().Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
@@ -313,7 +313,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
 				cubeMap->GetCubeMapTex(),
-				TRANSFORM_BUFF[DRAW_PBR_SHADING_COUNT],
+				TRANSFORM_BUFF[s_drawPbrShadingCount],
 				boneBuff,
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[METALNESS_TEX],
@@ -326,7 +326,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 			true);
 	}
 
-	DRAW_PBR_SHADING_COUNT++;
+	s_drawPbrShadingCount++;
 }
 
 void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, LightManager& LigManager, const std::weak_ptr<Model> Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode)
@@ -342,8 +342,8 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawToonModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawToonModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawToonModel.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawToonModel.hlsl", "PSmain", "ps_5_0");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -370,18 +370,18 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
-	if (TRANSFORM_BUFF.size() < (DRAW_TOON_COUNT + 1))
+	if (TRANSFORM_BUFF.size() < (s_drawToonCount + 1))
 	{
-		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawShadingModel_Transform -" + std::to_string(DRAW_TOON_COUNT)).c_str()));
+		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawShadingModel_Transform -" + std::to_string(s_drawToonCount)).c_str()));
 	}
 
-	TRANSFORM_BUFF[DRAW_TOON_COUNT]->Mapping(&Transform.GetMat());
+	TRANSFORM_BUFF[s_drawToonCount]->Mapping(&Transform.GetMat());
 
 	auto model = Model.lock();
 
-	for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
+	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
-		const auto& mesh = model->meshes[meshIdx];
+		const auto& mesh = model->m_meshes[meshIdx];
 		KuroEngine::Instance().Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
@@ -392,7 +392,7 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 				LigManager.GetLigInfo(Light::POINT),
 				LigManager.GetLigInfo(Light::SPOT),
 				LigManager.GetLigInfo(Light::HEMISPHERE),
-				TRANSFORM_BUFF[DRAW_TOON_COUNT],
+				TRANSFORM_BUFF[s_drawToonCount],
 				mesh.material->texBuff[COLOR_TEX],
 				mesh.material->texBuff[NORMAL_TEX],
 				ToonTex.lock(),
@@ -403,5 +403,5 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 			true);
 	}
 
-	DRAW_TOON_COUNT++;
+	s_drawToonCount++;
 }

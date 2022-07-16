@@ -2,19 +2,19 @@
 #include"KuroEngine.h"
 
 //DrawLine
-int DrawFunc2D::DRAW_LINE_COUNT = 0;
+int DrawFunc2D::s_DrawLineCount = 0;
 
 //DrawBox
-int DrawFunc2D::DRAW_BOX_COUNT = 0;
+int DrawFunc2D::s_DrawBoxCount = 0;
 
 //DrawCircle
-int DrawFunc2D::DRAW_CIRCLE_COUNT = 0;
+int DrawFunc2D::s_DrawCircleCount = 0;
 
 //DrawExtendGraph
-int DrawFunc2D::DRAW_EXTEND_GRAPH_COUNT = 0;
+int DrawFunc2D::s_DrawExtendGraphCount = 0;
 
 //DrawRotaGraph
-int DrawFunc2D::DRAW_ROTA_GRAPH_COUNT = 0;
+int DrawFunc2D::s_DrawRotaGraphCount = 0;
 
 void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos, const Color& LineColor, const AlphaBlendMode& BlendMode)
 {
@@ -35,12 +35,12 @@ void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE, D3D_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -63,9 +63,9 @@ void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(LINE_PIPELINE[BlendMode]);
 
-	if (LINE_VERTEX_BUFF.size() < (DRAW_LINE_COUNT + 1))
+	if (LINE_VERTEX_BUFF.size() < (s_DrawLineCount + 1))
 	{
-		LINE_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(LineVertex), 2, nullptr, ("DrawLine2D -" + std::to_string(DRAW_LINE_COUNT)).c_str()));
+		LINE_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(LineVertex), 2, nullptr, ("DrawLine2D -" + std::to_string(s_DrawLineCount)).c_str()));
 	}
 
 	LineVertex vertex[2] =
@@ -73,11 +73,11 @@ void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos
 		{FromPos,LineColor },
 		{ToPos,LineColor}
 	};
-	LINE_VERTEX_BUFF[DRAW_LINE_COUNT]->Mapping(&vertex[0]);
+	LINE_VERTEX_BUFF[s_DrawLineCount]->Mapping(&vertex[0]);
 
-	KuroEngine::Instance().Graphics().ObjectRender(LINE_VERTEX_BUFF[DRAW_LINE_COUNT], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
+	KuroEngine::Instance().Graphics().ObjectRender(LINE_VERTEX_BUFF[s_DrawLineCount], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
 
-	DRAW_LINE_COUNT++;
+	s_DrawLineCount++;
 }
 
 void DrawFunc2D::DrawLine2DGraph(const Vec2<float>& FromPos, const Vec2<float>& ToPos, const std::shared_ptr<TextureBuffer>& Tex, const int& Thickness, const AlphaBlendMode& BlendMode, const Vec2<bool>& Mirror)
@@ -116,13 +116,13 @@ void DrawFunc2D::DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& Righ
 		{
 			//パイプライン設定
 			static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-			PIPELINE_OPTION.depthTest = false;
+			PIPELINE_OPTION.m_depthTest = false;
 
 			//シェーダー情報
 			static Shaders SHADERS;
-			SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "VSmain", "vs_5_0");
-			SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "GSmain", "gs_5_0");
-			SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "PSmain", "ps_5_0");
+			SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "VSmain", "vs_5_0");
+			SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "GSmain", "gs_5_0");
+			SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "PSmain", "ps_5_0");
 
 			//インプットレイアウト
 			static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -146,17 +146,17 @@ void DrawFunc2D::DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& Righ
 
 		KuroEngine::Instance().Graphics().SetGraphicsPipeline(BOX_PIPELINE[BlendMode]);
 
-		if (BOX_VERTEX_BUFF.size() < (DRAW_BOX_COUNT + 1))
+		if (BOX_VERTEX_BUFF.size() < (s_DrawBoxCount + 1))
 		{
-			BOX_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(BoxVertex), 1, nullptr, ("DrawBox2D -" + std::to_string(DRAW_BOX_COUNT)).c_str()));
+			BOX_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(BoxVertex), 1, nullptr, ("DrawBox2D -" + std::to_string(s_DrawBoxCount)).c_str()));
 		}
 
 		BoxVertex vertex(LeftUpPos, RightBottomPos, BoxColor);
-		BOX_VERTEX_BUFF[DRAW_BOX_COUNT]->Mapping(&vertex);
+		BOX_VERTEX_BUFF[s_DrawBoxCount]->Mapping(&vertex);
 
-		KuroEngine::Instance().Graphics().ObjectRender(BOX_VERTEX_BUFF[DRAW_BOX_COUNT], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
+		KuroEngine::Instance().Graphics().ObjectRender(BOX_VERTEX_BUFF[s_DrawBoxCount], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
 
-		DRAW_BOX_COUNT++;
+		s_DrawBoxCount++;
 	}
 	//外枠だけのときはDrawLineで済ます
 	else
@@ -201,13 +201,13 @@ void DrawFunc2D::DrawCircle2D(const Vec2<float>& Center, const float& Radius, co
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -233,18 +233,18 @@ void DrawFunc2D::DrawCircle2D(const Vec2<float>& Center, const float& Radius, co
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(CIRCLE_PIPELINE[BlendMode]);
 
-	if (CIRCLE_VERTEX_BUFF.size() < (DRAW_CIRCLE_COUNT + 1))
+	if (CIRCLE_VERTEX_BUFF.size() < (s_DrawCircleCount + 1))
 	{
-		CIRCLE_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(CircleVertex), 1, nullptr, ("DrawCircle2D -" + std::to_string(DRAW_CIRCLE_COUNT)).c_str()));
+		CIRCLE_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(CircleVertex), 1, nullptr, ("DrawCircle2D -" + std::to_string(s_DrawCircleCount)).c_str()));
 	}
 
 	CircleVertex vertex(Center, Radius, CircleColor, FillFlg, LineThickness);
 
-	CIRCLE_VERTEX_BUFF[DRAW_CIRCLE_COUNT]->Mapping(&vertex);
+	CIRCLE_VERTEX_BUFF[s_DrawCircleCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(CIRCLE_VERTEX_BUFF[DRAW_CIRCLE_COUNT], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
+	KuroEngine::Instance().Graphics().ObjectRender(CIRCLE_VERTEX_BUFF[s_DrawCircleCount], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
 
-	DRAW_CIRCLE_COUNT++;
+	s_DrawCircleCount++;
 }
 
 void DrawFunc2D::DrawGraph(const Vec2<float>& LeftUpPos, const std::shared_ptr<TextureBuffer>& Tex, const AlphaBlendMode& BlendMode, const Vec2<bool>& Miror)
@@ -273,13 +273,13 @@ void DrawFunc2D::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2<floa
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -304,17 +304,17 @@ void DrawFunc2D::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2<floa
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE[BlendMode]);
 
-	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (DRAW_EXTEND_GRAPH_COUNT + 1))
+	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (s_DrawExtendGraphCount + 1))
 	{
-		EXTEND_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(ExtendGraphVertex), 1, nullptr, ("DrawExtendGraph -" + std::to_string(DRAW_EXTEND_GRAPH_COUNT)).c_str()));
+		EXTEND_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(ExtendGraphVertex), 1, nullptr, ("DrawExtendGraph -" + std::to_string(s_DrawExtendGraphCount)).c_str()));
 	}
 
 	ExtendGraphVertex vertex(LeftUpPos, RightBottomPos, Miror);
-	EXTEND_GRAPH_VERTEX_BUFF[DRAW_EXTEND_GRAPH_COUNT]->Mapping(&vertex);
+	EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[DRAW_EXTEND_GRAPH_COUNT], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
+	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
-	DRAW_EXTEND_GRAPH_COUNT++;
+	s_DrawExtendGraphCount++;
 }
 
 void DrawFunc2D::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& ExtRate, const float& Radian,
@@ -342,13 +342,13 @@ void DrawFunc2D::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& E
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -375,16 +375,16 @@ void DrawFunc2D::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& E
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE[BlendMode]);
 
-	if (ROTA_GRAPH_VERTEX_BUFF.size() < (DRAW_ROTA_GRAPH_COUNT + 1))
+	if (ROTA_GRAPH_VERTEX_BUFF.size() < (s_DrawRotaGraphCount + 1))
 	{
-		ROTA_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(RotaGraphVertex), 1, nullptr, ("DrawRotaGraph -" + std::to_string(DRAW_ROTA_GRAPH_COUNT)).c_str()));
+		ROTA_GRAPH_VERTEX_BUFF.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(RotaGraphVertex), 1, nullptr, ("DrawRotaGraph -" + std::to_string(s_DrawRotaGraphCount)).c_str()));
 	}
 
 	RotaGraphVertex vertex(Center, ExtRate, Radian,RotaCenterUV, Miror);
-	ROTA_GRAPH_VERTEX_BUFF[DRAW_ROTA_GRAPH_COUNT]->Mapping(&vertex);
+	ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[DRAW_ROTA_GRAPH_COUNT], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
+	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
-	DRAW_ROTA_GRAPH_COUNT++;
+	s_DrawRotaGraphCount++;
 }
 

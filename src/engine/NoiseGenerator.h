@@ -11,21 +11,21 @@ enum NOISE_INTERPOLATION
 
 struct NoiseInitializer
 {
-	NOISE_INTERPOLATION interpolation = WAVELET;
-	Vec2<int>split = { 16,16 };
-	int contrast = 1;
-	int octave = 1;
-	float frequency = 1.0f;
-	float persistance = 0.5f;
+	NOISE_INTERPOLATION m_interpolation = WAVELET;
+	Vec2<int>m_split = { 16,16 };
+	int m_contrast = 1;
+	int m_octave = 1;
+	float m_frequency = 1.0f;
+	float m_persistance = 0.5f;
 };
 
 class NoiseGenerator
 {
-	static int PERLIN_NOISE_ID_2D;
+	static int s_perlinNoise2DId;
 public:
 	static void CountReset()
 	{
-		PERLIN_NOISE_ID_2D = 0;
+		s_perlinNoise2DId = 0;
 	}
 	static void PerlinNoise2D(std::shared_ptr<TextureBuffer>DestTex, const NoiseInitializer& Config);
 	static std::shared_ptr<TextureBuffer>PerlinNoise2D(const std::string& Name, const Vec2<int>& Size, const NoiseInitializer& Config, const DXGI_FORMAT& Format = DXGI_FORMAT_R32_FLOAT);

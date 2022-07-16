@@ -1,15 +1,15 @@
 #include "ImguiApp.h"
 
-ImguiApp* ImguiApp::INSTANCE = nullptr;
+ImguiApp* ImguiApp::s_instance = nullptr;
 
 ImguiApp::ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd)
 {
-	if (INSTANCE != nullptr)
+	if (s_instance != nullptr)
 	{
 		printf("既にインスタンスがあります。ImguiAppは１つのインスタンスしか持てません\n");
 		assert(0);
 	}
-	INSTANCE = this;
+	s_instance = this;
 
 	// SRV_CBV_UAV のディスクリプタヒープ
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
@@ -20,9 +20,9 @@ ImguiApp::ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd)
 
 	HRESULT result = Device->CreateDescriptorHeap(
 		&heapDesc,
-		IID_PPV_ARGS(heap.GetAddressOf()));
+		IID_PPV_ARGS(m_heap.GetAddressOf()));
 
-	if (heap == nullptr)assert(0);
+	if (m_heap == nullptr)assert(0);
 
 	if (ImGui::CreateContext() == nullptr)assert(0);
 
@@ -37,9 +37,9 @@ ImguiApp::ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd)
 		Device.Get(),
 		2,
 		DXGI_FORMAT_R8G8B8A8_UNORM,	//書き込み先のRTVのフォーマット
-		heap.Get(),
-		heap.Get()->GetCPUDescriptorHandleForHeapStart(),	//CPUハンドル
-		heap.Get()->GetGPUDescriptorHandleForHeapStart());	//GPUハンドル
+		m_heap.Get(),
+		m_heap.Get()->GetCPUDescriptorHandleForHeapStart(),	//CPUハンドル
+		m_heap.Get()->GetGPUDescriptorHandleForHeapStart());	//GPUハンドル
 }
 
 ImguiApp::~ImguiApp()
@@ -59,7 +59,7 @@ void ImguiApp::BeginImgui()
 void ImguiApp::EndImgui(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	ImGui::Render();
-	CmdList->SetDescriptorHeaps(1, heap.GetAddressOf());
+	CmdList->SetDescriptorHeaps(1, m_heap.GetAddressOf());
 
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), CmdList.Get());
 	ImGui::UpdatePlatformWindows();
@@ -69,7 +69,7 @@ void ImguiApp::EndImgui(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 #include"Material.h"
 void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG_MODE& Mode)
 {
-	ImGui::Begin(("DebugMaterial - " + modeName[Mode]).c_str());
+	ImGui::Begin(("DebugMaterial - " + m_modeName[Mode]).c_str());
 
 	auto m = Material.lock();
 
@@ -79,7 +79,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 		//Lambert
 		{
 			ImGui::Text("Lambert");
-			ImGui::Indent(indent);
+			ImGui::Indent(m_indent);
 
 			ImGui::Text("Ambient - ");
 			ImGui::SameLine();
@@ -101,7 +101,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 
 			ImGui::Text("Transparent - %.3f", m->constData.lambert.transparent);
 
-			ImGui::Unindent(indent);
+			ImGui::Unindent(m_indent);
 		}
 
 		ImGui::Separator();
@@ -109,7 +109,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 		//Phong
 		{
 			ImGui::Text("Phong");
-			ImGui::Indent(indent);
+			ImGui::Indent(m_indent);
 
 			ImGui::Text("Specular - ");
 			ImGui::SameLine();
@@ -121,7 +121,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 
 			ImGui::Text("Reflection - %.3f", m->constData.phong.reflection);
 
-			ImGui::Unindent(indent);
+			ImGui::Unindent(m_indent);
 		}
 
 		ImGui::Separator();
@@ -129,7 +129,7 @@ void ImguiApp::DebugMaterial(std::weak_ptr<Material> Material, const IMGUI_DEBUG
 		//PBR
 		{
 			ImGui::Text("PBR");
-			ImGui::Indent(indent);
+			ImGui::Indent(m_indent);
 
 			ImGui::Text("BaseColor - ");
 			ImGui::SameLine();

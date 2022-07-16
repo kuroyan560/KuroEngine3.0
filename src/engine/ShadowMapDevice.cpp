@@ -5,17 +5,17 @@
 #include"Model.h"
 #include"ModelAnimator.h"
 
-ShadowMapDevice::ShadowMapDevice() :lightCamera("LightCamera")
+ShadowMapDevice::ShadowMapDevice() :m_lightCamera("LightCamera")
 {
 	//シャドウマップ関連
-	shadowMap = D3D12App::Instance()->GenerateRenderTarget(DXGI_FORMAT_R32G32_FLOAT, Color(), { 2048,2048 }, L"ShadowMap");
-	shadowMapDepth = D3D12App::Instance()->GenerateDepthStencil({ 2048,2048 });
-	lightCamera.SetPos({ 0, 10, 0 });
-	lightCamera.SetTarget({ 0,0,0 });
-	lightCamera.SetUp({ 1,0,0 });
-	lightCamera.SetAngleOfView(Angle(60));
+	m_shadowMap = D3D12App::Instance()->GenerateRenderTarget(DXGI_FORMAT_R32G32_FLOAT, Color(), { 2048,2048 }, L"ShadowMap");
+	m_shadowMapDepth = D3D12App::Instance()->GenerateDepthStencil({ 2048,2048 });
+	m_lightCamera.SetPos({ 0, 10, 0 });
+	m_lightCamera.SetTarget({ 0,0,0 });
+	m_lightCamera.SetUp({ 1,0,0 });
+	m_lightCamera.SetAngleOfView(Angle(60));
 
-	gaussianBlur = std::make_shared<GaussianBlur>(Vec2<int>(2048, 2048), DXGI_FORMAT_R32G32_FLOAT);
+	m_gaussianBlur = std::make_shared<GaussianBlur>(Vec2<int>(2048, 2048), DXGI_FORMAT_R32G32_FLOAT);
 }
 
 void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>>& Models)
@@ -31,8 +31,8 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "PSmain", "ps_5_0");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -55,38 +55,38 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 		TRANSFORM_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, ("DrawShadowMapMode_Transform -" + std::to_string(TRANSFORM_BUFF.size())).c_str()));
 	}
 
-	shadowMap->Clear(D3D12App::Instance()->GetCmdList());
-	shadowMapDepth->Clear(D3D12App::Instance()->GetCmdList());
+	m_shadowMap->Clear(D3D12App::Instance()->GetCmdList());
+	m_shadowMapDepth->Clear(D3D12App::Instance()->GetCmdList());
 
 	//シャドウマップ書き込み
-	KuroEngine::Instance().Graphics().SetRenderTargets({ shadowMap }, shadowMapDepth);
+	KuroEngine::Instance().Graphics().SetRenderTargets({ m_shadowMap }, m_shadowMapDepth);
 
 	for (int i = 0; i < Models.size(); ++i)
 	{
 		auto obj = Models[i].lock();
 		std::shared_ptr<ConstantBuffer>boneBuff;
-		if (obj->animator)boneBuff = obj->animator->GetBoneMatBuff();
+		if (obj->m_animator)boneBuff = obj->m_animator->GetBoneMatBuff();
 
-		TRANSFORM_BUFF[i]->Mapping(&obj->transform.GetMat());
+		TRANSFORM_BUFF[i]->Mapping(&obj->m_transform.GetMat());
 
-		for (int meshIdx = 0; meshIdx < obj->model->meshes.size(); ++meshIdx)
+		for (int meshIdx = 0; meshIdx < obj->m_model->m_meshes.size(); ++meshIdx)
 		{
-			const auto& mesh = obj->model->meshes[meshIdx];
+			const auto& mesh = obj->m_model->m_meshes[meshIdx];
 			KuroEngine::Instance().Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
 				{
-					lightCamera.GetBuff(),
+					m_lightCamera.GetBuff(),
 					TRANSFORM_BUFF[i],
 					boneBuff,
 				},
 				{ CBV,CBV,CBV },
-				obj->transform.GetPos().z,
+				obj->m_transform.GetPos().z,
 				true);
 		}
 	}
 
-	gaussianBlur->Register(shadowMap);
+	m_gaussianBlur->Register(m_shadowMap);
 }
 
 void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelObject>>& Models, Camera& GameCamera, const AlphaBlendMode& BlendMode)
@@ -102,8 +102,8 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "PSmain", "ps_5_0");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -120,9 +120,9 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 
 		//シャドウマップサンプリング用サンプラー
 		auto shadowMapSampler = WrappedSampler(false, false);
-		shadowMapSampler.sampler.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-		shadowMapSampler.sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER;
-		shadowMapSampler.sampler.MaxAnisotropy = 1;
+		shadowMapSampler.m_sampler.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+		shadowMapSampler.m_sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER;
+		shadowMapSampler.m_sampler.MaxAnisotropy = 1;
 		//パイプライン生成
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false),shadowMapSampler });
 	}
@@ -139,13 +139,13 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 	{
 		auto obj = Models[i].lock();
 
-		TRANSFORM_BUFF[i]->Mapping(&obj->transform.GetMat());
+		TRANSFORM_BUFF[i]->Mapping(&obj->m_transform.GetMat());
 
-		auto model = obj->model;
+		auto model = obj->m_model;
 
-		for (int meshIdx = 0; meshIdx < model->meshes.size(); ++meshIdx)
+		for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 		{
-			const auto& mesh = model->meshes[meshIdx];
+			const auto& mesh = model->m_meshes[meshIdx];
 			KuroEngine::Instance().Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
@@ -153,11 +153,11 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 					GameCamera.GetBuff(),
 					TRANSFORM_BUFF[i],
 					mesh.material->texBuff[COLOR_TEX],
-					gaussianBlur->GetResultTex(),
-					lightCamera.GetBuff()
+					m_gaussianBlur->GetResultTex(),
+					m_lightCamera.GetBuff()
 				},
 				{ CBV,CBV,SRV,SRV,CBV },
-				obj->transform.GetPos().z,
+				obj->m_transform.GetPos().z,
 				true);
 		}
 	}
@@ -165,12 +165,12 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 
 void ShadowMapDevice::SetHeight(const float& Height)
 {
-	auto pos = lightCamera.GetPos();
+	auto pos = m_lightCamera.GetPos();
 	pos.y = Height;
-	lightCamera.SetPos(pos);
+	m_lightCamera.SetPos(pos);
 }
 
 void ShadowMapDevice::SetBlurPower(const float& BlurPower)
 {
-	gaussianBlur->SetBlurPower(BlurPower);
+	m_gaussianBlur->SetBlurPower(BlurPower);
 }

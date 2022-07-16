@@ -17,10 +17,10 @@ class CollisionCallBack
 {
 private:
 	friend class Collider;
-	std::weak_ptr<Collider>attachCollider;
+	std::weak_ptr<Collider>m_attachCollider;
 
 protected:
-	const std::weak_ptr<Collider>& GetAttachCollider() { return attachCollider; }
+	const std::weak_ptr<Collider>& GetAttachCollider() { return m_attachCollider; }
 	/// <summary>
 	/// 衝突時呼び出される
 	/// </summary>
@@ -32,7 +32,7 @@ protected:
 class Collider : public std::enable_shared_from_this<Collider>
 {
 private:
-	static std::list<std::weak_ptr<Collider>>COLLIDERS;
+	static std::list<std::weak_ptr<Collider>>s_colliderList;
 
 public:
 	static std::shared_ptr<Collider>Generate(const std::shared_ptr<CollisionPrimitive>& Primitive);
@@ -41,25 +41,25 @@ public:
 
 private:
 	//自身の振る舞い
-	char myAttribute = COLLIDER_ATTRIBUTE::NONE;
+	char m_myAttribute = COLLIDER_ATTRIBUTE::NONE;
 
 	//衝突判定を行う相手の振る舞い
-	char hitCheckAttribute = COLLIDER_ATTRIBUTE::NONE;
+	char m_hitCheckAttribute = COLLIDER_ATTRIBUTE::NONE;
 
 	//コールバック関数
-	CollisionCallBack* callBack = nullptr;
+	CollisionCallBack* m_callBack = nullptr;
 
 	//衝突判定用プリミティブ
-	std::shared_ptr<CollisionPrimitive>primitive;
+	std::shared_ptr<CollisionPrimitive>m_primitive;
 
 	//有効フラグ
-	bool isActive = true;
+	bool m_isActive = true;
 
 	//当たり判定があったかフラグ
-	bool isHit = false;
+	bool m_isHit = false;
 
 public:
-	Collider(const std::shared_ptr<CollisionPrimitive>& Primitive) :primitive(Primitive) {  }
+	Collider(const std::shared_ptr<CollisionPrimitive>& Primitive) :m_primitive(Primitive) {  }
 
 	//当たり判定（衝突点を返す）
 	bool CheckHitCollision(std::weak_ptr<Collider> Other, Vec3<float>* Inter = nullptr);
@@ -70,14 +70,14 @@ public:
 	//セッタ
 	void SetCallBack(CollisionCallBack* CallBack) 
 	{ 
-		callBack = CallBack; 
-		callBack->attachCollider = weak_from_this();
+		m_callBack = CallBack; 
+		m_callBack->m_attachCollider = weak_from_this();
 	}
-	void SetMyAttribute(const COLLIDER_ATTRIBUTE& Attribute) { myAttribute = Attribute; }
-	void SetHitCheckAttribute(const COLLIDER_ATTRIBUTE& Attribute) { hitCheckAttribute = Attribute; }
-	void SetActive(const bool& Active) { isActive = Active; }
+	void SetMyAttribute(const COLLIDER_ATTRIBUTE& Attribute) { m_myAttribute = Attribute; }
+	void SetHitCheckAttribute(const COLLIDER_ATTRIBUTE& Attribute) { m_hitCheckAttribute = Attribute; }
+	void SetActive(const bool& Active) { m_isActive = Active; }
 
 	//ゲッタ
-	const bool& GetIsHit()const { return isHit; }
-	const std::weak_ptr<CollisionPrimitive>GetColliderPrimitive() { return primitive; }
+	const bool& GetIsHit()const { return m_isHit; }
+	const std::weak_ptr<CollisionPrimitive>GetColliderPrimitive() { return m_primitive; }
 };

@@ -32,28 +32,28 @@ class Importer : public Singleton<Importer>
 #pragma region FBX関連
 	struct LoadFbxNode
 	{
-		std::string name;
-		DirectX::XMVECTOR scaling = { 1,1,1,0 };
-		DirectX::XMVECTOR rotation = { 0,0,0,0 };
-		DirectX::XMVECTOR translation = { 0,0,0,1 };
-		Matrix transform;
-		FbxNode* fbxNode = nullptr;
-		LoadFbxNode* parent = nullptr;
-		FbxNodeAttribute* attribute = nullptr;
+		std::string m_name;
+		DirectX::XMVECTOR m_scaling = { 1,1,1,0 };
+		DirectX::XMVECTOR m_rotation = { 0,0,0,0 };
+		DirectX::XMVECTOR m_translation = { 0,0,0,1 };
+		Matrix m_transform;
+		FbxNode* m_fbxNode = nullptr;
+		LoadFbxNode* m_parent = nullptr;
+		FbxNodeAttribute* m_attribute = nullptr;
 	};
 	struct FbxBoneAffect	//ボーンと頂点の関連を記録するためのクラス
 	{
-		signed short index;
-		float weight;
+		signed short m_index;
+		float m_weight;
 	};
 	//ボーンが頂点に与える影響に関する情報テーブル
 	//< 頂点インデックス、情報(可変長、４個まで)>
 	//５つ以上読み込まれていた場合、頂点読み込み時に無視される
 	using BoneTable = std::map<int, std::forward_list<FbxBoneAffect>>;
 
-	FbxManager* fbxManager = nullptr;
-	FbxIOSettings* ioSettings = nullptr;
-	FbxImporter* fbxImporter = nullptr;
+	FbxManager* m_fbxManager = nullptr;
+	FbxIOSettings* m_ioSettings = nullptr;
+	FbxImporter* m_fbxImporter = nullptr;
 
 	//FBX関連デバイスの削除処理
 	void FbxDeviceDestroy();
@@ -81,10 +81,10 @@ class Importer : public Singleton<Importer>
 #pragma endregion
 
 	//インポートしたモデル
-	std::map<std::string, std::shared_ptr<Model>>models;
+	std::map<std::string, std::shared_ptr<Model>>m_models;
 	void RegisterImportModel(const std::string& Dir, const std::string& FileName, const std::shared_ptr<Model>& Model)
 	{
-		models[Dir + FileName] = Model;
+		m_models[Dir + FileName] = Model;
 	}
 	std::shared_ptr<Model> CheckAlreadyExsit(const std::string& Dir, const std::string& FileName);
 
@@ -95,7 +95,7 @@ class Importer : public Singleton<Importer>
 	*/
 
 	//HSMが存在する場合をHSMから読み込めるようにするか(HSMのフォーマットが変わったときはフラグをオフにする)
-	const bool canLoadHSM = true;
+	const bool m_canLoadHSM = true;
 
 	Importer();
 

@@ -17,7 +17,7 @@ void Swapchain::SetMetadata()
 	  { 0.70800f, 0.29200f, 0.17000f, 0.79700f, 0.13100f, 0.04600f, 0.31270f, 0.32900f }, // Rec2020
 	};
 	int useIndex = 0;
-	if (desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+	if (m_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
 	{
 		useIndex = 1;
 	}
@@ -35,48 +35,48 @@ void Swapchain::SetMetadata()
 	HDR10MetaData.MinMasteringLuminance = UINT(0.001f * 10000.0f);
 	HDR10MetaData.MaxContentLightLevel = UINT16(2000.0f);
 	HDR10MetaData.MaxFrameAverageLightLevel = UINT16(500.0f);
-	swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(HDR10MetaData), &HDR10MetaData);
+	m_swapchain->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(HDR10MetaData), &HDR10MetaData);
 }
 
 Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapChain1>& Swapchain, DescriptorHeap_CBV_SRV_UAV& DescHeap_CBV_SRV_UAV, DescriptorHeap_RTV& DescHeapRTV, bool UseHDR, const Color& ClearValue)
 {
-	Swapchain.As(&swapchain);	//IDXGISwapChain4 取得
-	swapchain->GetDesc1(&desc);
+	Swapchain.As(&m_swapchain);	//IDXGISwapChain4 取得
+	m_swapchain->GetDesc1(&m_desc);
 
 	//レンダーターゲットリソース設定
 	CD3DX12_RESOURCE_DESC resDesc(
 		D3D12_RESOURCE_DIMENSION_TEXTURE2D,
 		0,
-		static_cast<UINT>(desc.Width),
-		static_cast<UINT>(desc.Height),
+		static_cast<UINT>(m_desc.Width),
+		static_cast<UINT>(m_desc.Height),
 		1,
 		1,
-		desc.Format,
+		m_desc.Format,
 		1,
 		0,
 		D3D12_TEXTURE_LAYOUT_UNKNOWN,
 		D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 	);
 
-	images.resize(desc.BufferCount);
-	fences.resize(desc.BufferCount);
-	fenceValues.resize(desc.BufferCount);
-	waitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_images.resize(m_desc.BufferCount);
+	m_fences.resize(m_desc.BufferCount);
+	m_fenceValues.resize(m_desc.BufferCount);
+	m_waitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	HRESULT hr;
-	for (UINT i = 0; i < desc.BufferCount; ++i)
+	for (UINT i = 0; i < m_desc.BufferCount; ++i)
 	{
 		//フェンスの生成
 		hr = Device->CreateFence(
 			0, D3D12_FENCE_FLAG_NONE,
-			IID_PPV_ARGS(&fences[i]));
+			IID_PPV_ARGS(&m_fences[i]));
 
 		if (FAILED(hr))assert(0);   //CreateFenece失敗
 
 
 		//バックバッファの取得
 		ComPtr<ID3D12Resource1> buff;
-		hr = swapchain->GetBuffer(i, IID_PPV_ARGS(&buff));
+		hr = m_swapchain->GetBuffer(i, IID_PPV_ARGS(&buff));
 		KuroFunc::ErrorMessage(FAILED(hr), "Swapchain", "コンストラクタ", "スワップチェインでバックバッファの取得に失敗\n");
 
 
@@ -86,7 +86,7 @@ Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapC
 		buff->SetName(name.c_str());
 
 		//シェーダーリソースビュー作成
-		DescHeap_CBV_SRV_UAV.CreateSRV(Device, buff, desc.Format);
+		DescHeap_CBV_SRV_UAV.CreateSRV(Device, buff, m_desc.Format);
 		DescHandles srvHandles(DescHeap_CBV_SRV_UAV.GetCpuHandleTail(), DescHeap_CBV_SRV_UAV.GetGpuHandleTail());
 
 		//レンダーターゲットビュー作成
@@ -95,12 +95,12 @@ Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapC
 
 
 		//バックバッファデータの初期化
-		images[i] = std::make_shared<RenderTarget>(buff, D3D12_RESOURCE_STATE_PRESENT, srvHandles, rtvHandles, resDesc, ClearValue);
+		m_images[i] = std::make_shared<RenderTarget>(buff, D3D12_RESOURCE_STATE_PRESENT, srvHandles, rtvHandles, resDesc, ClearValue);
 	}
 
 	// フォーマットに応じてカラースペースを設定.
 	DXGI_COLOR_SPACE_TYPE colorSpace;
-	switch (desc.Format)
+	switch (m_desc.Format)
 	{
 	default:
 		colorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
@@ -112,7 +112,7 @@ Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapC
 		colorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
 		break;
 	}
-	swapchain->SetColorSpace1(colorSpace);
+	m_swapchain->SetColorSpace1(colorSpace);
 
 	if (UseHDR)
 	{
@@ -123,14 +123,14 @@ Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapC
 void Swapchain::WaitPreviousFrame(const ComPtr<ID3D12CommandQueue>& CmdQueue, const int& FrameIdx)
 {
 	//コマンドリストの実行完了を待つ
-	auto fence = fences[FrameIdx];
-	auto value = ++fenceValues[FrameIdx];
+	auto fence = m_fences[FrameIdx];
+	auto value = ++m_fenceValues[FrameIdx];
 	CmdQueue->Signal(fence.Get(),value);
 
 	//コマンドリストの実行完了を待つ
-	auto nextIdx = swapchain->GetCurrentBackBufferIndex();
-	auto finishValue = fenceValues[nextIdx];
-	fence = fences[nextIdx];
+	auto nextIdx = m_swapchain->GetCurrentBackBufferIndex();
+	auto finishValue = m_fenceValues[nextIdx];
+	fence = m_fences[nextIdx];
 	value = fence->GetCompletedValue();
 
 	if (value < finishValue)

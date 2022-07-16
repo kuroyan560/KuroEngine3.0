@@ -1,24 +1,24 @@
 #include "Transform.h"
 
-std::list<Transform*> Transform::TRANSFORMS;
+std::list<Transform*> Transform::s_transformList;
 
 const Matrix& Transform::GetMat(const Matrix& BillBoardMat)
 {
-	if (!dirty)
+	if (!m_dirty)
 	{
-		bool parentDirty = (parent != nullptr && parent->dirty);
-		if (!parentDirty)return mat;
+		bool parentDirty = (m_parent != nullptr && m_parent->m_dirty);
+		if (!parentDirty)return m_mat;
 	}
 
 	//•Ï‰»‚ ‚èA–¢ŒvŽZ
-	mat = XMMatrixScaling(scale.x, scale.y, scale.z) * rotate;
-	mat *= BillBoardMat;
-	mat *= XMMatrixTranslation(pos.x, pos.y, pos.z);
+	m_mat = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_rotate;
+	m_mat *= BillBoardMat;
+	m_mat *= XMMatrixTranslation(m_pos.x, m_pos.y, m_pos.z);
 
-	if (parent != nullptr)
+	if (m_parent != nullptr)
 	{
-		mat *= (parent->GetMat());
+		m_mat *= (m_parent->GetMat());
 	}
 
-	return mat;
+	return m_mat;
 }

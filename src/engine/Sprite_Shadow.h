@@ -13,15 +13,15 @@ class TextureBuffer;
 class Sprite_Shadow
 {
 private:
-	static std::shared_ptr<GraphicsPipeline>PIPELINE_TRANS;
+	static std::shared_ptr<GraphicsPipeline>s_transPipeline;
 	//視点座標用の定数バッファ
-	static std::shared_ptr<ConstantBuffer>EYE_POS_BUFF;
+	static std::shared_ptr<ConstantBuffer>s_EyePosBuff;
 	//白のベタ塗りテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_TEX;
+	static std::shared_ptr<TextureBuffer>s_defaultTex;
 	// (0,0,-1) のベタ塗りノーマルマップ
-	static std::shared_ptr<TextureBuffer>DEFAULT_NORMAL_MAP;
+	static std::shared_ptr<TextureBuffer>s_defaultNormalMap;
 	//黒のベタ塗りテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_EMISSIVE_MAP;
+	static std::shared_ptr<TextureBuffer>s_defaultEmissiveMap;
 
 public:
 	static void SetEyePos(Vec3<float> EyePos);
@@ -30,29 +30,29 @@ private:
 	//定数バッファ送信用データ
 	struct ConstantData
 	{
-		Matrix mat;
-		Color color;
+		Matrix m_mat;
+		Color m_color;
 		float z = 0.0f;
-		float diffuse = 1.0f;	//ディヒューズの影響度
-		float specular = 1.0f;	//スペキュラーの影響度
-		float lim = 1.0f;	//リムライトの影響度
-	}constData;
+		float m_diffuse = 1.0f;	//ディヒューズの影響度
+		float m_specular = 1.0f;	//スペキュラーの影響度
+		float m_lim = 1.0f;	//リムライトの影響度
+	}m_constData;
 
 	//定数バッファ
-	std::shared_ptr<ConstantBuffer>constBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
 
 	//テクスチャバッファ
-	std::shared_ptr<TextureBuffer>texBuff;
+	std::shared_ptr<TextureBuffer>m_texBuff;
 	//ノーマルマップ
-	std::shared_ptr<TextureBuffer>normalMap;
+	std::shared_ptr<TextureBuffer>m_normalMap;
 	//エミッシブマップ
-	std::shared_ptr<TextureBuffer>emissiveMap;
+	std::shared_ptr<TextureBuffer>m_emissiveMap;
 
 public:
 	//トランスフォーム
-	Transform2D transform;
+	Transform2D m_transform;
 	//メッシュ（頂点情報）
-	SpriteMesh mesh;
+	SpriteMesh m_mesh;
 
 	//テクスチャ、ノーマルマップ、スプライト名
 	Sprite_Shadow(const std::shared_ptr<TextureBuffer>& Texture = nullptr, const std::shared_ptr<TextureBuffer>& NormalMap = nullptr,

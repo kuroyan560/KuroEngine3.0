@@ -3,16 +3,16 @@
 #include"KuroFunc.h"
 #include"D3D12App.h"
 
-int NoiseGenerator::PERLIN_NOISE_ID_2D = 0;
+int NoiseGenerator::s_perlinNoise2DId = 0;
 
 void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const NoiseInitializer& Config)
 {
 	//最大分割数
 	static const int SPLIT_MAX = 256;
-	assert(0 < Config.split.x && Config.split.x <= SPLIT_MAX && 0 < Config.split.y && Config.split.y <= SPLIT_MAX);
+	assert(0 < Config.m_split.x && Config.m_split.x <= SPLIT_MAX && 0 < Config.m_split.y && Config.m_split.y <= SPLIT_MAX);
 
 	//補間方法の値が適切か
-	assert(0 <= Config.interpolation && Config.interpolation < NOISE_INTERPOLATION_NUM);
+	assert(0 <= Config.m_interpolation && Config.m_interpolation < NOISE_INTERPOLATION_NUM);
 
 	//コンピュートパイプライン
 	static std::shared_ptr<ComputePipeline>PIPELINE;
@@ -52,38 +52,38 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	}
 
 	//定数バッファ生成
-	if (CONST_BUFF.size() < PERLIN_NOISE_ID_2D + 1)
+	if (CONST_BUFF.size() < s_perlinNoise2DId + 1)
 	{
-		CONST_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, ("PerlinNoise2D - ConstantBuffer - " + std::to_string(PERLIN_NOISE_ID_2D)).c_str()));
+		CONST_BUFF.emplace_back(D3D12App::Instance()->GenerateConstantBuffer(sizeof(ConstData), 1, nullptr, ("PerlinNoise2D - ConstantBuffer - " + std::to_string(s_perlinNoise2DId)).c_str()));
 	}
 
 	//構造体バッファ生成
-	if (STRUCTURED_BUFF.size() < PERLIN_NOISE_ID_2D + 1)
+	if (STRUCTURED_BUFF.size() < s_perlinNoise2DId + 1)
 	{
-		STRUCTURED_BUFF.emplace_back(D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Vec2<float>), pow(SPLIT_MAX + 1, 2), nullptr, ("PerlinNoise2D - StructuredBuffer" + std::to_string(PERLIN_NOISE_ID_2D)).c_str()));
+		STRUCTURED_BUFF.emplace_back(D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Vec2<float>), pow(SPLIT_MAX + 1, 2), nullptr, ("PerlinNoise2D - StructuredBuffer" + std::to_string(s_perlinNoise2DId)).c_str()));
 	}
 
 	//定数バッファにデータ転送
-	ConstData constData(Config.interpolation, DestTex->GetGraphSize().Float() / Config.split.Float(), Config.split, Config.contrast, Config.octave, Config.frequency, Config.persistance);
-	CONST_BUFF[PERLIN_NOISE_ID_2D]->Mapping(&constData);
+	ConstData constData(Config.m_interpolation, DestTex->GetGraphSize().Float() / Config.m_split.Float(), Config.m_split, Config.m_contrast, Config.m_octave, Config.m_frequency, Config.m_persistance);
+	CONST_BUFF[s_perlinNoise2DId]->Mapping(&constData);
 
 	//分割後の各頂点の勾配ベクトル格納先
 	Vec2<float>grad[(SPLIT_MAX + 1) * (SPLIT_MAX + 1)];
-	for (int y = 0; y <= Config.split.y; ++y)
+	for (int y = 0; y <= Config.m_split.y; ++y)
 	{
-		for (int x = 0; x <= Config.split.x; ++x)
+		for (int x = 0; x <= Config.m_split.x; ++x)
 		{
-			int idx = y * (Config.split.x + 1) + x;
+			int idx = y * (Config.m_split.x + 1) + x;
 			//ランダムな勾配ベクトル
 			grad[idx].x = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 			grad[idx].y = KuroFunc::GetRand(1.0f) * KuroFunc::GetRandPlusMinus();
 
-			if (x == Config.split.x)grad[idx] = grad[y * (Config.split.x + 1)];
-			if (y == Config.split.y)grad[idx] = grad[x];
+			if (x == Config.m_split.x)grad[idx] = grad[y * (Config.m_split.x + 1)];
+			if (y == Config.m_split.y)grad[idx] = grad[x];
 		}
 	}
 	//構造化バッファに転送
-	STRUCTURED_BUFF[PERLIN_NOISE_ID_2D]->Mapping(grad);
+	STRUCTURED_BUFF[s_perlinNoise2DId]->Mapping(grad);
 
 	//コマンドリスト取得
 	auto cmdList = D3D12App::Instance()->GetCmdList();
@@ -95,10 +95,10 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	PIPELINE->SetPipeline(cmdList);
 
 	//定数バッファセット
-	CONST_BUFF[PERLIN_NOISE_ID_2D]->SetComputeDescriptorBuffer(cmdList, CBV, 0);
+	CONST_BUFF[s_perlinNoise2DId]->SetComputeDescriptorBuffer(cmdList, CBV, 0);
 
 	//構造体バッファセット
-	STRUCTURED_BUFF[PERLIN_NOISE_ID_2D]->SetComputeDescriptorBuffer(cmdList, SRV, 1);
+	STRUCTURED_BUFF[s_perlinNoise2DId]->SetComputeDescriptorBuffer(cmdList, SRV, 1);
 
 	//描き込み先テクスチャバッファセット
 	DestTex->SetComputeDescriptorBuffer(cmdList, UAV, 2);
@@ -113,7 +113,7 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	};
 	cmdList->Dispatch(thread.x, thread.y, 1);
 
-	PERLIN_NOISE_ID_2D++;
+	s_perlinNoise2DId++;
 }
 
 std::shared_ptr<TextureBuffer> NoiseGenerator::PerlinNoise2D(const std::string& Name, const Vec2<int>& Size, const NoiseInitializer& Config, const DXGI_FORMAT& Format)

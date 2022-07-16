@@ -173,7 +173,7 @@ ModelAnimator::ModelAnimator(std::weak_ptr<Model> Model)
 void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 {
 	auto model = Model.lock();
-	auto skel = model->skelton;
+	auto skel = model->m_skelton;
 	KuroFunc::ErrorMessage(MAX_BONE_NUM < skel->bones.size(), "ModelAnimator", "AttachSkeleton", "The bone's number is over than limit.");
 
 	//バッファ未生成
@@ -183,7 +183,7 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 	}
 	
 	//バッファのリネーム
-	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->header.GetModelName())).c_str());
+	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->m_header.GetModelName())).c_str());
 
 	Reset();
 

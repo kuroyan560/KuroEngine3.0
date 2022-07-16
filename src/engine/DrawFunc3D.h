@@ -15,28 +15,28 @@ class ModelAnimator;
 class DrawFunc3D
 {
 	//DrawLine
-	static int DRAW_LINE_COUNT;
+	static int s_drawLineCount;
 	//DrawNonShadingModel
-	static int DRAW_NON_SHADING_COUNT;
+	static int s_drawNonShadingCount;
 	//DrawADSShadingModel
-	static int DRAW_ADS_SHADING_COUNT;
+	static int s_drawAdsShadingCount;
 	//DrawPBRShadingModel
-	static int DRAW_PBR_SHADING_COUNT;
+	static int s_drawPbrShadingCount;
 	//DrawToonModel
-	static int DRAW_TOON_COUNT;	
+	static int s_drawToonCount;	
 	//DrawShadowFallModel
-	static int DRAW_SHADOW_FALL_COUNT;
+	static int s_drawShadowFallCount;
 
 public:
 	//呼び出しカウントリセット
 	static void CountReset()
 	{
-		DRAW_LINE_COUNT = 0;
-		DRAW_NON_SHADING_COUNT = 0;
-		DRAW_ADS_SHADING_COUNT = 0;
-		DRAW_PBR_SHADING_COUNT = 0;
-		DRAW_TOON_COUNT = 0;
-		DRAW_SHADOW_FALL_COUNT = 0;
+		s_drawLineCount = 0;
+		s_drawNonShadingCount = 0;
+		s_drawAdsShadingCount = 0;
+		s_drawPbrShadingCount = 0;
+		s_drawToonCount = 0;
+		s_drawShadowFallCount = 0;
 	}
 
 	//線描画
@@ -46,27 +46,27 @@ public:
 	static void DrawNonShadingModel(const std::weak_ptr<ModelObject>ModelObject, Camera& Camera, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
-		DrawNonShadingModel(obj->model, obj->transform, Camera, obj->animator, BlendMode);
+		DrawNonShadingModel(obj->m_model, obj->m_transform, Camera, obj->m_animator, BlendMode);
 	}
 	//影つき描画
 	static void DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator = nullptr, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 	static void DrawADSShadingModel(LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
-		DrawADSShadingModel(LigManager, obj->model, obj->transform, Cam, obj->animator, BlendMode);
+		DrawADSShadingModel(LigManager, obj->m_model, obj->m_transform, Cam, obj->m_animator, BlendMode);
 	}
 	//影つき描画(PBR)
 	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, std::shared_ptr<ModelAnimator> Animator = nullptr, std::shared_ptr<CubeMap>AttachCubeMap = nullptr, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 	static void DrawPBRShadingModel(LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap = nullptr, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
-		DrawPBRShadingModel(LigManager, obj->model, obj->transform, Cam, obj->animator, AttachCubeMap, BlendMode);
+		DrawPBRShadingModel(LigManager, obj->m_model, obj->m_transform, Cam, obj->m_animator, AttachCubeMap, BlendMode);
 	}
 	//トゥーンシェーディング
 	static void DrawToonModel(const std::weak_ptr<TextureBuffer>ToonTex, LightManager& LigManager, const std::weak_ptr<Model>Model, Transform& Transform, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 	static void DrawToonModel(const std::weak_ptr<TextureBuffer>ToonTex, LightManager& LigManager, const std::weak_ptr<ModelObject>ModelObject, Camera& Cam, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans)
 	{
 		auto obj = ModelObject.lock();
-		DrawToonModel(ToonTex, LigManager, obj->model, obj->transform, Cam, BlendMode);
+		DrawToonModel(ToonTex, LigManager, obj->m_model, obj->m_transform, Cam, BlendMode);
 	}
 };

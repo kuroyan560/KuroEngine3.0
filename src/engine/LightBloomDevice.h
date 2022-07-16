@@ -13,29 +13,29 @@ class ModelObject;
 struct LightBloomConfig
 {
 	//出力するカラーに乗算
-	Vec3<float>outputColorRate = { 1,1,1 };
+	Vec3<float>m_outputColorRate = { 1,1,1 };
 	//明るさのしきい値
-	float brightThreshold = 0.0f;
+	float m_brightThreshold = 0.0f;
 };
 
 class LightBloomDevice
 {
 private:
-	std::shared_ptr<ComputePipeline>PIPELINE;
+	std::shared_ptr<ComputePipeline>m_pipeline;
 	void GeneratePipeline();
 
 private:
 	//設定
-	LightBloomConfig config;
+	LightBloomConfig m_config;
 
 	//エミッシブマップ
-	std::shared_ptr<RenderTarget>emissiveMap;
-	std::shared_ptr<DepthStencil>emissiveMapDepth;
-	std::shared_ptr<TextureBuffer>emissiveMapFiltered;
+	std::shared_ptr<RenderTarget>m_emissiveMap;
+	std::shared_ptr<DepthStencil>m_emissiveMapDepth;
+	std::shared_ptr<TextureBuffer>m_emissiveMapFiltered;
 	//設定情報送信用
-	std::shared_ptr<ConstantBuffer>constBuff;
+	std::shared_ptr<ConstantBuffer>m_constBuff;
 	//ガウシアンブラー
-	std::shared_ptr<GaussianBlur>gaussianBlur;
+	std::shared_ptr<GaussianBlur>m_gaussianBlur;
 
 public:
 	LightBloomDevice();

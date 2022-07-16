@@ -8,112 +8,112 @@
 
 class Transform
 {
-	static std::list<Transform*> TRANSFORMS;
+	static std::list<Transform*> s_transformList;
 public:
 	static void DirtyReset()
 	{
-		for (auto& trans : TRANSFORMS)
+		for (auto& trans : s_transformList)
 		{
-			trans->dirty = false;
+			trans->m_dirty = false;
 		}
 	}
 private:
-	Transform* parent = nullptr;
+	Transform* m_parent = nullptr;
 
-	Matrix mat = XMMatrixIdentity();
-	Vec3<float>pos = { 0,0,0 };
-	Vec3<float>scale = { 1,1,1 };
-	Matrix rotate = DirectX::XMMatrixIdentity();
+	Matrix m_mat = XMMatrixIdentity();
+	Vec3<float>m_pos = { 0,0,0 };
+	Vec3<float>m_scale = { 1,1,1 };
+	Matrix m_rotate = DirectX::XMMatrixIdentity();
 
-	bool dirty = true;
+	bool m_dirty = true;
 
 	void MatReset()
 	{
-		dirty = true;
+		m_dirty = true;
 	}
 
 public:
 	Transform(Transform* Parent = nullptr) {
 		SetParent(Parent);
-		TRANSFORMS.emplace_back(this);
+		s_transformList.emplace_back(this);
 	}
 	~Transform() {
-		(void)TRANSFORMS.remove_if([this](Transform* tmp) {
+		(void)s_transformList.remove_if([this](Transform* tmp) {
 			return tmp == this;
 			});
 	}
 	void SetParent(Transform* Parent) {
 
-		parent = Parent;
+		m_parent = Parent;
 		MatReset();
 	}
 
 	//ゲッタ
-	const Vec3<float>& GetPos()const { return pos; }
-	const Vec3<float>& GetScale()const{ return scale; }
+	const Vec3<float>& GetPos()const { return m_pos; }
+	const Vec3<float>& GetScale()const{ return m_scale; }
 	const Vec3<Angle>& GetAngle()const {
-		auto sy = rotate.r[0].m128_f32[2];
+		auto sy = m_rotate.r[0].m128_f32[2];
 		auto unlocked = std::abs(sy) < 0.99999f;
 		return Vec3<Angle>(
-			unlocked ? std::atan2(-rotate.r[1].m128_f32[2], rotate.r[2].m128_f32[2]) : std::atan2(rotate.r[2].m128_f32[1], rotate.r[1].m128_f32[1]),
+			unlocked ? std::atan2(-m_rotate.r[1].m128_f32[2], m_rotate.r[2].m128_f32[2]) : std::atan2(m_rotate.r[2].m128_f32[1], m_rotate.r[1].m128_f32[1]),
 			std::asin(sy),
-			unlocked ? std::atan2(-rotate.r[0].m128_f32[1], rotate.r[0].m128_f32[0]) : 0);
+			unlocked ? std::atan2(-m_rotate.r[0].m128_f32[1], m_rotate.r[0].m128_f32[0]) : 0);
 	}
 	const XMVECTOR& GetQuaternion()const {
-		return XMQuaternionRotationMatrix(rotate);
+		return XMQuaternionRotationMatrix(m_rotate);
 	}
-	const Matrix& GetRotate()const { return rotate; }
+	const Matrix& GetRotate()const { return m_rotate; }
 	Vec3<float> GetFront()const {
 		XMVECTOR front = XMVectorSet(0, 0, 1, 1);
-		front = XMVector3Transform(front, rotate);
+		front = XMVector3Transform(front, m_rotate);
 		return Vec3<float>(front.m128_f32[0],front.m128_f32[1],front.m128_f32[2]);
 	}
 	Vec3<float> GetRight()const {
 		XMVECTOR right = XMVectorSet(1, 0, 0, 1);
-		right = XMVector3Transform(right, rotate);
+		right = XMVector3Transform(right, m_rotate);
 		return Vec3<float>(right.m128_f32[0], right.m128_f32[1], right.m128_f32[2]);
 	}
 	Vec3<float> GetUp()const {
 		XMVECTOR up = XMVectorSet(0, 1, 0, 1);
-		up = XMVector3Transform(up, rotate);
+		up = XMVector3Transform(up, m_rotate);
 		return Vec3<float>(up.m128_f32[0], up.m128_f32[1], up.m128_f32[2]);
 	}
 
 	//セッタ
 	void SetPos(const Vec3<float> Pos) {
-		if (pos == Pos)return;
-		pos = Pos;
+		if (m_pos == Pos)return;
+		m_pos = Pos;
 		MatReset();
 	}
 	void SetScale(const Vec3<float> Scale) { 
-		if (scale == Scale)return;
-		scale = Scale;
+		if (m_scale == Scale)return;
+		m_scale = Scale;
 		MatReset();
 	}
 	void SetScale(const float Scale) {
 		auto s = Vec3<float>(Scale, Scale, Scale);
-		if (scale == s)return;
-		scale = s;
+		if (m_scale == s)return;
+		m_scale = s;
 		MatReset();
 	}
 	void SetRotate(const Vec3<Angle>& Rotate) { 
-		rotate = KuroMath::RotateMat(Rotate);
+		m_rotate = KuroMath::RotateMat(Rotate);
 		MatReset();
 	}
 	void SetRotate(const XMVECTOR& Quaternion) {
-		rotate = XMMatrixRotationQuaternion(Quaternion);
+		m_rotate = XMMatrixRotationQuaternion(Quaternion);
 		MatReset();
 	}
 	void SetRotate(const Vec3<float>& Axis, const Angle& Angle) {
-		rotate = KuroMath::RotateMat(Axis, Angle);
+		m_rotate = KuroMath::RotateMat(Axis, Angle);
 		MatReset();
 	}
 	void SetRotate(const Matrix& RotateMat) {
-		rotate = RotateMat;
+		m_rotate = RotateMat;
 		MatReset();
 	}
 	void SetLookAtRotate(const Vec3<float>& Target, const Vec3<float>& UpAxis = Vec3<float>(0, 1, 0)){
-		Vec3<float>z = Vec3<float>(Target - pos).GetNormal();
+		Vec3<float>z = Vec3<float>(Target - m_pos).GetNormal();
 		Vec3<float>x = UpAxis.Cross(z).GetNormal();
 		Vec3<float>y = z.Cross(x).GetNormal();
 
@@ -122,8 +122,8 @@ public:
 		rot.r[1].m128_f32[0] = y.x; rot.r[1].m128_f32[1] = y.y; rot.r[1].m128_f32[2] = y.z;
 		rot.r[2].m128_f32[0] = z.x; rot.r[2].m128_f32[1] = z.y; rot.r[2].m128_f32[2] = z.z;
 
-		if (rot == rotate)return;
-		rotate = rot;
+		if (rot == m_rotate)return;
+		m_rotate = rot;
 
 		MatReset();
 	}
@@ -131,8 +131,8 @@ public:
 	{
 		Vec3<float> defUp = { 0,1,0 };
 		Matrix rot = KuroMath::RotateMat(defUp, Up);
-		if (rot == rotate)return;
-		rotate = rot;
+		if (rot == m_rotate)return;
+		m_rotate = rot;
 
 		MatReset();
 	}
@@ -140,12 +140,12 @@ public:
 	{
 		Vec3<float>defFront = { 0,0,1 };
 		Matrix rot = KuroMath::RotateMat(defFront, Front);
-		if (rot == rotate)return;
-		rotate = rot;
+		if (rot == m_rotate)return;
+		m_rotate = rot;
 
 		MatReset();
 	}
 
 	const Matrix& GetMat(const Matrix& BillBoardMat = XMMatrixIdentity());
-	const bool& GetDirty() { return dirty; }
+	const bool& GetDirty() { return m_dirty; }
 };

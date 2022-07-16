@@ -4,18 +4,18 @@
 class Observer;
 class Subject
 {
-	std::vector<Observer*>observers;
+	std::vector<Observer*>m_observers;
 protected:
 	void Notify(const std::string& EventKey);
 public:
-	void AddObserver(Observer* Arg) { observers.emplace_back(Arg); }
+	void AddObserver(Observer* Arg) { m_observers.emplace_back(Arg); }
 	void RemoveObserver(Observer* Arg) 
 	{
-		for (auto itr = observers.begin(); itr != observers.end(); ++itr)
+		for (auto itr = m_observers.begin(); itr != m_observers.end(); ++itr)
 		{
 			if (*itr == Arg)
 			{
-				observers.erase(itr);
+				m_observers.erase(itr);
 				break;
 			}
 		}

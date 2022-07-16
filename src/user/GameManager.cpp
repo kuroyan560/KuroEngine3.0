@@ -4,15 +4,15 @@
 
 GameManager::GameManager()
 {
-	RegisterCamera(debugCamKey, debugCam);
+	RegisterCamera(m_debugCamKey, m_debugCam);
 }
 
 void GameManager::Update()
 {
 	//デバッグカメラの更新
-	if (!debugCamKey.compare(nowCamKey))
+	if (!m_debugCamKey.compare(m_nowCamKey))
 	{
-		debugCam.Move();
+		m_debugCam.Move();
 	}
 }
 
@@ -22,11 +22,11 @@ void GameManager::ImGuiDebug()
 
 	//カメラ選択
 	ImGui::BeginChild(ImGui::GetID((void*)0), ImVec2(250, 100), ImGuiWindowFlags_NoTitleBar);
-	for (auto& cam : cameras)
+	for (auto& cam : m_cameras)
 	{
 		//カメラキーの取得
 		const auto& camKey = cam.first;	
-		if (ImGui::RadioButton(camKey.c_str(), nowCamKey == camKey))	//選択されたか
+		if (ImGui::RadioButton(camKey.c_str(), m_nowCamKey == camKey))	//選択されたか
 		{
 			//カメラ変更
 			ChangeCamera(camKey);

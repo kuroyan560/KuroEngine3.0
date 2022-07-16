@@ -4,51 +4,51 @@
 #include"NoiseGenerator.h"
 #include"Camera.h"
 
-std::array<HitEffect, HitEffect::MAX_NUM>HitEffect::INSTANCES;
+std::array<HitEffect, HitEffect::MAX_NUM>HitEffect::s_instanceArray;
 static const Vec2<int>IMG_SIZE = { 512,512 };
 
 void HitEffect::Generate(const Vec3<float>& Pos)
 {
-	for (auto& e : INSTANCES)
+	for (auto& e : s_instanceArray)
 	{
-		if (e.isActive)continue;
+		if (e.m_isActive)continue;
 
-		e.isActive = 1;
-		e.pos = Pos;
-		e.scale = 0.0f;
-		e.rotate = KuroFunc::GetRand(Angle::ROUND());
-		e.alpha = 1.0f;
-		e.lifeTimer = 0.0f;
-		e.lifeSpan = 15;
-		e.blur = 34.158f;
-		e.uvRadiusOffset = 0.0f;
-		e.circleThickness = 0.125f;
-		e.circleRadius = 0.18f;
+		e.m_isActive = 1;
+		e.m_pos = Pos;
+		e.m_scale = 0.0f;
+		e.m_rotate = KuroFunc::GetRand(Angle::ROUND());
+		e.m_alpha = 1.0f;
+		e.m_lifeTimer = 0.0f;
+		e.m_lifeSpan = 15;
+		e.m_blur = 34.158f;
+		e.m_uvRadiusOffset = 0.0f;
+		e.m_circleThickness = 0.125f;
+		e.m_circleRadius = 0.18f;
 		break;
 	}
 }
 
 void HitEffect::Init()
 {
-	for (auto& e : INSTANCES)e.isActive = 0;
+	for (auto& e : s_instanceArray)e.m_isActive = 0;
 }
 
 void HitEffect::Update()
 {
-	for (auto& e : INSTANCES)
+	for (auto& e : s_instanceArray)
 	{
-		if (!e.isActive)continue;
+		if (!e.m_isActive)continue;
 
-		float rate = e.lifeTimer;
+		float rate = e.m_lifeTimer;
 		//e.circleRadius = KuroMath::Ease(In, Circ, rate, 0.192f, 0.186f);
-		e.circleThickness = KuroMath::Ease(Out, Exp, rate, 0.125f, 0.212f);
-		e.uvRadiusOffset = KuroMath::Ease(Out, Exp, rate, 0.0f, 0.05f);
-		e.scale = KuroMath::Ease(Out, Exp, rate, 0.0f, 1.0f);
-		e.alpha = KuroMath::Ease(In, Circ, rate, 1.0f, 0.0f);
+		e.m_circleThickness = KuroMath::Ease(Out, Exp, rate, 0.125f, 0.212f);
+		e.m_uvRadiusOffset = KuroMath::Ease(Out, Exp, rate, 0.0f, 0.05f);
+		e.m_scale = KuroMath::Ease(Out, Exp, rate, 0.0f, 1.0f);
+		e.m_alpha = KuroMath::Ease(In, Circ, rate, 1.0f, 0.0f);
 
 		//寿命
-		e.lifeTimer += 1.0f / e.lifeSpan;
-		if (1.0f <= e.lifeTimer)e.isActive = false;
+		e.m_lifeTimer += 1.0f / e.m_lifeSpan;
+		if (1.0f <= e.m_lifeTimer)e.m_isActive = false;
 	}
 }
 
@@ -62,14 +62,14 @@ void HitEffect::Draw(Camera& Cam)
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		PIPELINE_OPTION.depthWriteMask = false;
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthWriteMask = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/user/HitEffect.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/user/HitEffect.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/user/HitEffect.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/user/HitEffect.hlsl", "VSmain", "vs_5_0");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/user/HitEffect.hlsl", "GSmain", "gs_5_0");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/user/HitEffect.hlsl", "PSmain", "ps_5_0");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -102,20 +102,20 @@ void HitEffect::Draw(Camera& Cam)
 
 		//パーリンノイズ（ディスプレイスメントマップ）
 		NoiseInitializer displacementNoiseInit;
-		displacementNoiseInit.split = { 12,12 };
-		displacementNoiseInit.contrast = 1;
-		displacementNoiseInit.octave = 6;
-		displacementNoiseInit.frequency = 1.647f;
-		displacementNoiseInit.persistance = 0.775f;
+		displacementNoiseInit.m_split = { 12,12 };
+		displacementNoiseInit.m_contrast = 1;
+		displacementNoiseInit.m_octave = 6;
+		displacementNoiseInit.m_frequency = 1.647f;
+		displacementNoiseInit.m_persistance = 0.775f;
 		DISPLACEMENT_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - DisplacementNoiseTex", IMG_SIZE, displacementNoiseInit);
 
 		//パーリンノイズ（アルファ）
 		NoiseInitializer alphaNoiseInit;
-		alphaNoiseInit.split = { 7,7 };
-		alphaNoiseInit.contrast = 2;
-		alphaNoiseInit.octave = 2;
-		alphaNoiseInit.frequency = 0.79f;
-		alphaNoiseInit.persistance = 0.5f;
+		alphaNoiseInit.m_split = { 7,7 };
+		alphaNoiseInit.m_contrast = 2;
+		alphaNoiseInit.m_octave = 2;
+		alphaNoiseInit.m_frequency = 0.79f;
+		alphaNoiseInit.m_persistance = 0.5f;
 		ALPHA_NOISE_TEX = NoiseGenerator::PerlinNoise2D("HitEffect - AlphaNoiseTex", IMG_SIZE, alphaNoiseInit);
 
 		//頂点バッファ生成
@@ -123,7 +123,7 @@ void HitEffect::Draw(Camera& Cam)
 	}
 
 	//頂点バッファデータ転送
-	VERTEX_BUFF->Mapping(INSTANCES.data());
+	VERTEX_BUFF->Mapping(s_instanceArray.data());
 
 	//パイプラインセット
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);

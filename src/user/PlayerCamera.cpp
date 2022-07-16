@@ -37,37 +37,37 @@ void PlayerCamera::CalculatePos(const Transform& Player)
 	static const float LERP_RATE_MIN = 0.12f;
 	static const float LERP_RATE_MAX = 0.19f;
 
-	Vec3<float>angleVec = { cos(posAngle),0.0f,sin(posAngle) };
+	Vec3<float>angleVec = { cos(m_posAngle),0.0f,sin(m_posAngle) };
 
 	//プレイヤーとカメラの距離
-	auto result = Player.GetPos() + angleVec * dist;
-	result.y += height;
+	auto result = Player.GetPos() + angleVec * m_dist;
+	result.y += m_height;
 
-	float rate = (dist - DISTANCE_MIN) / (DISTANCE_MAX - DISTANCE_MIN);
+	float rate = (m_dist - DISTANCE_MIN) / (DISTANCE_MAX - DISTANCE_MIN);
 	float lerpRate = 0.0f;
 	lerpRate = KuroMath::Lerp(LERP_RATE_MAX, LERP_RATE_MIN, rate);
-	result = KuroMath::Lerp(cam->GetPos(), result, lerpRate);
+	result = KuroMath::Lerp(m_cam->GetPos(), result, lerpRate);
 
-	cam->SetPos(result);
+	m_cam->SetPos(result);
 
 	//プレイヤーをロックオン
 	auto rockOnPlayerPos = Player.GetPos();
-	auto forward = cam->GetForward();
+	auto forward = m_cam->GetForward();
 	rockOnPlayerPos += forward * TARGET_DIST_OFFSET;
 	rockOnPlayerPos.y += TARGET_HEIGHT_OFFSET;
-	cam->SetTarget(rockOnPlayerPos);
+	m_cam->SetTarget(rockOnPlayerPos);
 }
 
 PlayerCamera::PlayerCamera()
 {
-	cam = std::make_shared<Camera>("PlayerCamera");
+	m_cam = std::make_shared<Camera>("PlayerCamera");
 }
 
 void PlayerCamera::Init(const Transform& Player)
 {
-	posAngle = Angle(-90);	//プレイヤー後方
-	height = HEIGHT_DEFAULT;
-	dist = DISTANCE_DEFAULT;
+	m_posAngle = Angle(-90);	//プレイヤー後方
+	m_height = HEIGHT_DEFAULT;
+	m_dist = DISTANCE_DEFAULT;
 
 	CalculatePos(Player);
 }
@@ -75,10 +75,10 @@ void PlayerCamera::Init(const Transform& Player)
 void PlayerCamera::Update(const Transform& Player)
 {
 	//角度の変化量
-	const Angle angleAmount = Angle(2 * (mirrorX ? 1 : -1));
+	const Angle angleAmount = Angle(2 * (m_mirrorX ? 1 : -1));
 
 	//上下入力の変化量
-	const float verticalAmount = 0.2f * (mirrorY ? 1 : -1);
+	const float verticalAmount = 0.2f * (m_mirrorY ? 1 : -1);
 
 	//右スティック入力
 	Vec2<float> inputVec = UsersInput::Instance()->GetRightStickVec(0);
@@ -87,36 +87,36 @@ void PlayerCamera::Update(const Transform& Player)
 	if (!inputVec.IsZero())
 	{
 		//左右首振り
-		posAngle += angleAmount * inputVec.x;
+		m_posAngle += angleAmount * inputVec.x;
 
 		//右スティック上下
 		//高さが下限にあるとき上下スティック入力が距離入力になる
-		if (dist < DISTANCE_MAX)
+		if (m_dist < DISTANCE_MAX)
 		{
-			dist += verticalAmount * inputVec.y;
+			m_dist += verticalAmount * inputVec.y;
 		}
 		//高さの入力になる(縦首振り)
 		else
 		{
-			height += verticalAmount * inputVec.y;
+			m_height += verticalAmount * inputVec.y;
 		}
 
 		//超過した分の高さ入力を距離入力に変換
-		if (height < HEIGHT_MIN)
+		if (m_height < HEIGHT_MIN)
 		{
-			dist += height - HEIGHT_MIN;
+			m_dist += m_height - HEIGHT_MIN;
 		}
 		//超過した分の距離入力を高さ入力に変換
-		if (DISTANCE_MAX < dist)
+		if (DISTANCE_MAX < m_dist)
 		{
-			height += dist - DISTANCE_MAX;
+			m_height += m_dist - DISTANCE_MAX;
 		}
 	}
 
 	//クランプ
-	dist = std::clamp(dist, DISTANCE_MIN, DISTANCE_MAX);
-	height = std::clamp(height, HEIGHT_MIN, HEIGHT_MAX);
-	posAngle.Normalize();
+	m_dist = std::clamp(m_dist, DISTANCE_MIN, DISTANCE_MAX);
+	m_height = std::clamp(m_height, HEIGHT_MIN, HEIGHT_MAX);
+	m_posAngle.Normalize();
 
 	//カメラ位置計算
 	CalculatePos(Player);

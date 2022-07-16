@@ -20,10 +20,10 @@ class GraphicsManager
 	{
 		SetRenderTargetsCommand() = delete;
 
-		const std::vector<std::weak_ptr<RenderTarget>>renderTargets;
-		const std::weak_ptr<DepthStencil>depthStencil;
+		const std::vector<std::weak_ptr<RenderTarget>>m_renderTargets;
+		const std::weak_ptr<DepthStencil>m_depthStencil;
 	public:
-		SetRenderTargetsCommand(const std::vector<std::weak_ptr<RenderTarget>>& RTs, const std::weak_ptr<DepthStencil>& DS) :renderTargets(RTs), depthStencil(DS) {}
+		SetRenderTargetsCommand(const std::vector<std::weak_ptr<RenderTarget>>& RTs, const std::weak_ptr<DepthStencil>& DS) :m_renderTargets(RTs), m_depthStencil(DS) {}
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -32,14 +32,14 @@ class GraphicsManager
 	{
 		SetGraphicsPipelineCommand() = delete;
 
-		std::weak_ptr<GraphicsPipeline> gPipeline;
+		std::weak_ptr<GraphicsPipeline> m_gPipeline;
 	public:
-		SetGraphicsPipelineCommand(std::weak_ptr<GraphicsPipeline> Pipeline) :gPipeline(Pipeline) {}
+		SetGraphicsPipelineCommand(std::weak_ptr<GraphicsPipeline> Pipeline) :m_gPipeline(Pipeline) {}
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
 		{
-			gPipeline.lock()->SetPipeline(CmdList);
+			m_gPipeline.lock()->SetPipeline(CmdList);
 		}
-		const int& GetPipelineHandle() { return gPipeline.lock()->GetPipelineHandle(); }
+		const int& GetPipelineHandle() { return m_gPipeline.lock()->GetPipelineHandle(); }
 	};
 
 	//コンピュートパイプラインセットコマンド
@@ -47,24 +47,24 @@ class GraphicsManager
 	{
 		SetComputePipelineCommand() = delete;
 
-		std::weak_ptr<ComputePipeline> cPipeline;
+		std::weak_ptr<ComputePipeline> m_cPipeline;
 	public:
-		SetComputePipelineCommand(std::weak_ptr<ComputePipeline> Pipeline) :cPipeline(Pipeline) {}
+		SetComputePipelineCommand(std::weak_ptr<ComputePipeline> Pipeline) :m_cPipeline(Pipeline) {}
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
 		{
-			cPipeline.lock()->SetPipeline(CmdList);
+			m_cPipeline.lock()->SetPipeline(CmdList);
 		}
-		const int& GetPipelineHandle() { return cPipeline.lock()->GetPipelineHandle(); }
+		const int& GetPipelineHandle() { return m_cPipeline.lock()->GetPipelineHandle(); }
 	};
 
 	//レンダーターゲットクリアコマンド
 	class ClearRTVCommand : public GraphicsCommandBase
 	{
 		ClearRTVCommand() = delete;
-		std::weak_ptr<RenderTarget>renderTarget;
+		std::weak_ptr<RenderTarget>m_renderTarget;
 
 	public:
-		ClearRTVCommand(const std::weak_ptr<RenderTarget>& RenderTarget) :renderTarget(RenderTarget) {}
+		ClearRTVCommand(const std::weak_ptr<RenderTarget>& RenderTarget) :m_renderTarget(RenderTarget) {}
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -72,9 +72,9 @@ class GraphicsManager
 	class ClearDSVCommand : public GraphicsCommandBase
 	{
 		ClearDSVCommand() = delete;
-		std::weak_ptr<DepthStencil>depthStencil;
+		std::weak_ptr<DepthStencil>m_depthStencil;
 	public:
-		ClearDSVCommand(const std::weak_ptr<DepthStencil>& DepthStencil) :depthStencil(DepthStencil) {}
+		ClearDSVCommand(const std::weak_ptr<DepthStencil>& DepthStencil) :m_depthStencil(DepthStencil) {}
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -84,15 +84,15 @@ class GraphicsManager
 	{
 		RenderCommand() = delete;
 
-		std::weak_ptr<VertexBuffer>vertexBuff;
-		std::weak_ptr<IndexBuffer>idxBuff;
-		const std::vector<std::weak_ptr<DescriptorData>> descDatas;	//ディスクリプタ（CBV,SRVなど）
-		const std::vector<DESC_HANDLE_TYPE> types;	//セットするディスクリプタタイプ
-		const int instanceNum = 1;	//インスタンス数（インスタンシング描画用）
+		std::weak_ptr<VertexBuffer>m_vertexBuff;
+		std::weak_ptr<IndexBuffer>m_idxBuff;
+		const std::vector<std::weak_ptr<DescriptorData>> m_descDatas;	//ディスクリプタ（CBV,SRVなど）
+		const std::vector<DESC_HANDLE_TYPE> m_types;	//セットするディスクリプタタイプ
+		const int m_instanceNum = 1;	//インスタンス数（インスタンシング描画用）
 
 	public:
-		const float depth = 0.0f;	//Zソート用
-		const bool trans = false;	//透過オブジェクト
+		const float m_depth = 0.0f;	//Zソート用
+		const bool m_trans = false;	//透過オブジェクト
 
 		//インデックスなし
 		RenderCommand(const std::weak_ptr<VertexBuffer>& VertexBuff,
@@ -101,7 +101,7 @@ class GraphicsManager
 			const float& Depth,
 			const bool& TransFlg,
 			const int& InstanceNum = 1)
-			:vertexBuff(VertexBuff), descDatas(DescDatas), types(DescHandleTypes), depth(Depth), trans(TransFlg), instanceNum(InstanceNum) {}
+			:m_vertexBuff(VertexBuff), m_descDatas(DescDatas), m_types(DescHandleTypes), m_depth(Depth), m_trans(TransFlg), m_instanceNum(InstanceNum) {}
 
 		//インデックスあり
 		RenderCommand(const std::weak_ptr<VertexBuffer>& VertexBuff,
@@ -111,7 +111,7 @@ class GraphicsManager
 			const float& Depth,
 			const bool& TransFlg,
 			const int& InstanceNum = 1)
-			:vertexBuff(VertexBuff), idxBuff(IndexBuff), descDatas(DescDatas), types(DescHandleTypes), depth(Depth), trans(TransFlg), instanceNum(InstanceNum) {}
+			:m_vertexBuff(VertexBuff), m_idxBuff(IndexBuff), m_descDatas(DescDatas), m_types(DescHandleTypes), m_depth(Depth), m_trans(TransFlg), m_instanceNum(InstanceNum) {}
 
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
@@ -121,15 +121,15 @@ class GraphicsManager
 	{
 		DispatchCommand() = delete;
 
-		const Vec3<int>threadNum;
-		const std::vector<std::weak_ptr<DescriptorData>> descDatas;	//ディスクリプタ（CBV,SRVなど）
-		const std::vector<DESC_HANDLE_TYPE> types;	//セットするディスクリプタタイプ
+		const Vec3<int>m_threadNum;
+		const std::vector<std::weak_ptr<DescriptorData>> m_descDatas;	//ディスクリプタ（CBV,SRVなど）
+		const std::vector<DESC_HANDLE_TYPE> m_types;	//セットするディスクリプタタイプ
 
 	public:
 		DispatchCommand(const Vec3<int>& ThreadNum,
 			const std::vector<std::weak_ptr<DescriptorData>>& DescDatas,
 			const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
-			:threadNum(ThreadNum), descDatas(DescDatas), types(DescHandleTypes) {}
+			:m_threadNum(ThreadNum), m_descDatas(DescDatas), m_types(DescHandleTypes) {}
 
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
@@ -137,11 +137,11 @@ class GraphicsManager
 	//テクスチャのコピー
 	class CopyTex : public GraphicsCommandBase
 	{
-		std::weak_ptr<TextureBuffer>destTex;
-		std::weak_ptr<TextureBuffer>srcTex;
+		std::weak_ptr<TextureBuffer>m_destTex;
+		std::weak_ptr<TextureBuffer>m_srcTex;
 	public:
 		CopyTex(const std::weak_ptr<TextureBuffer>& DestTex, const std::weak_ptr<TextureBuffer>& SrcTex)
-			:destTex(DestTex), srcTex(SrcTex) {}
+			:m_destTex(DestTex), m_srcTex(SrcTex) {}
 
 		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
@@ -151,16 +151,16 @@ class GraphicsManager
 
 private:
 	//グラフィックスコマンドリスト
-	std::list<std::shared_ptr<GraphicsCommandBase>>gCommands;
+	std::list<std::shared_ptr<GraphicsCommandBase>>m_gCommands;
 
 	//レンダリングコマンドリスト（ソートのため一時グラフィックスコマンドリストとは別で積み上げる）
-	std::list<std::shared_ptr<RenderCommand>>renderCommands;
+	std::list<std::shared_ptr<RenderCommand>>m_renderCommands;
 
 	//最後にセットされたいパイプラインがグラフィックスかコンピュートか
-	enum PIPELINE_TYPE { GRAPHICS, COMPUTE, NONE }recentPipelineType = NONE;
+	enum PIPELINE_TYPE { GRAPHICS, COMPUTE, NONE }m_recentPipelineType = NONE;
 
 	//最後にセットされたパイプラインハンドル
-	int recentPipelineHandle = -1;
+	int m_recentPipelineHandle = -1;
 
 	//Zバッファ、透過するかどうかでソート
 	void StackRenderCommands();
