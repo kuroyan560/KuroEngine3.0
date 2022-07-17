@@ -37,10 +37,26 @@ class IndirectSample
 	//頂点バッファ
 	std::shared_ptr<VertexBuffer>m_vertBuff;
 
+	//カリングフラグ
+	bool m_enableCulling = false;
+	//カリング設定
+	struct CallingConfig
+	{
+		float xOffset = 1.0f;
+		float zOffset = 0.0f;
+		float cullOffset = 0.25f;
+		float commandCount = s_blockNum;
+	}m_callingConfig;
+	std::shared_ptr<ConstantBuffer>m_callingConfigBuffer;
+	//カリング用パイプライン
+	std::shared_ptr<ComputePipeline>m_cPipeline;
+	//カリング処理済コマンドバッファ
+	std::shared_ptr<RWStructuredBuffer>m_processedCommandBuffer;
+
 public:
 	IndirectSample();
 	void Init(Camera& Cam);
-	void Update();
-	void Draw();
+	void Update(bool EnableCalling);
+	void Draw(Camera& Cam);
 };
 

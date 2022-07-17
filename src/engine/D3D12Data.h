@@ -160,6 +160,11 @@ public:
 	void SetGraphicsDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
 	void SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
 	const std::shared_ptr<GPUResource>& GetResource() { return m_resource; }
+
+	void InitDeccHandle(const DESC_HANDLE_TYPE& Type, const DescHandles& Handle)
+	{
+		m_handles.Initialize(Type, Handle);
+	}
 };
 
 //定数バッファ
@@ -229,7 +234,14 @@ private:
 
 	void OnSetDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type)override
 	{
-		m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		if (Type == UAV)
+		{
+			m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		}
+		else if (Type == SRV)
+		{
+			m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_GENERIC_READ);
+		}
 	}
 public:
 	RWStructuredBuffer(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier, const DescHandles& UAVHandles, const size_t& DataSize, const int& ElementNum)
@@ -525,11 +537,39 @@ public:
 	RootParam(const D3D12_DESCRIPTOR_RANGE_TYPE& Range, const char* Comment = nullptr, const int& DescNum = 1)
 		:m_descriptorRangeType(Range), m_descriptor(true), m_descNum(DescNum) {
 		if (Comment != nullptr)m_comment = Comment;
+		switch (Range)
+		{
+		case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
+			m_viewType = CBV;
+			break;
+		case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
+			m_viewType = SRV;
+			break;
+		case D3D12_DESCRIPTOR_RANGE_TYPE_UAV:
+			m_viewType = UAV;
+			break;
+		default:
+			break;
+		}
 	}
 	RootParam(const DESC_HANDLE_TYPE& ViewType, const char* Comment = nullptr)
 		:m_viewType(ViewType) {
-		KuroFunc::ErrorMessage(m_viewType == RTV || m_viewType == DSV, "RootParam", "コンストラクタ", "ルートパラメータで RTV / DSV は設定できません\n");
 		if (Comment != nullptr)m_comment = Comment;
+		switch (ViewType)
+		{
+		case CBV:
+			m_descriptorRangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+			break;
+		case SRV:
+			m_descriptorRangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+			break;
+		case UAV:
+			m_descriptorRangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+			break;
+		default:
+			KuroFunc::ErrorMessage(m_viewType == RTV || m_viewType == DSV, "RootParam", "コンストラクタ", "ルートパラメータで RTV / DSV は設定できません\n");
+			break;
+		}
 	}
 };
 

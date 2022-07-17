@@ -128,7 +128,7 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	m_indirectSample.Update();
+	m_indirectSample.Update(m_enableCalling);
 }
 
 
@@ -141,7 +141,10 @@ void GameScene::OnDraw()
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
 	dsv->Clear(cmdList);
 
-	GameManager::Instance()->GetNowCamera()->GetBuff();
+	//現在のカメラ取得
+	auto& nowCam = *GameManager::Instance()->GetNowCamera();
+	nowCam.GetBuff();
+
 	//GraphicsManagerの管轄外
 	{
 		auto backRT = D3D12App::Instance()->GetBackBuffRenderTarget();
@@ -160,7 +163,7 @@ void GameScene::OnDraw()
 
 		cmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, dsv->AsDSV(cmdList));
 
-		m_indirectSample.Draw();
+		m_indirectSample.Draw(nowCam);
 	}
 
 	/*
@@ -175,8 +178,7 @@ void GameScene::OnDraw()
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
-	//現在のカメラ取得
-	auto& nowCam = *GameManager::Instance()->GetNowCamera();
+
 
 	//キューブマップ描画
 	//staticCubeMap->Draw(nowCam);
@@ -219,6 +221,10 @@ void GameScene::OnDraw()
 
 void GameScene::OnImguiDebug()
 {
+	ImGui::Begin("Indirect");
+	ImGui::Checkbox("EnableCalling", &m_enableCalling);
+	ImGui::End();
+
 	/*ImGui::Begin("Button");
 	ImGui::Text("RB - Player's attack");
 	ImGui::Text("A  - Emit hit effect");

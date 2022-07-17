@@ -43,6 +43,8 @@ class GameScene : public BaseScene
 
 	IndirectSample m_indirectSample;
 
+	bool m_enableCalling = false;
+
 public:
 	GameScene();
 	void OnInitialize()override;

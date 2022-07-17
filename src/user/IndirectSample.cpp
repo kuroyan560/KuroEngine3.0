@@ -11,6 +11,7 @@ static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
 static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
+static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
 
 IndirectSample::IndirectSample()
 {
@@ -26,18 +27,19 @@ IndirectSample::IndirectSample()
 	}
 	m_blockBuff = D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Block), s_blockNum, m_blockDataArray.data(), "IndirectSample - BlockBuffer");
 
-	//ルートパラメータ
-	std::vector<RootParam>rootParams
+	//グラフィックス用ルートパラメータ
+	std::vector<RootParam>gRootParams
 	{
 		RootParam(CBV,"カメラ定数バッファ"),
 		RootParam(CBV,"各ブロック定数バッファ"),
-		//RootParam(SRV,"テクスチャ")
 	};
 
 	//グラフィックスパイプライン生成
 	{
 		//パイプライン設定
 		PipelineInitializeOption gPipelineOption(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+
 
 		//シェーダー情報
 		Shaders gPipelineShaders;
@@ -53,15 +55,38 @@ IndirectSample::IndirectSample()
 			gPipelineOption, 
 			gPipelineShaders,
 			{ InputLayoutParam("POSITION",DXGI_FORMAT_R32G32B32_FLOAT) },
-			rootParams, 
+			gRootParams,
 			renderTargetInfo, 
 			{ WrappedSampler(false, false) });
 	}
 
-	m_indirectDev = D3D12App::Instance()->GenerateIndirectDevice(EXCUTE_INDIRECT_TYPE::DRAW, rootParams, { WrappedSampler(false,false) });
+	//コンピュートパイプライン生成
+	{
+		//シェーダー
+		auto cs = D3D12App::Instance()->CompileShader(
+			"resource/user/IndirectSample_Calling.hlsl", "CSmain", "cs_5_0");
+
+		//ルートパラメータ
+		std::vector<RootParam>cRootParams
+		{
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ定数バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カリング情報"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"各ブロック個体情報"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"コマンドバッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,"カリング後のコマンドバッファ"),
+		};
+
+		m_cPipeline = D3D12App::Instance()->GenerateComputePipeline(
+			cs, cRootParams, { WrappedSampler(false,false) }
+		);
+	}
+
+	m_indirectDev = D3D12App::Instance()->GenerateIndirectDevice(EXCUTE_INDIRECT_TYPE::DRAW, gRootParams, { WrappedSampler(false,false) });
 
 	Vec3<float>initPos = { 0,0,0 };
 	m_vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), 1, &initPos, "IndirectSample - VertexBuffer");
+
+	m_callingConfigBuffer = D3D12App::Instance()->GenerateConstantBuffer(sizeof(CallingConfig), 1, &m_callingConfig, "IndirectSample - CallingConfig");
 }
 
 void IndirectSample::Init(Camera& Cam)
@@ -87,11 +112,25 @@ void IndirectSample::Init(Camera& Cam)
 		//SRV0（テクスチャ情報）
 	}
 
+	size_t commandDataSize = commands.front().GetSize();
+
 	//コマンドバッファ生成
-	m_commandBuffer = D3D12App::Instance()->GenerateRWStructuredBuffer(commands.front().GetSize(), s_blockNum, commands.data());
+	m_commandBuffer = D3D12App::Instance()->GenerateRWStructuredBuffer(commandDataSize, s_blockNum, commands.data(),"IndirectSample - CommandBuffer");
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.NumElements = s_blockNum;
+	srvDesc.Buffer.StructureByteStride = commandDataSize;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	auto srvDescHandles = D3D12App::Instance()->CreateSRV(m_commandBuffer->GetResource()->GetBuff(), srvDesc);
+	m_commandBuffer->InitDeccHandle(SRV, srvDescHandles);
+
+	//カリング処理済コマンドバッファ格納先
+	m_processedCommandBuffer = D3D12App::Instance()->GenerateRWStructuredBuffer(commandDataSize, s_blockNum, nullptr, "IndirectSample - ProccessedCommandBuffer");
 }
 
-void IndirectSample::Update()
+void IndirectSample::Update(bool EnableCalling)
 {
 	for (auto& b : m_blockDataArray)
 	{
@@ -108,23 +147,68 @@ void IndirectSample::Update()
 		}
 	}
 	m_blockBuff->Mapping(m_blockDataArray.data());
+
+	m_enableCulling = EnableCalling;
 }
 
-void IndirectSample::Draw()
+void IndirectSample::Draw(Camera& Cam)
 {
 	auto cmdList = D3D12App::Instance()->GetCmdList();
+
+	if (m_enableCulling)
+	{
+		//コンピュート
+		m_cPipeline->SetPipeline(cmdList);
+
+		//カメラセット
+		Cam.GetBuff()->SetComputeDescriptorBuffer(cmdList, CBV, 0);
+
+		//カリング情報
+		m_callingConfigBuffer->SetComputeDescriptorBuffer(cmdList, CBV, 1);
+
+		//各ブロックの個体情報
+		m_blockBuff->SetComputeDescriptorBuffer(cmdList, SRV, 2);
+
+		//コマンドバッファ
+		m_commandBuffer->SetComputeDescriptorBuffer(cmdList, SRV, 3);
+
+		//カリング処理済バッファ
+		m_processedCommandBuffer->SetComputeDescriptorBuffer(cmdList, UAV, 4);
+		//UAVようにリソースバリア変更
+		m_processedCommandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+		//実行
+		auto threadX = static_cast<UINT>(ceil(s_blockNum / float(COMPUTE_THREAD_BLOCK_SIZE)));
+		cmdList->Dispatch(threadX, 1, 1);
+	}
+
+	//グラフィックス
 	m_gPipeline->SetPipeline(cmdList);
 
 	cmdList->IASetVertexBuffers(0, 0, &m_vertBuff->GetVBView());
 
-	m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	if (m_enableCulling)
+	{
+		m_processedCommandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
-	m_indirectDev->Excute(
-		cmdList,
-		s_blockNum,
-		m_commandBuffer->GetResource()->GetBuff().Get(),
-		0,
-		false);
+		m_indirectDev->Excute(
+			cmdList,
+			s_blockNum,
+			m_processedCommandBuffer->GetResource()->GetBuff().Get(),
+			0,
+			true);
+	}
+	else
+	{
+		m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
-	m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		m_indirectDev->Excute(
+			cmdList,
+			s_blockNum,
+			m_commandBuffer->GetResource()->GetBuff().Get(),
+			0,
+			false);
+
+		m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	}
 }

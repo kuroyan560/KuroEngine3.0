@@ -539,7 +539,7 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 	//専用の構造化バッファクラスにまとめる
 	std::shared_ptr<RWStructuredBuffer>result;
 	result = std::make_shared<RWStructuredBuffer>(buff, barrier, handles, DataSize, ElementNum);
-	result->Mapping(InitSendData);
+	if(InitSendData)result->Mapping(InitSendData);
 
 	return result;
 }
