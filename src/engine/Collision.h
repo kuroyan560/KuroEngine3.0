@@ -162,13 +162,23 @@ public:
 };
 
 //法線つき三角形（ローカル座標）
-struct CollisionTriangle
+class CollisionTriangle
 {
+private:
+	bool m_invalidNormal = true;
+	Vec3<float>m_normal;
+
+public:
 	Vec3<float>m_p0;
 	Vec3<float>m_p1;
 	Vec3<float>m_p2;
-	Vec3<float>m_normal;
 
+	//法線セット
+	void SetNormal(const Vec3<float>& Normal) 
+	{ 
+		m_normal = Normal; 
+		m_invalidNormal = false;
+	}
 	//法線の計算
 	void CalculateNormal()
 	{
@@ -176,7 +186,15 @@ struct CollisionTriangle
 		Vec3<float>p0_p2 = m_p2 - m_p0;
 
 		//外積により、２辺に垂直なベクトルを算出
-		m_normal = p0_p1.Cross(p0_p2).GetNormal();
+		SetNormal(p0_p1.Cross(p0_p2).GetNormal());
+	}
+
+	//法線ゲッタ
+	const Vec3<float>& GetNormal()
+	{
+		if (m_invalidNormal)CalculateNormal();
+		assert(!m_normal.IsZero());
+		return m_normal;
 	}
 };
 
@@ -216,6 +234,8 @@ class Collision
 	//球とメッシュ
 	static Vec3<float> ClosestPtPoint2Triangle(const Vec3<float>& Pt, const CollisionTriangle& Tri, const Matrix& MeshWorld);
 	static bool SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3<float>* Inter);
+	//点と床メッシュ
+	static bool PointAndFloorMesh(CollisionPoint* Point, CollisionMesh* FloorMesh, Vec3<float>* Inter);
 
 public:
 	static bool CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimitive* PrimitiveB, Vec3<float>* Inter);

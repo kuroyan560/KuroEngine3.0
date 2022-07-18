@@ -117,9 +117,9 @@ std::vector<CollisionTriangle> ModelMesh::GetCollisionTriangles()
 	{
 		triangles.emplace_back();
 		auto& tri = triangles.back();
-		tri.p0 = mesh->vertices[mesh->indices[idx]].pos;
-		tri.p1 = mesh->vertices[mesh->indices[idx + 1]].pos;
-		tri.p2 = mesh->vertices[mesh->indices[idx + 2]].pos;
+		tri.m_p0 = mesh->vertices[mesh->indices[idx]].pos;
+		tri.m_p1 = mesh->vertices[mesh->indices[idx + 1]].pos;
+		tri.m_p2 = mesh->vertices[mesh->indices[idx + 2]].pos;
 		tri.CalculateNormal();
 	}
 

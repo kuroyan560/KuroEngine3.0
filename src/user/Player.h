@@ -60,9 +60,17 @@ private:
 		Player* parent;
 		void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override;
 	public:
-		Vec3<float>prePos;
 		PushBackColliderCallBack(Player* Parent) :parent(Parent) {}
 	}pushBackColliderCallBack;
+
+	//床との押し戻しコールバック処理
+	class PushBackColliderCallBack_Foot : public CollisionCallBack
+	{
+		Player* parent;
+		void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override;
+	public:
+		PushBackColliderCallBack_Foot(Player* Parent) :parent(Parent) {}
+	}pushBackColliderCallBack_Foot;
 
 	//移動処理
 	void Move();

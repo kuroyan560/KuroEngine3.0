@@ -403,13 +403,51 @@ bool Collision::SphereAndMesh(CollisionSphere* Sphere, CollisionMesh* Mesh, Vec3
 	return false;
 }
 
+bool Collision::PointAndFloorMesh(CollisionPoint* Point, CollisionMesh* FloorMesh, Vec3<float>* Inter)
+{
+	for (auto& tri : FloorMesh->m_triangles)
+	{
+		auto normal = tri.GetNormal();
+
+		//法線が下方向なら反転
+		if (normal.y < 0)normal.y *= -1;
+
+		//ポイントのワールド座標
+		auto pt = Point->GetWorldPos();
+
+		//三角形の頂点A
+		auto triPtA = tri.m_p0;
+
+		//床の高さを求める
+		float floorY = triPtA.y - 1.0f / normal.y * (normal.x * (pt.x - triPtA.x) + normal.z * (pt.z - triPtA.z));
+
+		//床より上なのでめり込んでいない
+		if (floorY < pt.y)continue;
+
+		if (Inter)*Inter = { pt.x,floorY,pt.z };
+		return true;
+	}
+	return false;
+}
+
 bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimitive* PrimitiveB, Vec3<float>* Inter)
 {
 	//nullチェック
 	assert(PrimitiveA && PrimitiveB);
 
+	//点Aと
+	if (PrimitiveA->GetShape() == CollisionPrimitive::POINT)
+	{
+		CollisionPoint* ptA = (CollisionPoint*)PrimitiveA;
+
+		//床メッシュB
+		if (PrimitiveB->GetShape() == CollisionPrimitive::FLOOR_MESH)
+		{
+			return PointAndFloorMesh(ptA, (CollisionMesh*)PrimitiveB, Inter);
+		}
+	}
 	//球Aと
-	if (PrimitiveA->GetShape() == CollisionPrimitive::SPHERE)
+	else if (PrimitiveA->GetShape() == CollisionPrimitive::SPHERE)
 	{
 		CollisionSphere* sphereA = (CollisionSphere*)PrimitiveA;
 
@@ -494,6 +532,17 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 		//メッシュB
 		else if (PrimitiveB->GetShape() == CollisionPrimitive::MESH)
 		{
+		}
+	}
+	//床メッシュAと
+	else if (PrimitiveA->GetShape() == CollisionPrimitive::FLOOR_MESH)
+	{
+		CollisionMesh* floorMeshA = (CollisionMesh*)PrimitiveA;
+
+		//点B
+		if (PrimitiveB->GetShape() == CollisionPrimitive::POINT)
+		{
+			return PointAndFloorMesh((CollisionPoint*)PrimitiveB, floorMeshA, Inter);
 		}
 	}
 

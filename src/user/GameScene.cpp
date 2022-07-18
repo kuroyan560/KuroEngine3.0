@@ -17,10 +17,20 @@
 
 GameScene::GameScene()
 {
+	//床
 	floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
 	floorModel->transform.SetPos({ 0,-1,0 });
 	floorModel->transform.SetScale({ 20.0f,0.0f,20.0f });
 	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
+
+	//床用コライダー
+	auto floorCol_Mesh = std::make_shared<CollisionMesh>(
+		floorModel->model->meshes[0].GetCollisionTriangles(),
+		&floorModel->transform, nullptr, 
+		true);
+	floorCol = Collider::Generate(floorCol_Mesh);
+	floorCol->SetMyAttribute(FLOOR);
+	floorCol->SetHitCheckAttribute(FOOT_POINT);
 
 	shadowMapDevice.SetHeight(100.0f);
 	shadowMapDevice.SetBlurPower(4.0f);

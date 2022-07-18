@@ -79,7 +79,7 @@ void Player::AnimationSwitch()
 	}
 }
 
-Player::Player() : pushBackColliderCallBack(this)
+Player::Player() : pushBackColliderCallBack(this), pushBackColliderCallBack_Foot(this)
 {
 	KuroFunc::ErrorMessage(INSTANCED, "Player", "Constructor", "Only one Player's instance can exsit.");
 	INSTANCED = true;
@@ -88,30 +88,35 @@ Player::Player() : pushBackColliderCallBack(this)
 /*--- コライダー生成 ---*/
 	//本体
 	auto bodyCol_Sphere = std::make_shared<CollisionSphere>(3.0f, &model->transform);
-	bodyCol_Sphere->offset = { 0,6,0 };
+	bodyCol_Sphere->m_offset = { 0,6,0 };
 	auto bodyCol = Collider::Generate(bodyCol_Sphere);
 	bodyCol->SetCallBack(&pushBackColliderCallBack);	//押し戻しコールバック処理をアタッチ
+	bodyCol->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	colliders.emplace_back(bodyCol);
+
+	//床用足元
+	auto footCol_Point = std::make_shared<CollisionPoint>(Vec3<float>(), &model->transform);
+	auto footCol = Collider::Generate(footCol_Point);
+	footCol->SetCallBack(&pushBackColliderCallBack_Foot);	//床との押し戻しコールバック処理をアタッチ
+	footCol->SetMyAttribute(COLLIDER_ATTRIBUTE::FOOT_POINT);
+	footCol->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::FLOOR);
+	colliders.emplace_back(footCol);
 
 	//右手武器
 	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
-	boneCol_R_Sphere->offset = { 0,-0.5f,0.7f };
+	boneCol_R_Sphere->m_offset = { 0,-0.5f,0.7f };
 	auto boneCol_R = Collider::Generate(boneCol_R_Sphere);
+	boneCol_R->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	boneCol_R->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	colliders.emplace_back(boneCol_R);
 
 	//左手武器
 	auto boneCol_L_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_R"));
-	boneCol_L_Sphere->offset = { 0,-0.5f,0.7f };
+	boneCol_L_Sphere->m_offset = { 0,-0.5f,0.7f };
 	auto boneCol_L = Collider::Generate(boneCol_L_Sphere);
+	boneCol_L->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	boneCol_L->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	colliders.emplace_back(boneCol_L);
-
-	//全ての自身のコライダーにプレイヤー属性を与える
-	for (auto& col : colliders)
-	{
-		col->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	}
 
 	//攻撃処理に武器コライダーをアタッチ
 	attack.Attach(model->animator, boneCol_L, boneCol_R);
@@ -134,9 +139,6 @@ void Player::Init()
 
 void Player::Update()
 {
-	//１フレーム前の座標をコールバック処理に記録
-	pushBackColliderCallBack.prePos = model->transform.GetPos();
-
 	//移動の処理
 	if (CAN_INPUT.playerControl)
 	{
@@ -195,7 +197,7 @@ void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std
 		//Vec3<float>pushBackVec = (prePos - nowPos).GetNormal();
 
 		//押し戻し量
-		float pushBackAmount = mySphere->radius + otherSphere->radius + 0.1f;
+		float pushBackAmount = mySphere->m_radius + otherSphere->m_radius + 0.1f;
 		
 		//押し戻した後のコライダーの座標
 		Vec3<float>pushBackColPos = otherCenter + pushBackVec * pushBackAmount;
@@ -207,6 +209,25 @@ void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std
 		pushBackPos = nowPos + colOffset;
 	}
 	else assert(0);	//用意していない
+
+	//新しい座標をセット
+	parent->model->transform.SetPos(pushBackPos);
+}
+
+void Player::PushBackColliderCallBack_Foot::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
+{
+	//現在の座標
+	Vec3<float>nowPos = parent->model->transform.GetPos();
+
+	//床の高さ取得
+	float floorY = Inter.y;
+
+	//自身のコライダープリミティブ（点）を取得
+	auto myPt = (CollisionPoint*)GetAttachCollider().lock()->GetColliderPrimitive().lock().get();
+
+	//押し戻し後の座標格納先
+	Vec3<float>pushBackPos = nowPos;
+	pushBackPos.y += floorY - myPt->GetWorldPos().y;	//押し戻し
 
 	//新しい座標をセット
 	parent->model->transform.SetPos(pushBackPos);

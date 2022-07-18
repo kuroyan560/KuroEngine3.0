@@ -21,6 +21,7 @@ class GameScene : public BaseScene
 	LightBloomDevice lightBloomDevice;
 
 	std::shared_ptr<ModelObject>floorModel;
+	std::shared_ptr<Collider>floorCol;
 
 	LightManager ligMgr;
 	Light::Direction dirLig;

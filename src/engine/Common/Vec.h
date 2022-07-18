@@ -149,7 +149,6 @@ struct Vec3
 
 	Vec3() {};
 	Vec3(T X, T Y, T Z) :x(X), y(Y), z(Z) {};
-	Vec3(Vec2<T>XY, T Z) :x(XY.x), y(XY.y), z(Z) {};
 	float Length()const {
 		static_assert(std::is_arithmetic<T>::value, "template parameter T must be arithmetic");
 		return static_cast<float>(sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)));
@@ -215,7 +214,7 @@ struct Vec3
 			me.z * rhs.x - rhs.z * me.x,
 			me.x * rhs.y - rhs.x * me.y);
 	}
-	bool IsZero() 
+	bool IsZero() const
 	{
 		return x == 0 && y == 0 && z == 0;
 	}

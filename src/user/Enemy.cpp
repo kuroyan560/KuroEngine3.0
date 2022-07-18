@@ -21,7 +21,7 @@ Enemy::Enemy(const EnemyBreed& Breed, const Transform& InitTransform) : breed(Br
 	//コライダー生成
 	const float COLLIDER_RADIUS = 7.0f;
 	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS, &transform);
-	colSphere->offset = { 0.0f, 0.5f, 0.0f };
+	colSphere->m_offset = { 0.0f, 0.5f, 0.0f };
 	collider = Collider::Generate(colSphere);
 	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::PLAYER);
