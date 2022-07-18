@@ -124,7 +124,7 @@ void IndirectSample::Init(Camera& Cam)
 	srvDesc.Buffer.StructureByteStride = commandDataSize;
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 	auto srvDescHandles = D3D12App::Instance()->CreateSRV(m_commandBuffer->GetResource()->GetBuff(), srvDesc);
-	m_commandBuffer->InitDeccHandle(SRV, srvDescHandles);
+	m_commandBuffer->InitDescHandle(SRV, srvDescHandles);
 
 	//カリング処理済コマンドバッファ格納先
 	m_processedCommandBuffer = D3D12App::Instance()->GenerateRWStructuredBuffer(commandDataSize, s_blockNum, nullptr, "IndirectSample - ProccessedCommandBuffer");
@@ -172,10 +172,10 @@ void IndirectSample::Draw(Camera& Cam)
 		//コマンドバッファ
 		m_commandBuffer->SetComputeDescriptorBuffer(cmdList, SRV, 3);
 
-		//カリング処理済バッファ
-		m_processedCommandBuffer->SetComputeDescriptorBuffer(cmdList, UAV, 4);
 		//UAVようにリソースバリア変更
 		m_processedCommandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		//カリング処理済バッファ
+		m_processedCommandBuffer->SetComputeDescriptorBuffer(cmdList, UAV, 4);
 
 		//実行
 		auto threadX = static_cast<UINT>(ceil(s_blockNum / float(COMPUTE_THREAD_BLOCK_SIZE)));

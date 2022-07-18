@@ -161,7 +161,7 @@ public:
 	void SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
 	const std::shared_ptr<GPUResource>& GetResource() { return m_resource; }
 
-	void InitDeccHandle(const DESC_HANDLE_TYPE& Type, const DescHandles& Handle)
+	void InitDescHandle(const DESC_HANDLE_TYPE& Type, const DescHandles& Handle)
 	{
 		m_handles.Initialize(Type, Handle);
 	}
