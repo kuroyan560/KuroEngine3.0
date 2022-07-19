@@ -118,10 +118,11 @@ void ComputePipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdLi
 	CmdList->SetComputeRootSignature(m_rootSignature.Get());
 }
 
-Microsoft::WRL::ComPtr<ID3D12Resource>IndirectDevice::s_countResetBuffer;
+//Microsoft::WRL::ComPtr<ID3D12Resource>IndirectDevice::s_countResetBuffer;
 
 std::shared_ptr<GPUResource> IndirectDevice::GenerateCounterBuffer(const ComPtr<ID3D12Device>& Device)
 {
+	/*
 	if (!s_countResetBuffer)
 	{
 		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -142,6 +143,7 @@ std::shared_ptr<GPUResource> IndirectDevice::GenerateCounterBuffer(const ComPtr<
 		ZeroMemory(countResetMap, sizeof(UINT));
 		s_countResetBuffer->Unmap(0, nullptr);
 	}
+	*/
 
 	ComPtr<ID3D12Resource>buff;
 
@@ -164,6 +166,7 @@ std::shared_ptr<GPUResource> IndirectDevice::GenerateCounterBuffer(const ComPtr<
 		nullptr,
 		IID_PPV_ARGS(&buff));
 	assert(SUCCEEDED(hr));
+	buff->SetName(L"IndirectDevice - CounterBuffer");
 
 	return std::make_shared<GPUResource>(buff, barrier);
 }

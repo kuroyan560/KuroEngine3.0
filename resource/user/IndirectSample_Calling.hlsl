@@ -3,6 +3,8 @@
 
 struct Block
 {
+    matrix proj;
+    matrix view;
     float4 color;
     float scale;
     float3 vel;
@@ -12,6 +14,7 @@ struct Block
 struct IndirectCommand
 {
     uint64_t cbvAddress[2];
+    //uint64_t cbvAddress;
     uint4 drawArguments;
 };
 
@@ -25,7 +28,7 @@ cbuffer RootConstants : register(b1)
     float xOffset;        // Half the width of the triangles.
     float zOffset;        // The z offset for the triangle vertices.
     float cullOffset;    // The culling plane offset in homogenous space.
-    float commandCount;    // The number of commands to be processed.
+    uint commandCount;    // The number of commands to be processed.
 };
 
 StructuredBuffer<Block> block                : register(t0);    // SRV: Wrapped constant buffers
@@ -35,26 +38,27 @@ AppendStructuredBuffer<IndirectCommand> outputCommands    : register(u0);    // 
 [numthreads(threadBlockSize, 1, 1)]
 void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
-    // Each thread of the CS operates on one of the indirect commands.
     uint index = (groupId.x * threadBlockSize) + groupIndex;
 
-    // Don't attempt to access commands that don't exist if more threads are allocated
-    // than commands.
     if (index < commandCount)
     {
-        // Project the left and right bounds of the triangle into homogenous space.
-        float4 left = float4(-xOffset, 0.0f, zOffset, 1.0f) + float4(block[index].offset, 1);
-        left = mul(cam.proj, mul(cam.view, left));
-        left /= left.w;
+        //float4 left = float4(-xOffset, 0.0f, zOffset, 1.0f) + float4(block[index].offset, 1);
+        //left /= left.w;
+        //left = mul(cam.proj, mul(cam.view, left));
 
-        float4 right = float4(xOffset, 0.0f, zOffset, 1.0f) + float4(block[index].offset, 1);
-        right = mul(cam.proj, mul(cam.view, right));
-        right /= right.w;
+        //float4 right = float4(xOffset, 0.0f, zOffset, 1.0f) + float4(block[index].offset, 1);
+        //right /= right.w;
+        //right = mul(cam.proj, mul(cam.view, right));
 
-        // Only draw triangles that are within the culling space.
-        if (-cullOffset < right.x && left.x < cullOffset)
-        {
+        //if (-cullOffset < right.x && left.x < cullOffset)
+        //{
+            //outputCommands.Append(inputCommands[index]);
+        //}
+        
+        //if (block[index].offset.y < 0.0f)
+        //    if (0.0f < block[index].offset.y)
+        //{
             outputCommands.Append(inputCommands[index]);
-        }
+        //}
     }
 }

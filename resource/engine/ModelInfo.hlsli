@@ -10,7 +10,6 @@ struct Vertex
     float2 uv : TEXCOORD;
     min16int4 boneNo : BONE_NO;
     float4 weight : WEIGHT;
-    uint instanceID : SV_InstanceID;
 };
 
 struct Material

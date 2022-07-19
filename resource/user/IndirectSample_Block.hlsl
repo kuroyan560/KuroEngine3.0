@@ -1,5 +1,15 @@
 #include"../engine/Camera.hlsli"
 
+//cbuffer cbuff0 : register(b0)
+//{
+//    matrix proj;
+//    matrix view;
+//    float4 color;
+//    float scale;
+//    float3 vel;
+//    float3 offset;
+//}
+
 cbuffer cbuff0 : register(b0)
 {
     Camera cam;
@@ -7,10 +17,10 @@ cbuffer cbuff0 : register(b0)
 
 cbuffer cbuff1 : register(b1)
 {
-	float4 color;
+    float4 color;
     float scale;
-	float3 vel;
-	float3 offset;
+    float3 vel;
+    float3 offset;
 };
 
 SamplerState smp : register(s0);
@@ -135,6 +145,7 @@ void GSmain(
         //element.ray = normalize(pos.xyz - cameraPos);
             
         pos = mul(cam.proj, mul(cam.view, pos)); //ビュー変換
+        //pos = mul(proj, mul(view, pos)); //ビュー変換
         element.svpos = pos;
         
         output.Append(element);

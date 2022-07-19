@@ -129,6 +129,7 @@ void GameScene::OnUpdate()
 	HitEffect::Update();
 
 	m_indirectSample.Update(m_enableCalling);
+	//m_indirectSample.Update(m_enableCalling, *GameManager::Instance()->GetNowCamera());
 }
 
 

@@ -7,8 +7,10 @@ static const float MAX_SCALE = 0.1f;
 static const float MIN_VEL = 0.003f;
 static const float MAX_VEL = 0.05f;
 static const float RANGE = 15.0f;
+//static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
 static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
-static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
+//static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
+static const Vec3<float> MAX_OFFSET = { RANGE,-RANGE,RANGE };
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
 static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
@@ -179,6 +181,7 @@ IndirectSample::IndirectSample()
 void IndirectSample::Init(Camera& Cam)
 {
 	std::array<IndirectCommand<2>, s_blockNum>commands;
+	//std::array<IndirectCommand<1>, s_blockNum>commands;
 	D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_blockBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	auto incrementSize = sizeof(Block);
@@ -194,6 +197,7 @@ void IndirectSample::Init(Camera& Cam)
 
 		//CBV1（ブロック情報）
 		com.m_gpuAddressArray[1] = blockBuffAddress;
+		//com.m_gpuAddressArray[0] = blockBuffAddress;
 		blockBuffAddress += incrementSize;
 
 		//SRV0（テクスチャ情報）
@@ -208,10 +212,13 @@ void IndirectSample::Init(Camera& Cam)
 }
 
 void IndirectSample::Update(bool EnableCalling)
+//void IndirectSample::Update(bool EnableCalling, Camera& Cam)
 {
 	for (auto& b : m_blockDataArray)
 	{
-		b.m_offset += b.m_vel;
+		//b.proj = Cam.GetProjectionMat();
+		//b.view = Cam.GetViewMat();
+		//b.m_offset += b.m_vel;
 		if (MAX_OFFSET.y < b.m_offset.y)
 		{
 			b.m_offset = KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);

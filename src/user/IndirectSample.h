@@ -20,6 +20,17 @@ class IndirectSample
 		Vec3<float>m_offset = { 0,0,0 };
 		float m_pad;
 	};
+	//struct Block
+	//{
+	//	Matrix proj;
+	//	Matrix view;
+	//	Color m_color;
+	//	float m_scale = 1.0f;
+	//	Vec3<float>m_vel = { 0,1,0 };
+	//	Vec3<float>m_offset = { 0,0,0 };
+	//	float m_pad;
+	//};
+	
 	//ブロックの各個体情報（CPU）
 	std::array<Block, s_blockNum>m_blockDataArray;
 	//ブロックの各個体情報（GPU）
@@ -45,7 +56,7 @@ class IndirectSample
 		float xOffset = 1.0f;
 		float zOffset = 0.0f;
 		float cullOffset = 0.25f;
-		float commandCount = s_blockNum;
+		unsigned int commandCount = s_blockNum;
 	}m_callingConfig;
 	std::shared_ptr<ConstantBuffer>m_callingConfigBuffer;
 	//カリング用パイプライン
@@ -62,6 +73,7 @@ public:
 	IndirectSample();
 	void Init(Camera& Cam);
 	void Update(bool EnableCalling);
+	//void Update(bool EnableCalling, Camera& Cam);
 	void Draw(Camera& Cam);
 };
 

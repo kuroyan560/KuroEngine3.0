@@ -711,8 +711,7 @@ private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	//カウントリセット用コピー元バッファ
-	static ComPtr<ID3D12Resource>s_countResetBuffer;
+	//static ComPtr<ID3D12Resource>s_countResetBuffer;
 public:
 	static std::shared_ptr<GPUResource>GenerateCounterBuffer(const ComPtr<ID3D12Device>& Device);
 	static void ResetCounterBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<GPUResource> CounterBuffer);
