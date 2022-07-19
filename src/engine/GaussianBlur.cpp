@@ -18,11 +18,11 @@ void GaussianBlur::GeneratePipeline()
             RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,"描き込み先バッファ")
         };
 
-        auto cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "XBlur", "cs_5_0");
+        auto cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "XBlur", "cs_6_4");
         s_xBlurPipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
-        cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "YBlur", "cs_5_0");
+        cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "YBlur", "cs_6_4");
         s_yBlurPipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
-        cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "Final", "cs_5_0");
+        cs = D3D12App::Instance()->CompileShader("resource/engine/GaussianBlur.hlsl", "Final", "cs_6_4");
         s_finalPipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParam, { WrappedSampler(false, true) });
     }
 }
@@ -78,11 +78,11 @@ void GaussianBlur::SetBlurPower(const float& BlurPower)
     m_weightConstBuff->Mapping(&m_weights[0]);
 }
 
-void GaussianBlur::Excute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex)
+void GaussianBlur::Execute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex)
 {
     const auto& sDesc = SourceTex->GetDesc();
     const auto& fDesc = m_finalResult->GetDesc();
-    KuroFunc::ErrorMessage(sDesc.Width != fDesc.Width || sDesc.Height != fDesc.Height || sDesc.Format != fDesc.Format, "GaussianBlur", "Excute", "ソースとなるテクスチャ形式とガウシアンブラー形式が合いません\n");
+    assert(sDesc.Width == fDesc.Width && sDesc.Height == fDesc.Height && sDesc.Format == fDesc.Format);
 
     static const int DIV = 4;
 
@@ -115,7 +115,7 @@ void GaussianBlur::Register(const std::shared_ptr<TextureBuffer>& SourceTex)
 {
     const auto sourceSize = SourceTex->GetGraphSize();
     const auto resultSize = m_finalResult->GetGraphSize();
-    KuroFunc::ErrorMessage(sourceSize != resultSize, "GaussianBlur", "Register", "ソースとなるテクスチャとガウシアンブラーのサイズが合いません\n");
+    assert(sourceSize == resultSize);
 
     static const int DIV = 4;
     Vec3<int>threadNum;

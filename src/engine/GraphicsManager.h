@@ -12,7 +12,7 @@ class GraphicsManager
 	class GraphicsCommandBase
 	{
 	public:
-		virtual void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList) = 0;
+		virtual void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList) = 0;
 	};
 
 	//レンダーターゲットセットコマンド
@@ -24,7 +24,7 @@ class GraphicsManager
 		const std::weak_ptr<DepthStencil>m_depthStencil;
 	public:
 		SetRenderTargetsCommand(const std::vector<std::weak_ptr<RenderTarget>>& RTs, const std::weak_ptr<DepthStencil>& DS) :m_renderTargets(RTs), m_depthStencil(DS) {}
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
 	//グラフィックスパイプラインセットコマンド
@@ -35,7 +35,7 @@ class GraphicsManager
 		std::weak_ptr<GraphicsPipeline> m_gPipeline;
 	public:
 		SetGraphicsPipelineCommand(std::weak_ptr<GraphicsPipeline> Pipeline) :m_gPipeline(Pipeline) {}
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
 		{
 			m_gPipeline.lock()->SetPipeline(CmdList);
 		}
@@ -50,7 +50,7 @@ class GraphicsManager
 		std::weak_ptr<ComputePipeline> m_cPipeline;
 	public:
 		SetComputePipelineCommand(std::weak_ptr<ComputePipeline> Pipeline) :m_cPipeline(Pipeline) {}
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override
 		{
 			m_cPipeline.lock()->SetPipeline(CmdList);
 		}
@@ -65,7 +65,7 @@ class GraphicsManager
 
 	public:
 		ClearRTVCommand(const std::weak_ptr<RenderTarget>& RenderTarget) :m_renderTarget(RenderTarget) {}
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
 	//デプスステンシルクリアコマンド
@@ -75,7 +75,7 @@ class GraphicsManager
 		std::weak_ptr<DepthStencil>m_depthStencil;
 	public:
 		ClearDSVCommand(const std::weak_ptr<DepthStencil>& DepthStencil) :m_depthStencil(DepthStencil) {}
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
 	//レンダリング情報（レンダーコマンドに渡す情報）
@@ -113,7 +113,7 @@ class GraphicsManager
 			const int& InstanceNum = 1)
 			:m_vertexBuff(VertexBuff), m_idxBuff(IndexBuff), m_descDatas(DescDatas), m_types(DescHandleTypes), m_depth(Depth), m_trans(TransFlg), m_instanceNum(InstanceNum) {}
 
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
 	//コンピュートシェーダ用Dispatchコマンド
@@ -131,7 +131,7 @@ class GraphicsManager
 			const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
 			:m_threadNum(ThreadNum), m_descDatas(DescDatas), m_types(DescHandleTypes) {}
 
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
 	//テクスチャのコピー
@@ -143,7 +143,7 @@ class GraphicsManager
 		CopyTex(const std::weak_ptr<TextureBuffer>& DestTex, const std::weak_ptr<TextureBuffer>& SrcTex)
 			:m_destTex(DestTex), m_srcTex(SrcTex) {}
 
-		void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
 #pragma endregion

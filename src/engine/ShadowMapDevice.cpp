@@ -31,8 +31,8 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowMapModel.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -102,8 +102,8 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawShadowFallModel.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =

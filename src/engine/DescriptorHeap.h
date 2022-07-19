@@ -113,7 +113,7 @@ public:
 	}
 
 	//アンオーダードアクセスビュー生成
-	void CreateUAV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC& Desc);
+	void CreateUAV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC& Desc, const ComPtr<ID3D12Resource>& CounterBuff = nullptr);
 	void CreateUAV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const size_t& DataSize, const int& ElementNum,
 		const D3D12_UAV_DIMENSION& Dimension = D3D12_UAV_DIMENSION_BUFFER, const DXGI_FORMAT& Format = DXGI_FORMAT_UNKNOWN)
 	{
@@ -122,7 +122,7 @@ public:
 		desc.Format = Format;
 		desc.Buffer.NumElements = static_cast<UINT>(ElementNum);
 		desc.Buffer.StructureByteStride = static_cast<UINT>(DataSize);
-		CreateUAV(Device, Buff, desc);
+		CreateUAV(Device, Buff, desc, nullptr);
 	}
 };
 

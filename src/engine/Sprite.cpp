@@ -14,8 +14,8 @@ Sprite::Sprite(const std::shared_ptr<TextureBuffer>& Texture, const char* Name) 
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =

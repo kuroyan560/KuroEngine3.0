@@ -22,15 +22,6 @@ bool operator==(const Matrix& lhs, const Matrix& rhs)
 	return !(lhs != rhs);
 }
 
-void KuroFunc::ErrorMessage(const bool& Fail, const std::string& ClassName, const std::string& FuncName, const std::string& Comment)
-{
-	if (Fail)
-	{
-		printf("ERROR - %s - %s : %s", ClassName.c_str(), FuncName.c_str(), Comment.c_str());
-		assert(0);
-	}
-}
-
 std::wstring KuroFunc::GetWideStrFromStr(const std::string& Str)
 {
 	auto num1 = MultiByteToWideChar(

@@ -51,9 +51,9 @@ void DrawFunc2D_FillTex::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const V
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_FillTex.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_FillTex.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_FillTex.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_FillTex.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_FillTex.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_FillTex.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -126,9 +126,9 @@ void DrawFunc2D_FillTex::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<f
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_FillTex.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_FillTex.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_FillTex.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_FillTex.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_FillTex.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_FillTex.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =

@@ -81,9 +81,9 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph_Shadow.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -175,9 +175,9 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph_Shadow.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =

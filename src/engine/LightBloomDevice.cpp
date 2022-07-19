@@ -6,7 +6,7 @@
 void LightBloomDevice::GeneratePipeline()
 {
 	//シェーダー
-	auto cs = D3D12App::Instance()->CompileShader("resource/engine/LightBloom.hlsl", "CSmain", "cs_5_0");
+	auto cs = D3D12App::Instance()->CompileShader("resource/engine/LightBloom.hlsl", "CSmain", "cs_6_4");
 
 	//ルートパラメータ
 	std::vector<RootParam>rootParams =

@@ -77,7 +77,7 @@ Swapchain::Swapchain(const ComPtr<ID3D12Device>& Device, const ComPtr<IDXGISwapC
 		//バックバッファの取得
 		ComPtr<ID3D12Resource1> buff;
 		hr = m_swapchain->GetBuffer(i, IID_PPV_ARGS(&buff));
-		KuroFunc::ErrorMessage(FAILED(hr), "Swapchain", "コンストラクタ", "スワップチェインでバックバッファの取得に失敗\n");
+		assert(SUCCEEDED(hr));
 
 
 		//バックバッファ名設定

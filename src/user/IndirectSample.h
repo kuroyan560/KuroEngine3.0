@@ -26,7 +26,7 @@ class IndirectSample
 	std::shared_ptr<StructuredBuffer>m_blockBuff;
 
 	//コマンドバッファ
-	std::shared_ptr<RWStructuredBuffer>m_commandBuffer;
+	std::shared_ptr<DescriptorData>m_commandBuffer;
 
 	//グラフィックスパイプライン
 	std::shared_ptr<GraphicsPipeline>m_gPipeline;
@@ -50,8 +50,13 @@ class IndirectSample
 	std::shared_ptr<ConstantBuffer>m_callingConfigBuffer;
 	//カリング用パイプライン
 	std::shared_ptr<ComputePipeline>m_cPipeline;
+	//カウンターバッファ
+	std::shared_ptr<GPUResource>m_counterBuffer;
 	//カリング処理済コマンドバッファ
-	std::shared_ptr<RWStructuredBuffer>m_processedCommandBuffer;
+	std::shared_ptr<DescriptorData>m_processedCommandBuffer;
+
+	bool m_invalidCommandBuffer = true;
+	void GenerateCommandBuffers(const size_t& CommandSize);
 
 public:
 	IndirectSample();

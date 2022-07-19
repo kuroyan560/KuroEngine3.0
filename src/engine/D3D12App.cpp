@@ -12,12 +12,11 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 //デバッグレイヤー
 #ifdef _DEBUG
 	//デバッグレイヤーをオンに
-	ComPtr<ID3D12Debug1> debugController;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-	{
-		debugController->EnableDebugLayer();
-		debugController->SetEnableGPUBasedValidation(TRUE);
-	}
+	ComPtr<ID3D12Debug> spDebugController0;
+	ComPtr<ID3D12Debug1> spDebugController1;
+	D3D12GetDebugInterface(IID_PPV_ARGS(&spDebugController0));
+	spDebugController0->QueryInterface(IID_PPV_ARGS(&spDebugController1));
+	spDebugController1->SetEnableGPUBasedValidation(true);
 #endif
 
 	HRESULT result;
@@ -199,7 +198,7 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 	//画像を分割するパイプライン
 	{
 		//シェーダ
-		auto cs = CompileShader("resource/engine/RectTexture.hlsl", "CSmain", "cs_5_0");
+		auto cs = CompileShader("resource/engine/RectTexture.hlsl", "CSmain", "cs_6_4");
 		//ルートパラメータ
 		std::vector<RootParam>rootParams =
 		{
@@ -294,15 +293,14 @@ Microsoft::WRL::ComPtr<ID3D12RootSignature> D3D12App::GenerateRootSignature(cons
 			errorBlob->GetBufferSize(),
 			errstr.begin());
 		errstr += '\n';
-
-		KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRootSignature", errstr);
+		assert(0);
 	}
 
 	// ルートシグネチャの生成
 	hr = m_device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 
 	//ルートシグネチャ生成に失敗
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRootSignature", "ルートシグネチャの生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	return rootSignature;
 }
@@ -338,7 +336,7 @@ std::shared_ptr<VertexBuffer> D3D12App::GenerateVertexBuffer(const size_t& Verte
 		nullptr,
 		IID_PPV_ARGS(&buff));
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateVertexBuffer", "頂点バッファの生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前のセット
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
@@ -382,8 +380,7 @@ std::shared_ptr<IndexBuffer> D3D12App::GenerateIndexBuffer(const int& IndexNum, 
 	size_t indexSize = 0;
 	if (IndexFormat == DXGI_FORMAT_R32_UINT)indexSize = sizeof(unsigned int);
 	else if (IndexFormat == DXGI_FORMAT_R16_UINT)indexSize = sizeof(unsigned short);
-
-	KuroFunc::ErrorMessage(indexSize == 0, "D3D12App", "GenerateIndexBuffer", "対応していないフォーマットです\n");
+	else assert(0);
 
 	//インデックスバッファサイズ
 	UINT sizeIB = static_cast<UINT>(indexSize * IndexNum);
@@ -400,7 +397,7 @@ std::shared_ptr<IndexBuffer> D3D12App::GenerateIndexBuffer(const int& IndexNum, 
 		nullptr,
 		IID_PPV_ARGS(&buff));
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateIndexBuffer", "インデックスバッファの生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前のセット
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
@@ -440,7 +437,8 @@ std::shared_ptr<ConstantBuffer> D3D12App::GenerateConstantBuffer(const size_t& D
 		nullptr,
 		IID_PPV_ARGS(&buff));
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateConstantBuffer", "定数バッファの生成に失敗\n");
+	assert(SUCCEEDED(hr));
+
 
 	//名前のセット
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
@@ -478,7 +476,7 @@ std::shared_ptr<StructuredBuffer> D3D12App::GenerateStructuredBuffer(const size_
 		nullptr,
 		IID_PPV_ARGS(&buff));
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateStructuredBuffer", "構造化バッファの生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前のセット
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
@@ -525,7 +523,7 @@ std::shared_ptr<RWStructuredBuffer> D3D12App::GenerateRWStructuredBuffer(const s
 		nullptr,
 		IID_PPV_ARGS(&buff));
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRWStructuredBuffer", "出力用バッファの生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前のセット
 	if (Name != nullptr)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
@@ -599,7 +597,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 		nullptr,
 		IID_PPV_ARGS(&buff));
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "単色塗りつぶしテクスチャバッファの生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//バッファに名前セット
 	std::wstring name = L"ColorTexture - ";
@@ -619,7 +617,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Color& Colo
 	);
 	delete[] texturedata;
 
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "単色塗りつぶしテクスチャバッファへのデータ転送に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//シェーダーリソースビュー作成
 	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, Format);
@@ -669,7 +667,8 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 		wtexpath,
 		&metadata,
 		image);
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "画像データ抽出に失敗\n");
+	assert(SUCCEEDED(hr));
+
 
 	ComPtr<ID3D12Resource>buff;
 	CreateTexture(m_device.Get(), metadata, &buff);
@@ -682,7 +681,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 
 	ComPtr<ID3D12GraphicsCommandList> command;
 	hr = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_oneshotCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&command));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "CreateCommandList(OneShot) Failed.");
+	assert(SUCCEEDED(hr));
 	command->SetName(L"OneShotCommand");
 
 	ComPtr<ID3D12Resource1>staging;
@@ -694,7 +693,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&staging));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "ロード画像テクスチャバッファ生成に失敗\n");
+	assert(SUCCEEDED(hr));
 	UpdateSubresources(command.Get(), buff.Get(), staging.Get(), 0, 0, UINT(subresources.size()), subresources.data());
 
 	//名前セット
@@ -736,7 +735,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::string
 	
 	ComPtr<ID3D12Fence1> fence;
 	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "CreateFence Failed.");
+	assert(SUCCEEDED(hr));
 	const UINT64 expectValue = 1;
 	m_commandQueue->Signal(fence.Get(), expectValue);
 	do
@@ -771,7 +770,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const Vec2<int>& 
 		barrier,
 		nullptr,
 		IID_PPV_ARGS(&buff));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "分割画像用テクスチャバッファ生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前セット
 	if (Name != nullptr)
@@ -804,7 +803,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 	HRESULT hr;
 	ScratchImage image;
 	hr = LoadFromWICMemory(ImgData.data(), ImgData.size(), WIC_FLAGS_NONE, nullptr, image);
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "WICメモリのロードに失敗\n");
+	assert(SUCCEEDED(hr));
 
 	auto metadata = image.GetMetadata();
 	const Image* img = image.GetImage(0, 0, 0);	//生データ抽出
@@ -856,7 +855,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 		barrier,
 		nullptr,
 		IID_PPV_ARGS(&buff));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "ロード画像テクスチャバッファ生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前セット
 	//buff->SetName(wtexpath.c_str());
@@ -869,7 +868,7 @@ std::shared_ptr<TextureBuffer> D3D12App::GenerateTextureBuffer(const std::vector
 		(UINT)img->rowPitch,	//1ラインサイズ
 		(UINT)img->slicePitch	//１枚サイズ
 	);
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateTextureBuffer", "ロード画像テクスチャバッファへのデータ転送に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//シェーダーリソースビュー作成
 	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, buff, metadata.format);
@@ -964,15 +963,19 @@ DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_
 DescHandles D3D12App::CreateRTV(const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc)
 {
 	m_descHeapRTV->CreateRTV(m_device, Buff, ViewDesc);
-	//return DescHandles(descHeapRTV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
 	return DescHandles(m_descHeapRTV->GetCpuHandleTail(), m_descHeapRTV->GetGpuHandleTail());
 }
 
 DescHandles D3D12App::CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc)
 {
 	m_descHeapDSV->CreateDSV(m_device, Buff, ViewDesc);
-	//return DescHandles(descHeapDSV->GetCpuHandleTail(), D3D12_GPU_DESCRIPTOR_HANDLE());	//SHEDER_INVISIBLE
 	return DescHandles(m_descHeapDSV->GetCpuHandleTail(), m_descHeapDSV->GetGpuHandleTail());
+}
+
+DescHandles D3D12App::CreateUAV(const ComPtr<ID3D12Resource>& Buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC& ViewDesc, const ComPtr<ID3D12Resource>& CounterBuff)
+{
+	m_descHeapCBV_SRV_UAV->CreateUAV(m_device, Buff, ViewDesc, CounterBuff);
+	return DescHandles(m_descHeapCBV_SRV_UAV->GetCpuHandleTail(), m_descHeapCBV_SRV_UAV->GetGpuHandleTail());
 }
 
 std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& Format, const Color& ClearValue, const Vec2<int> Size, const wchar_t* TargetName, D3D12_RESOURCE_STATES InitState, int MipLevel, int ArraySize)
@@ -1011,7 +1014,7 @@ std::shared_ptr<RenderTarget> D3D12App::GenerateRenderTarget(const DXGI_FORMAT& 
 		InitState,
 		&clearValue,
 		IID_PPV_ARGS(&buff));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateRenderTarget", "レンダーターゲットバッファ生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//名前セット
 	if (TargetName != nullptr)buff->SetName(TargetName);
@@ -1058,7 +1061,7 @@ std::shared_ptr<DepthStencil> D3D12App::GenerateDepthStencil(const Vec2<int>& Si
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&clearVal,
 		IID_PPV_ARGS(&buff));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateDepthStencil", "デプスステンシルバッファ生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//DSV作成
 	m_descHeapDSV->CreateDSV(m_device, buff);
@@ -1097,7 +1100,7 @@ void D3D12App::Render(D3D12AppUser* User)
 
 	//命令のクローズ
 	auto hr = m_commandList->Close();
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "コマンドリスト命令のクローズに失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//コマンドリストの実行
 	ID3D12CommandList* cmdLists[] = { m_commandList.Get() };	//コマンドリストの配列
@@ -1105,18 +1108,18 @@ void D3D12App::Render(D3D12AppUser* User)
 
 	//バッファをフリップ（裏表の入れ替え）
 	hr = m_swapchain->GetSwapchain()->Present(1, 0);
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "バックバッファのフリップに失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//バックバッファ番号取得
 	auto frameIdx = m_swapchain->GetSwapchain()->GetCurrentBackBufferIndex();
 
 	//コマンドアロケータリセット
 	hr = m_commandAllocators[frameIdx]->Reset();	//キューをクリア
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "コマンドアロケータリセットに失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//コマンドリスト
 	hr = m_commandList->Reset(m_commandAllocators[frameIdx].Get(), nullptr);		//コマンドリストを貯める準備
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "Render", "コマンドリストのリセットに失敗\n");
+	assert(SUCCEEDED(hr));
 
 	//コマンドリストの実行完了を待つ
 	m_swapchain->WaitPreviousFrame(m_commandQueue, frameIdx);
@@ -1125,10 +1128,247 @@ void D3D12App::Render(D3D12AppUser* User)
 	m_splitTexBuffCount = 0;
 }
 
-#include<d3dcompiler.h>
-#pragma comment(lib,"d3dcompiler.lib")
-Microsoft::WRL::ComPtr<ID3DBlob>D3D12App::CompileShader(const std::string& FilePath, const std::string& EntryPoint, const std::string& ShaderModel)
+void D3D12App::UploadCPUResource(std::shared_ptr<GPUResource>& Dest, const size_t& DataSize, const int& ElementNum, const void* SendData)
 {
+	ComPtr<ID3D12GraphicsCommandList> command;
+	auto hr = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_oneshotCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&command));
+	assert(SUCCEEDED(hr));
+	command->SetName(L"OneShotCommand");
+
+	size_t buffSize = DataSize * ElementNum;
+
+	ComPtr<ID3D12Resource> uploadBuffer;
+	auto desc = CD3DX12_RESOURCE_DESC::Buffer(buffSize);
+	m_device->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&uploadBuffer));
+
+	D3D12_SUBRESOURCE_DATA data = {};
+	data.pData = SendData;
+	data.RowPitch = buffSize;
+	data.SlicePitch = data.RowPitch;
+
+	auto beforeBarrier = Dest->GetResourceBarrier();
+	Dest->ChangeBarrier(command, D3D12_RESOURCE_STATE_COPY_DEST);
+	UpdateSubresources<1>(command.Get(), Dest->GetBuff().Get(), uploadBuffer.Get(), 0, 0, 1, &data);
+	Dest->ChangeBarrier(command, beforeBarrier);
+
+	ID3D12CommandList* commandList[] = {
+   command.Get()
+	};
+	command->Close();
+	m_commandQueue->ExecuteCommandLists(1, commandList);
+
+	ComPtr<ID3D12Fence1> fence;
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	assert(SUCCEEDED(hr));
+	const UINT64 expectValue = 1;
+	m_commandQueue->Signal(fence.Get(), expectValue);
+	do
+	{
+	} while (fence->GetCompletedValue() != expectValue);
+	m_oneshotCommandAllocator->Reset();
+}
+
+#include <filesystem>
+#include<fstream>
+Microsoft::WRL::ComPtr<IDxcBlob>D3D12App::CompileShader(const std::string& FilePath, const std::string& EntryPoint, const std::string& ShaderModel)
+{
+	HRESULT hr;
+	std::ifstream infile(FilePath, std::ifstream::binary);
+	if (!infile) {
+		throw std::runtime_error("failed shader compile.");
+	}
+
+	auto w_filePath = KuroFunc::GetWideStrFromStr(FilePath);
+	auto w_entryPoint = KuroFunc::GetWideStrFromStr(EntryPoint);
+	auto w_shaderModel = KuroFunc::GetWideStrFromStr(ShaderModel);
+
+	std::stringstream strstream;
+
+	strstream << infile.rdbuf();
+
+	std::string shaderCode = strstream.str();
+	Microsoft::WRL::ComPtr<IDxcLibrary> library;
+	hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
+	Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+	Microsoft::WRL::ComPtr<IDxcBlobEncoding> source;
+
+
+	hr = library->CreateBlobWithEncodingFromPinned(
+		(LPBYTE)shaderCode.c_str(), (UINT32)shaderCode.size(), CP_UTF8, &source);
+	Microsoft::WRL::ComPtr<IDxcIncludeHandler> includeHandler;
+	// インクルードを使う場合には適切に設定すること.
+	hr = library->CreateIncludeHandler(&includeHandler);
+	// コンパイルオプションの指定.
+	std::vector<LPCWSTR> arguments;
+	arguments.emplace_back(L"/Od");
+	arguments.emplace_back(L"/Zi");
+	arguments.emplace_back(L"-Qembed_debug");
+
+	Microsoft::WRL::ComPtr<IDxcOperationResult> dxcResult;
+	hr = compiler->Compile(
+		source.Get(),
+		w_filePath.c_str(),
+		w_entryPoint.data(),
+		w_shaderModel.data(),
+		arguments.data(),
+		static_cast<UINT32>(arguments.size()),
+		nullptr,
+		0,
+		includeHandler.Get(),
+		&dxcResult
+	);
+
+	if (FAILED(hr)) {
+		throw std::runtime_error("failed shader compile.");
+	}
+
+	dxcResult->GetStatus(&hr);
+	if (FAILED(hr)) {
+		ComPtr<IDxcBlobEncoding> errBlob;
+		dxcResult->GetErrorBuffer(&errBlob);
+		//errorBlobからエラー内容string型にコピー
+		std::string errstr;
+		errstr.resize(errBlob->GetBufferSize());
+
+		std::copy_n((char*)errBlob->GetBufferPointer(),
+			errBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += '\n';
+		//エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		assert(0);
+	}
+	Microsoft::WRL::ComPtr<IDxcBlob> blob;
+	dxcResult->GetResult(&blob);
+	return blob;
+
+	/*
+	//コンパイルの準備-------------------------
+	Microsoft::WRL::ComPtr<IDxcLibrary> library;
+	HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
+
+	Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+
+	auto w_filePath = KuroFunc::GetWideStrFromStr(FilePath);
+	auto w_entryPoint = KuroFunc::GetWideStrFromStr(EntryPoint);
+	auto w_shaderModel = KuroFunc::GetWideStrFromStr(ShaderModel);
+
+	uint32_t codePage = CP_UTF8;
+	Microsoft::WRL::ComPtr<IDxcBlobEncoding> sourceBlob;
+	hr = library->CreateBlobFromFile(w_filePath.c_str(), &codePage, &sourceBlob);
+	//コンパイルの準備-------------------------
+
+	Microsoft::WRL::ComPtr<IDxcOperationResult> result;
+	hr = compiler->Compile(
+		sourceBlob.Get(),		// pSource
+		w_filePath.c_str(),		// pSourceName
+		w_entryPoint.c_str(),		// pEntryPoint
+		w_shaderModel.c_str(),	// pTargetProfile
+		nullptr, 0,				// pArguments, argCount
+		nullptr, 0,				// pDefines, defineCount
+		nullptr,				// pIncludeHandler
+		&result);				// ppResult
+
+	if (SUCCEEDED(hr))
+	{
+		result->GetStatus(&hr);
+	}
+
+	if (FAILED(hr))
+	{
+		ComPtr<IDxcBlobEncoding> errBlob;
+		result->GetErrorBuffer(&errBlob);
+		//errorBlobからエラー内容string型にコピー
+		std::string errstr;
+		errstr.resize(errBlob->GetBufferSize());
+
+		std::copy_n((char*)errBlob->GetBufferPointer(),
+			errBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += '\n';
+		//エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		assert(0);
+	}
+
+	ComPtr<IDxcBlob> code;
+	result->GetResult(&code);
+	return code;
+	*/
+
+
+	//D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	//psoDesc.PS = CD3DX12_SHADER_BYTECODE(code->GetBufferPointer(), code->GetBufferSize());
+	//CComPtr<ID3D12PipelineState> pso;
+	//hr = DirectX12Device::Instance()->dev->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+
+	/*
+	HRESULT hr;
+
+	std::filesystem::path hlslFilename(FilePath);
+
+	std::ifstream infile(hlslFilename, std::ifstream::binary);
+	if (!infile) {
+		throw std::runtime_error("failed shader compile.");
+	}
+	std::wstring fileName = hlslFilename.filename().wstring();
+	std::stringstream strstream;
+	strstream << infile.rdbuf();
+	std::string shaderCode = strstream.str();
+	ComPtr<IDxcLibrary> library;
+	DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
+	ComPtr<IDxcCompiler> compiler;
+	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+	ComPtr<IDxcBlobEncoding> source;
+	library->CreateBlobWithEncodingFromPinned(
+		(LPBYTE)shaderCode.c_str(), (UINT32)shaderCode.size(), CP_UTF8, &source);
+	ComPtr<IDxcIncludeHandler> includeHandler;
+	// インクルードを使う場合には適切に設定すること.
+	library->CreateIncludeHandler(&includeHandler);
+	// コンパイルオプションの指定.
+	std::vector<LPCWSTR> arguments;
+	arguments.emplace_back(L"/Od");
+	arguments.emplace_back(L"/Zi");
+	arguments.emplace_back(L"-Qembed_debug");
+	const auto shaderModel = KuroFunc::GetWideStrFromStr(ShaderModel.c_str());
+	const auto entryPpoint = KuroFunc::GetWideStrFromStr(EntryPoint.c_str());
+	ComPtr<IDxcOperationResult> dxcResult;
+	hr = compiler->Compile(source.Get(), fileName.c_str(),
+		entryPpoint.c_str(), shaderModel.c_str(), arguments.data(), UINT(arguments.size()),
+		nullptr, 0, nullptr, &dxcResult);
+	if (FAILED(hr)) {
+		throw std::runtime_error("failed shader compile.");
+	}
+	dxcResult->GetStatus(&hr);
+	if (FAILED(hr)) {
+		ComPtr<IDxcBlobEncoding> errBlob;
+		dxcResult->GetErrorBuffer(&errBlob);
+		//errorBlobからエラー内容string型にコピー
+		std::string errstr;
+		errstr.resize(errBlob->GetBufferSize());
+
+		std::copy_n((char*)errBlob->GetBufferPointer(),
+			errBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += '\n';
+		//エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+	}
+	ComPtr<IDxcBlob>result;
+	dxcResult->GetResult(&result);
+	return result;
+	*/
+
+	/*
+		 ... errBlob の内容をエラーメッ
 	ComPtr<ID3DBlob>result;
 	ComPtr<ID3DBlob> errorBlob = nullptr;	//エラーオブジェクト
 
@@ -1144,6 +1384,7 @@ Microsoft::WRL::ComPtr<ID3DBlob>D3D12App::CompileShader(const std::string& FileP
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,	//デバッグ用設定
 		0,
 		result.GetAddressOf(), &errorBlob);
+
 
 	//シェーダのエラー内容を表示
 	if (FAILED(hr))
@@ -1161,6 +1402,7 @@ Microsoft::WRL::ComPtr<ID3DBlob>D3D12App::CompileShader(const std::string& FileP
 		exit(1);
 	}
 	return result;
+	*/
 }
 
 std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
@@ -1249,8 +1491,6 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 		{
 			int idx = ++desc.NumRenderTargets - 1;
 
-			KuroFunc::ErrorMessage(D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT < desc.NumRenderTargets, "D3D12App", "GenerateGraphicsPipeline", "描画先レンダーターゲットの数が最大を超えています\n");
-
 			//描画先レンダーターゲットのフォーマット
 			desc.RTVFormats[idx] = info.m_format;
 
@@ -1275,21 +1515,21 @@ std::shared_ptr<GraphicsPipeline>D3D12App::GenerateGraphicsPipeline(
 	}
 
 	//シェーダーオブジェクトセット
-	if(ShaderInfo.m_vs.Get())desc.VS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_vs.Get());
-	if(ShaderInfo.m_ps.Get())desc.PS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_ps.Get());
-	if(ShaderInfo.m_ds.Get())desc.DS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_ds.Get());
-	if(ShaderInfo.m_hs.Get())desc.HS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_hs.Get());
-	if(ShaderInfo.m_gs.Get())desc.GS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_gs.Get());
+	if (ShaderInfo.m_vs.Get())desc.VS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_vs->GetBufferPointer(), ShaderInfo.m_vs->GetBufferSize());
+	if (ShaderInfo.m_ps.Get())desc.PS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_ps->GetBufferPointer(), ShaderInfo.m_ps->GetBufferSize());
+	if(ShaderInfo.m_ds.Get())desc.DS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_ds->GetBufferPointer(), ShaderInfo.m_ds->GetBufferSize());
+	if(ShaderInfo.m_hs.Get())desc.HS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_hs->GetBufferPointer(), ShaderInfo.m_hs->GetBufferSize());
+	if(ShaderInfo.m_gs.Get())desc.GS = CD3DX12_SHADER_BYTECODE(ShaderInfo.m_gs->GetBufferPointer(), ShaderInfo.m_gs->GetBufferSize());
 
 	//グラフィックスパイプラインの生成
 	ComPtr<ID3D12PipelineState>pipeline;
 	hr = m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipeline));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateGraphicsPipeline", "グラフィックスパイプライン生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	return std::make_shared<GraphicsPipeline>(pipeline, rootSignature, Option.m_primitiveTopology);
 }
 
-std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<ID3DBlob>& ComputeShader, const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers)
+std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<IDxcBlob>& ComputeShader, const std::vector<RootParam>& RootParams, std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers)
 {
 	HRESULT hr;
 
@@ -1302,13 +1542,13 @@ std::shared_ptr<ComputePipeline> D3D12App::GenerateComputePipeline(const ComPtr<
 	//グラフィックスパイプライン設定にルートシグネチャをセット
 	desc.pRootSignature = rootSignature.Get();
 
-	desc.CS = CD3DX12_SHADER_BYTECODE(ComputeShader.Get());
+	desc.CS = CD3DX12_SHADER_BYTECODE(ComputeShader->GetBufferPointer(), ComputeShader->GetBufferSize());
 	desc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 	desc.NodeMask = 0;
 
 	ComPtr<ID3D12PipelineState>pipeline;
 	hr = m_device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pipeline));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateComputePipeline", "コンピュートパイプライン生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
 	return std::make_shared<ComputePipeline>(pipeline, rootSignature);
 }
@@ -1374,9 +1614,9 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 	//コマンドシグネチャ生成
 	ComPtr<ID3D12CommandSignature>cmdSignature;
 	auto hr = m_device->CreateCommandSignature(&cmdSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&cmdSignature));
-	KuroFunc::ErrorMessage(FAILED(hr), "D3D12App", "GenerateIndirectDevice", "インダイレクト機構生成に失敗\n");
+	assert(SUCCEEDED(hr));
 
-	return std::make_shared<IndirectDevice>(m_device, cmdSignature, gpuBuffNum);
+	return std::make_shared<IndirectDevice>(cmdSignature, gpuBuffNum);
 }
 
 void D3D12App::SetBackBufferRenderTarget()

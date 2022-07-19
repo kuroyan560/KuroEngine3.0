@@ -1,6 +1,6 @@
 #include "GraphicsManager.h"
 
-void GraphicsManager::SetRenderTargetsCommand::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+void GraphicsManager::SetRenderTargetsCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
 	for (auto ptr : m_renderTargets)
@@ -29,17 +29,17 @@ void GraphicsManager::SetRenderTargetsCommand::Excute(const ComPtr<ID3D12Graphic
 	}
 }
 
-void GraphicsManager::ClearRTVCommand::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+void GraphicsManager::ClearRTVCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	m_renderTarget.lock()->Clear(CmdList);
 }
 
-void GraphicsManager::ClearDSVCommand::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+void GraphicsManager::ClearDSVCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	m_depthStencil.lock()->Clear(CmdList);
 }
 
-void GraphicsManager::RenderCommand::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+void GraphicsManager::RenderCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	//ディスクリプタセット
 	for (int i = 0; i < m_descDatas.size(); ++i)
@@ -66,7 +66,7 @@ void GraphicsManager::RenderCommand::Excute(const ComPtr<ID3D12GraphicsCommandLi
 	}
 }
 
-void GraphicsManager::DispatchCommand::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+void GraphicsManager::DispatchCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	//ディスクリプタセット
 	for (int i = 0; i < m_descDatas.size(); ++i)
@@ -200,7 +200,7 @@ void GraphicsManager::CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12Graphics
 
 	for (auto itr = m_gCommands.begin(); itr != m_gCommands.end(); ++itr)
 	{
-		(*itr)->Excute(CmdList);
+		(*itr)->Execute(CmdList);
 	}
 
 	//コマンドリストクリア
@@ -209,7 +209,7 @@ void GraphicsManager::CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12Graphics
 	m_recentPipelineHandle = -1;
 }
 
-void GraphicsManager::CopyTex::Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+void GraphicsManager::CopyTex::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	m_destTex.lock()->CopyTexResource(CmdList, m_srcTex.lock().get());
 }

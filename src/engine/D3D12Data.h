@@ -2,11 +2,14 @@
 #include<d3d12.h>
 #include "d3dx12.h"
 #include <dxgi1_6.h>
+#include<dxcapi.h>
+#pragma comment(lib,"dxcompiler.lib")
 #include<wrl.h>
 #include <cassert>
 #include"Vec.h"
 #include"KuroFunc.h"
 #include"Color.h"
+
 
 enum DESC_HANDLE_TYPE { CBV, SRV, UAV, RTV, DSV, DESC_HANDLE_NUM };
 
@@ -26,12 +29,12 @@ public:
 	DescHandles() {}
 	DescHandles(const DescHandles& tmp)
 	{
-		KuroFunc::ErrorMessage(!tmp, "DescHandles", "コピーコンストラクタ", "コピー元の初期化がされていません\n");
+		assert(tmp);
 		Initialize(tmp.m_cpuHandle, tmp.m_gpuHandle);
 	}
 	DescHandles(DescHandles&& tmp)
 	{
-		KuroFunc::ErrorMessage(!tmp, "DescHandles", "ムーブコンストラクタ", "ムーブ元の初期化がされていません\n");
+		assert(tmp);
 		Initialize(tmp.m_cpuHandle, tmp.m_gpuHandle);
 	}
 	DescHandles(const D3D12_CPU_DESCRIPTOR_HANDLE& CPUHandle, const D3D12_GPU_DESCRIPTOR_HANDLE& GPUHandle) { Initialize(CPUHandle, GPUHandle); }
@@ -49,7 +52,7 @@ public:
 	//代入演算子
 	void operator=(const DescHandles& rhs)
 	{
-		KuroFunc::ErrorMessage(rhs.m_invalid, "DescHandles", "代入演算子", "代入するディスクリプタハンドルが初期化されていません\n");
+		assert(!rhs.m_invalid);
 		m_cpuHandle = rhs.m_cpuHandle;
 		m_gpuHandle = rhs.m_gpuHandle;
 		m_invalid = false;
@@ -57,22 +60,22 @@ public:
 
 	operator const D3D12_CPU_DESCRIPTOR_HANDLE& ()const
 	{
-		KuroFunc::ErrorMessage(m_invalid, "DescHandles", "operatorゲッタ", "初期化されていません\n");
+		assert(!m_invalid);
 		return m_cpuHandle;
 	}
 	operator const D3D12_CPU_DESCRIPTOR_HANDLE* ()const
 	{
-		KuroFunc::ErrorMessage(m_invalid, "DescHandles", "operatorゲッタ", "初期化されていません\n");
+		assert(!m_invalid);
 		return &m_cpuHandle;
 	}
 	operator const D3D12_GPU_DESCRIPTOR_HANDLE& ()const
 	{
-		KuroFunc::ErrorMessage(m_invalid, "DescHandles", "operatorゲッタ", "初期化されていません\n");
+		assert(!m_invalid);
 		return m_gpuHandle;
 	}
 	operator const D3D12_GPU_DESCRIPTOR_HANDLE* ()const
 	{
-		KuroFunc::ErrorMessage(m_invalid, "DescHandles", "operatorゲッタ", "初期化されていません\n");
+		assert(!m_invalid);
 		return &m_gpuHandle;
 	}
 };
@@ -126,6 +129,9 @@ public:
 
 	//バッファ取得
 	const ComPtr<ID3D12Resource>& GetBuff() { return m_buff; }
+	//現在のリソースバリア取得
+	const D3D12_RESOURCE_STATES& GetResourceBarrier() { return m_barrier; }
+
 	//マッピング
 	void Mapping(const size_t& DataSize, const int& ElementNum, const void* SendData);
 	//リソースバリアの変更
@@ -150,16 +156,16 @@ protected:
 	std::shared_ptr<GPUResource> m_resource;	//GPUバッファ
 	DescHandlesContainer m_handles;	//ディスクリプタハンドル
 
+	//バッファセットのタイミングで呼ばれる関数、リソースバリアを変えるなど
+	virtual void OnSetDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type) {};
+
+public:
 	DescriptorData(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier) :m_resource(std::make_shared<GPUResource>(Buff, Barrier)) {}
 	DescriptorData(const std::shared_ptr<GPUResource>& GPUResource) :m_resource(GPUResource) {}	//同じものを差す
-
-	//バッファセットのタイミングで呼ばれる関数、リソースバリアを変えるなど
-	virtual void OnSetDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type) = 0;
-public:
 	//バッファセット
 	void SetGraphicsDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
 	void SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
-	const std::shared_ptr<GPUResource>& GetResource() { return m_resource; }
+	std::shared_ptr<GPUResource>& GetResource() { return m_resource; }
 
 	void InitDescHandle(const DESC_HANDLE_TYPE& Type, const DescHandles& Handle)
 	{
@@ -234,14 +240,7 @@ private:
 
 	void OnSetDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type)override
 	{
-		if (Type == UAV)
-		{
-			m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		}
-		else if (Type == SRV)
-		{
-			m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_GENERIC_READ);
-		}
+		m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	}
 public:
 	RWStructuredBuffer(const ComPtr<ID3D12Resource1>& Buff, const D3D12_RESOURCE_STATES& Barrier, const DescHandles& UAVHandles, const size_t& DataSize, const int& ElementNum)
@@ -451,7 +450,7 @@ public:
 	//読み取り専用構造化バッファ取得
 	std::weak_ptr<RWStructuredBuffer>GetRWStructuredBuff()
 	{
-		KuroFunc::ErrorMessage(!m_rwBuff, "VertexBuffer", "GetRWStructuredBuff", "頂点バッファの描き込み用構造化バッファは未生成です\n");
+		assert(m_rwBuff);
 		return m_rwBuff;
 	}
 	//頂点バッファとして使うためにリソースバリア変更
@@ -502,11 +501,11 @@ class Shaders
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 public:
-	ComPtr<ID3DBlob>m_vs;	//頂点シェーダー
-	ComPtr<ID3DBlob>m_ps;	//ピクセルシェーダー
-	ComPtr<ID3DBlob>m_ds;	//ドメインシェーダー
-	ComPtr<ID3DBlob>m_hs;	//ハルシェーダー
-	ComPtr<ID3DBlob>m_gs;	//ジオメトリシェーダー
+	ComPtr<IDxcBlob>m_vs;	//頂点シェーダー
+	ComPtr<IDxcBlob>m_ps;	//ピクセルシェーダー
+	ComPtr<IDxcBlob>m_ds;	//ドメインシェーダー
+	ComPtr<IDxcBlob>m_hs;	//ハルシェーダー
+	ComPtr<IDxcBlob>m_gs;	//ジオメトリシェーダー
 };
 
 //頂点レイアウトパラメータ
@@ -567,7 +566,7 @@ public:
 			m_descriptorRangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 			break;
 		default:
-			KuroFunc::ErrorMessage(m_viewType == RTV || m_viewType == DSV, "RootParam", "コンストラクタ", "ルートパラメータで RTV / DSV は設定できません\n");
+			assert(0);
 			break;
 		}
 	}
@@ -714,19 +713,27 @@ private:
 
 	//カウントリセット用コピー元バッファ
 	static ComPtr<ID3D12Resource>s_countResetBuffer;
+public:
+	static std::shared_ptr<GPUResource>GenerateCounterBuffer(const ComPtr<ID3D12Device>& Device);
+	static void ResetCounterBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<GPUResource> CounterBuffer);
+
 private:
 	//コマンドシグネチャ
 	ComPtr<ID3D12CommandSignature>m_cmdSignature;
 	//１つの描画コマンドにつき使用するGPUバッファの数
 	int m_gpuBuffNum;
-	//カウントバッファー
-	ComPtr<ID3D12Resource>m_countBuffer;
 
 public:
-	IndirectDevice(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum);
+	IndirectDevice(const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum)
+		:m_cmdSignature(CmdSignature), m_gpuBuffNum(GPUBufferNum) {}
 
-	void Excute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
+	void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
 		int MaxCommandCount,
 		ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
-		bool UseCountBuffer);
+		ID3D12Resource* CounterBuffer = nullptr, UINT CounterBufferOffset = 0);
+
+	void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
+		int MaxCommandCount,
+		ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
+		std::shared_ptr<GPUResource>CounterBuffer, UINT CounterBufferOffset = 0);
 };

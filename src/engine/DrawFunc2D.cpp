@@ -39,8 +39,8 @@ void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawLine2D.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -120,9 +120,9 @@ void DrawFunc2D::DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& Righ
 
 			//シェーダー情報
 			static Shaders SHADERS;
-			SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "VSmain", "vs_5_0");
-			SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "GSmain", "gs_5_0");
-			SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "PSmain", "ps_5_0");
+			SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "VSmain", "vs_6_4");
+			SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "GSmain", "gs_6_4");
+			SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawBox2D.hlsl", "PSmain", "ps_6_4");
 
 			//インプットレイアウト
 			static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -205,9 +205,9 @@ void DrawFunc2D::DrawCircle2D(const Vec2<float>& Center, const float& Radius, co
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawCircle2D.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -277,9 +277,9 @@ void DrawFunc2D::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2<floa
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawExtendGraph.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -346,9 +346,9 @@ void DrawFunc2D::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& E
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawRotaGraph.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =

@@ -49,9 +49,9 @@ void DrawFunc2D_Color::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawExtendGraph_Color.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawExtendGraph_Color.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawExtendGraph_Color.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawExtendGraph_Color.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawExtendGraph_Color.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawExtendGraph_Color.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -122,9 +122,9 @@ void DrawFunc2D_Color::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<flo
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawRotaGraph_Color.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawRotaGraph_Color.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawRotaGraph_Color.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawRotaGraph_Color.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawRotaGraph_Color.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/HLSL/Engine/DrawRotaGraph_Color.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =

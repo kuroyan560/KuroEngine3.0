@@ -196,10 +196,10 @@
     <FxCompile Include="resource\engine\PerlinNoise2D.hlsl">
       <Filter>HLSL\engine\Noise</Filter>
     </FxCompile>
-    <FxCompile Include="resource\user\IndirectSample_Block.hlsl">
+    <FxCompile Include="resource\user\IndirectSample_Calling.hlsl">
       <Filter>HLSL\user</Filter>
     </FxCompile>
-    <FxCompile Include="resource\user\IndirectSample_Calling.hlsl">
+    <FxCompile Include="resource\user\IndirectSample_Block.hlsl">
       <Filter>HLSL\user</Filter>
     </FxCompile>
   </ItemGroup>
@@ -630,6 +630,9 @@
     </ClInclude>
     <ClInclude Include="src\user\IndirectSample.h">
       <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dxcapi.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

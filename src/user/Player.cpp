@@ -81,7 +81,7 @@ void Player::AnimationSwitch()
 
 Player::Player() : m_pushBackColliderCallBack(this)
 {
-	KuroFunc::ErrorMessage(s_instanced, "Player", "Constructor", "Only one Player's instance can exsit.");
+	assert(!s_instanced);
 	s_instanced = true;
 	m_model = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 

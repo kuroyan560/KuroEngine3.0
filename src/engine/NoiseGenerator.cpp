@@ -39,7 +39,7 @@ void NoiseGenerator::PerlinNoise2D(std::shared_ptr<TextureBuffer> DestTex, const
 	if (!PIPELINE)
 	{
 		//シェーダ
-		auto cs = D3D12App::Instance()->CompileShader("resource/engine/PerlinNoise2D.hlsl", "CSmain", "cs_5_0");
+		auto cs = D3D12App::Instance()->CompileShader("resource/engine/PerlinNoise2D.hlsl", "CSmain", "cs_6_4");
 		//ルートパラメータ
 		std::vector<RootParam>rootParams =
 		{

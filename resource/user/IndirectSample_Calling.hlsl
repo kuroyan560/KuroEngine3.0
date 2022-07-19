@@ -11,7 +11,7 @@ struct Block
 
 struct IndirectCommand
 {
-    uint2 cbvAddress[2];
+    uint64_t cbvAddress[2];
     uint4 drawArguments;
 };
 

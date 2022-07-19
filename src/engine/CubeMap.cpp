@@ -213,8 +213,8 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -400,9 +400,9 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "GSmain", "gs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =

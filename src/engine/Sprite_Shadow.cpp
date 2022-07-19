@@ -40,8 +40,8 @@ Sprite_Shadow::Sprite_Shadow(const std::shared_ptr<TextureBuffer>& Texture, cons
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite_Shadow.hlsl", "VSmain", "vs_5_0");
-		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite_Shadow.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite_Shadow.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite_Shadow.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =

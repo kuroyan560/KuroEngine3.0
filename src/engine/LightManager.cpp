@@ -109,7 +109,7 @@ void LightManager::RegisterDirLight(Light::Direction* DirLight)
 	}
 
 	dirLights.emplace_back(DirLight);
-	KuroFunc::ErrorMessage(MAX_LIG_NUM[Light::DIRECTION] < dirLights.size(), "LightManager", "RegisterDirLight", "ディレクションライトの登録数の最大を超えています\n");
+	assert(dirLights.size() <= MAX_LIG_NUM[Light::DIRECTION]);
 
 	//Dirtyフラグは見ず、ディレクションライト情報を強制マッピング
 	MappingLigInfo(Light::DIRECTION, false);
@@ -127,7 +127,7 @@ void LightManager::RegisterPointLight(Light::Point* PtLight)
 	}
 
 	ptLights.emplace_back(PtLight);
-	KuroFunc::ErrorMessage(MAX_LIG_NUM[Light::POINT] < ptLights.size(), "LightManager", "RegisterPointLight", "ポイントライトの登録数の最大を超えています\n");
+	assert(ptLights.size() <= MAX_LIG_NUM[Light::POINT]);
 
 	//Dirtyフラグは見ず、ポイントライト情報を強制マッピング
 	MappingLigInfo(Light::POINT, false);
@@ -145,7 +145,7 @@ void LightManager::RegisterSpotLight(Light::Spot* SpotLight)
 	}
 
 	spotLights.emplace_back(SpotLight);
-	KuroFunc::ErrorMessage(MAX_LIG_NUM[Light::SPOT] < spotLights.size(), "LightManager", "RegisterSpotLight", "スポットライトの登録数の最大を超えています\n");
+	assert(spotLights.size() <= MAX_LIG_NUM[Light::SPOT]);
 
 	//Dirtyフラグは見ず、スポットライト情報を強制マッピング
 	MappingLigInfo(Light::SPOT, false);
@@ -163,7 +163,7 @@ void LightManager::RegisterHemiSphereLight(Light::HemiSphere* HemiSphereLight)
 	}
 
 	hemiSphereLights.emplace_back(HemiSphereLight);
-	KuroFunc::ErrorMessage(MAX_LIG_NUM[Light::HEMISPHERE] < hemiSphereLights.size(), "LightManager", "RegisterHemiSphereLight", "天球ライトの登録数の最大を超えています\n");
+	assert(hemiSphereLights.size() <= MAX_LIG_NUM[Light::HEMISPHERE]);
 
 	//Dirtyフラグは見ず、天球ライト情報を強制マッピング
 	MappingLigInfo(Light::HEMISPHERE, false);

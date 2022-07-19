@@ -36,7 +36,7 @@ private:
 public:
 	static D3D12App* Instance()
 	{
-		KuroFunc::ErrorMessage(s_instance == nullptr, "D3D12App", "シングルトンインスタンス", "インスタンスがnullptrでした\n");
+		assert(s_instance != nullptr);
 		return s_instance;
 	}
 
@@ -95,7 +95,7 @@ private:
 public:
 	D3D12App(const HWND& Hwnd, const Vec2<int>& ScreenSize, const bool& UseHDR, const Color& ClearValue, const bool& IsFullScreen = false)
 	{
-		KuroFunc::ErrorMessage(s_instance != nullptr, "D3D12App", "コンストラクタ", "既にインスタンスが生成済です\n");
+		assert(s_instance == nullptr);
 		s_instance = this;
 		Initialize(Hwnd, ScreenSize, UseHDR, ClearValue, IsFullScreen);
 	}
@@ -105,11 +105,15 @@ public:
 	const ComPtr<ID3D12GraphicsCommandList>& GetCmdList() { return m_commandList; }
 	const DXGI_FORMAT& GetBackBuffFormat() { return m_backBuffFormat; }
 	const std::shared_ptr<RenderTarget>& GetBackBuffRenderTarget() { return m_swapchain->GetBackBufferRenderTarget(); }
+	ComPtr<ID3D12CommandAllocator>& GetOneShotCommandAllocator() { return m_oneshotCommandAllocator; }
 
 	//ディスクリプタデータヒープのセット(コンピュートシェーダーを利用するときはユーザーからも呼び出せるように)
 	void SetDescHeaps();
 	//レンダリング（D3D12AppUserを継承した KuroEngine 以外では呼び出せない）
 	void Render(D3D12AppUser* User);
+
+	//CPUリソースをGPUに昇華してコピー
+	void UploadCPUResource(std::shared_ptr<GPUResource>& Dest, const size_t& DataSize, const int& ElementNum, const void* SendData);
 
 	//頂点バッファ生成
 	std::shared_ptr<VertexBuffer>GenerateVertexBuffer(const size_t& VertexSize, const int& VertexNum, void* InitSendData = nullptr, const char* Name = nullptr, const bool& RWStructuredBuff = false);
@@ -146,6 +150,8 @@ public:
 	DescHandles CreateRTV(const ComPtr<ID3D12Resource>& Buff, const D3D12_RENDER_TARGET_VIEW_DESC* ViewDesc = nullptr);
 	//DSV作成（D3D12App経由）
 	DescHandles CreateDSV(const ComPtr<ID3D12Resource>& Buff, const D3D12_DEPTH_STENCIL_VIEW_DESC* ViewDesc = nullptr);
+	//UAV作成（D3D12App経由）
+	DescHandles CreateUAV(const ComPtr<ID3D12Resource>& Buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC& ViewDesc, const ComPtr<ID3D12Resource>& CounterBuff = nullptr);
 
 	//レンダーターゲット生成
 	std::shared_ptr<RenderTarget>GenerateRenderTarget(const DXGI_FORMAT& Format, const Color& ClearValue, const Vec2<int>Size,
@@ -154,7 +160,7 @@ public:
 	std::shared_ptr<DepthStencil>GenerateDepthStencil(const Vec2<int>& Size, const DXGI_FORMAT& Format = DXGI_FORMAT_D32_FLOAT, const float& ClearValue = 1.0f);
 
 	//シェーダーのコンパイル
-	ComPtr<ID3DBlob>CompileShader(const std::string& FilePath, const std::string& EntryPoint, const std::string& ShaderModel);
+	ComPtr<IDxcBlob>CompileShader(const std::string& FilePath, const std::string& EntryPoint, const std::string& ShaderModel);
 
 	//パイプライン生成
 	/// <summary>
@@ -176,7 +182,7 @@ public:
 
 	//コンピュートパイプライン生成
 	std::shared_ptr<ComputePipeline>GenerateComputePipeline(
-		const ComPtr<ID3DBlob>& ComputeShader,
+		const ComPtr<IDxcBlob>& ComputeShader,
 		const std::vector<RootParam>& RootParams,
 		std::vector<D3D12_STATIC_SAMPLER_DESC> Samplers);
 

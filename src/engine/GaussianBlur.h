@@ -36,7 +36,7 @@ public:
 	//ボケ具合
 	void SetBlurPower(const float& BlurPower);
 	//即時実行
-	void Excute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex);
+	void Execute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList, const std::shared_ptr<TextureBuffer>& SourceTex);
 	//グラフィックスマネージャに登録
 	void Register(const std::shared_ptr<TextureBuffer>& SourceTex);
 

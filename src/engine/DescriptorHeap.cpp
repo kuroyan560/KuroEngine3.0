@@ -40,12 +40,12 @@ void DescriptorHeap_CBV_SRV_UAV::CreateSRV(const ComPtr<ID3D12Device>& Device, c
     OnCreateView();
 }
 
-void DescriptorHeap_CBV_SRV_UAV::CreateUAV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC& Desc)
+void DescriptorHeap_CBV_SRV_UAV::CreateUAV(const ComPtr<ID3D12Device>& Device, const ComPtr<ID3D12Resource>& Buff, const D3D12_UNORDERED_ACCESS_VIEW_DESC& Desc, const ComPtr<ID3D12Resource>& CounterBuff)
 {
     //ヒープにアンオーダードアクセスビュー作成
     Device->CreateUnorderedAccessView(
         Buff.Get(), //ビューと関連付けるバッファ
-        nullptr,
+        CounterBuff ? CounterBuff.Get() : nullptr,
         &Desc,  //データ設定情報
         GetCpuHandleEnd());
     OnCreateView();

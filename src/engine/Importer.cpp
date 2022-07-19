@@ -6,7 +6,11 @@
 
 void Importer::ErrorMessage(const std::string& FuncName, const bool& Fail, const std::string& Comment)
 {
-	KuroFunc::ErrorMessage(Fail, "Importer", FuncName, Comment);
+	if (Fail)
+	{
+		OutputDebugStringA((FuncName + Comment).c_str());
+		assert(0);
+	}
 }
 
 bool Importer::LoadData(FILE* Fp, void* Data, const size_t& Size, const int& ElementNum)
@@ -109,7 +113,7 @@ void Importer::LoadBoneAffectTable(const Skeleton& Skel, FbxMesh* FbxMesh, BoneT
 			}
 
 			//ボーンが見つからなかった
-			KuroFunc::ErrorMessage(affectBoneIdx == -1, "Imporeter", "LoadBoneAffectTable", "Affect bone index wasn't found.");
+			assert(affectBoneIdx != -1);
 
 			//影響を与える頂点のインデックス配列
 			int* pointArray = cluster->GetControlPointIndices();
@@ -228,7 +232,7 @@ void Importer::LoadFbxVertex(ModelMesh& ModelMesh, FbxMesh* FbxMesh, BoneTable& 
 			}
 
 			//４つまでしかボーン適用できない
-			KuroFunc::ErrorMessage(4 < count, "Importer", "SetBoneAffectToVertex", "頂点読み込みにて５つ以上のボーンが適用されました。１つの頂点につき最大４つのボーンを適用出来ません\n");
+			assert(count <= 4);
 		}
 
 		//モデルのメッシュに頂点追加
@@ -1270,7 +1274,7 @@ std::shared_ptr<Model> Importer::LoadGLTFModel(const std::string& Dir, const std
 		resourceReader = std::move(glbResourceReader);
 	}
 
-	KuroFunc::ErrorMessage(!resourceReader, "Importer", "LoadGLTFModel", "ファイルの拡張子が glb でも gltf でもありません\n");
+	assert(resourceReader);
 
 	Microsoft::glTF::Document doc;
 	try

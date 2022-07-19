@@ -7,9 +7,6 @@
 
 namespace KuroFunc
 {
-	//KuroEngineのエラーメッセージの表示フォーマット
-	void ErrorMessage(const bool& Fail, const std::string& ClassName, const std::string& FuncName, const std::string& Comment);
-
 	std::wstring GetWideStrFromStr(const std::string& Str);
 	std::wstring GetWideStrFromStr(const char* Str);
 

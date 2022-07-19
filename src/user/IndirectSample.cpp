@@ -13,6 +13,95 @@ static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
 static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
 
+void IndirectSample::GenerateCommandBuffers(const size_t& CommandSize)
+{
+	using namespace Microsoft::WRL;
+
+	if (!m_invalidCommandBuffer)return;
+
+	auto device = D3D12App::Instance()->GetDevice();
+
+	//コマンドバッファ生成
+	{
+		//ヒーププロパティ
+		auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		//リソース設定
+		D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(CommandSize * s_blockNum);
+		//リソースバリア
+		auto barrier = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+		ComPtr<ID3D12Resource1>buff;
+		auto hr = device->CreateCommittedResource(
+			&prop,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			barrier,
+			nullptr,
+			IID_PPV_ARGS(&buff));
+		buff->SetName(L"IndirectSample - CommandBuffer");
+
+		//SRV設定
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Buffer.NumElements = s_blockNum;
+		srvDesc.Buffer.StructureByteStride = sizeof(CommandSize);
+		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+		//SRV作成
+		auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, srvDesc);
+
+		//まとめる
+		m_commandBuffer = std::make_shared<DescriptorData>(buff, barrier);
+		//SRVディスクリプタ登録
+		m_commandBuffer->InitDescHandle(SRV, srvDescHandles);
+	}
+	//カウンターバッファ生成
+	{
+		m_counterBuffer = IndirectDevice::GenerateCounterBuffer(device);
+	}
+
+	//カリング処理後のコマンドバッファ作成
+	{
+		//ヒーププロパティ
+		auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		//リソース設定
+		D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(CommandSize * s_blockNum,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		//リソースバリア
+		auto barrier = D3D12_RESOURCE_STATE_COPY_DEST;
+
+		ComPtr<ID3D12Resource1>buff;
+		auto hr = device->CreateCommittedResource(
+			&prop,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			barrier,
+			nullptr,
+			IID_PPV_ARGS(&buff));
+		buff->SetName(L"IndirectSample - ProcessedCommandBuffer");
+
+		//UAV設定
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+		uavDesc.Buffer.FirstElement = 0;
+		uavDesc.Buffer.NumElements = s_blockNum;
+		uavDesc.Buffer.StructureByteStride = CommandSize;
+		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+		//UAV作成
+		auto uavDescHandles = D3D12App::Instance()->CreateUAV(buff, uavDesc, m_counterBuffer->GetBuff());
+
+		//まとめる
+		m_processedCommandBuffer = std::make_shared<DescriptorData>(buff, barrier);
+		//SRVディスクリプタ登録
+		m_processedCommandBuffer->InitDescHandle(UAV, uavDescHandles);
+	}
+
+	m_invalidCommandBuffer = false;
+}
+
 IndirectSample::IndirectSample()
 {
 	//ブロックの個体情報生成
@@ -39,13 +128,11 @@ IndirectSample::IndirectSample()
 		//パイプライン設定
 		PipelineInitializeOption gPipelineOption(D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT, D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-
-
 		//シェーダー情報
 		Shaders gPipelineShaders;
-		gPipelineShaders.m_vs = D3D12App::Instance()->CompileShader("resource/user/IndirectSample_Block.hlsl", "VSmain", "vs_5_0");
-		gPipelineShaders.m_gs = D3D12App::Instance()->CompileShader("resource/user/IndirectSample_Block.hlsl", "GSmain", "gs_5_0");
-		gPipelineShaders.m_ps = D3D12App::Instance()->CompileShader("resource/user/IndirectSample_Block.hlsl", "PSmain", "ps_5_0");
+		gPipelineShaders.m_vs = D3D12App::Instance()->CompileShader("resource/user/IndirectSample_Block.hlsl", "VSmain", "vs_6_4");
+		gPipelineShaders.m_gs = D3D12App::Instance()->CompileShader("resource/user/IndirectSample_Block.hlsl", "GSmain", "gs_6_4");
+		gPipelineShaders.m_ps = D3D12App::Instance()->CompileShader("resource/user/IndirectSample_Block.hlsl", "PSmain", "ps_6_4");
 
 		//レンダーターゲット描画先情報
 		std::vector<RenderTargetInfo>renderTargetInfo = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), AlphaBlendMode_None) };
@@ -64,7 +151,7 @@ IndirectSample::IndirectSample()
 	{
 		//シェーダー
 		auto cs = D3D12App::Instance()->CompileShader(
-			"resource/user/IndirectSample_Calling.hlsl", "CSmain", "cs_5_0");
+			"resource/user/IndirectSample_Calling.hlsl", "CSmain", "cs_6_0");
 
 		//ルートパラメータ
 		std::vector<RootParam>cRootParams
@@ -114,20 +201,10 @@ void IndirectSample::Init(Camera& Cam)
 
 	size_t commandDataSize = commands.front().GetSize();
 
-	//コマンドバッファ生成
-	m_commandBuffer = D3D12App::Instance()->GenerateRWStructuredBuffer(commandDataSize, s_blockNum, commands.data(),"IndirectSample - CommandBuffer");
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Buffer.NumElements = s_blockNum;
-	srvDesc.Buffer.StructureByteStride = commandDataSize;
-	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-	auto srvDescHandles = D3D12App::Instance()->CreateSRV(m_commandBuffer->GetResource()->GetBuff(), srvDesc);
-	m_commandBuffer->InitDescHandle(SRV, srvDescHandles);
+	GenerateCommandBuffers(commandDataSize);
 
-	//カリング処理済コマンドバッファ格納先
-	m_processedCommandBuffer = D3D12App::Instance()->GenerateRWStructuredBuffer(commandDataSize, s_blockNum, nullptr, "IndirectSample - ProccessedCommandBuffer");
+	//コマンドバッファにデータ転送
+	D3D12App::Instance()->UploadCPUResource(m_commandBuffer->GetResource(), commandDataSize, s_blockNum, commands.data());
 }
 
 void IndirectSample::Update(bool EnableCalling)
@@ -177,6 +254,10 @@ void IndirectSample::Draw(Camera& Cam)
 		//カリング処理済バッファ
 		m_processedCommandBuffer->SetComputeDescriptorBuffer(cmdList, UAV, 4);
 
+		//カウンターバッファのリセット
+		IndirectDevice::ResetCounterBuffer(cmdList, m_counterBuffer);
+
+
 		//実行
 		auto threadX = static_cast<UINT>(ceil(s_blockNum / float(COMPUTE_THREAD_BLOCK_SIZE)));
 		cmdList->Dispatch(threadX, 1, 1);
@@ -191,23 +272,22 @@ void IndirectSample::Draw(Camera& Cam)
 	{
 		m_processedCommandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
-		m_indirectDev->Excute(
+		m_indirectDev->Execute(
 			cmdList,
 			s_blockNum,
 			m_processedCommandBuffer->GetResource()->GetBuff().Get(),
 			0,
-			true);
+			m_counterBuffer);
 	}
 	else
 	{
 		m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
-		m_indirectDev->Excute(
+		m_indirectDev->Execute(
 			cmdList,
 			s_blockNum,
 			m_commandBuffer->GetResource()->GetBuff().Get(),
-			0,
-			false);
+			0);
 
 		m_commandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	}
