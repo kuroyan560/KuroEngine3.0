@@ -1,10 +1,19 @@
 #include"../engine/Camera.hlsli"
 #define threadBlockSize 128
 
+//struct Block
+//{
+//    matrix proj;
+//    matrix view;
+//    float4 color;
+//    float scale;
+//    float3 vel;
+//    float3 offset;
+//};
+
 struct Block
 {
-    matrix proj;
-    matrix view;
+
     float4 color;
     float scale;
     float3 vel;
@@ -38,8 +47,16 @@ AppendStructuredBuffer<IndirectCommand> outputCommands    : register(u0);    // 
 [numthreads(threadBlockSize, 1, 1)]
 void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
+
+    
     uint index = (groupId.x * threadBlockSize) + groupIndex;
 
+    IndirectCommand com = inputCommands[0];
+    com.drawArguments.x = 1;
+    com.drawArguments.y = 1;
+    com.drawArguments.z = 0;
+    com.drawArguments.w = 0;
+    
     //if (index < commandCount)
     {
         //float4 left = float4(-xOffset, 0.0f, zOffset, 1.0f) + float4(block[index].offset, 1);
@@ -58,7 +75,8 @@ void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
         //if (block[index].offset.y < 0.0f)
         //    if (0.0f < block[index].offset.y)
         //{
-            outputCommands.Append(inputCommands[index]);
+            //outputCommands.Append(inputCommands[index]);
+            outputCommands.Append(com);
         //}
     }
 }
