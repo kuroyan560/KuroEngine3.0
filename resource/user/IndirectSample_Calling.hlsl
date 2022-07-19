@@ -40,7 +40,7 @@ void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
     uint index = (groupId.x * threadBlockSize) + groupIndex;
 
-    if (index < commandCount)
+    //if (index < commandCount)
     {
         //float4 left = float4(-xOffset, 0.0f, zOffset, 1.0f) + float4(block[index].offset, 1);
         //left /= left.w;
