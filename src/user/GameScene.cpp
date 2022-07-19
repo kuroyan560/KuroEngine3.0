@@ -128,8 +128,8 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	m_indirectSample.Update(m_enableCalling);
-	//m_indirectSample.Update(m_enableCalling, *GameManager::Instance()->GetNowCamera());
+	//m_indirectSample.Update(m_enableCulling);
+	m_indirectSample.Update(m_cullingOffset);
 }
 
 
@@ -223,7 +223,8 @@ void GameScene::OnDraw()
 void GameScene::OnImguiDebug()
 {
 	ImGui::Begin("Indirect");
-	ImGui::Checkbox("EnableCalling", &m_enableCalling);
+	//ImGui::Checkbox("EnableCulling", &m_enableCulling);
+	ImGui::DragFloat("CullingOffset", &m_cullingOffset);
 	ImGui::End();
 
 	/*ImGui::Begin("Button");

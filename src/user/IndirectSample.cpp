@@ -7,10 +7,8 @@ static const float MAX_SCALE = 0.1f;
 static const float MIN_VEL = 0.003f;
 static const float MAX_VEL = 0.05f;
 static const float RANGE = 15.0f;
-//static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
 static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
-//static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
-static const Vec3<float> MAX_OFFSET = { RANGE,-RANGE,RANGE };
+static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
 static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
@@ -48,7 +46,7 @@ void IndirectSample::GenerateCommandBuffers(const size_t& CommandSize)
 		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		srvDesc.Buffer.NumElements = s_blockNum;
-		srvDesc.Buffer.StructureByteStride = sizeof(CommandSize);
+		srvDesc.Buffer.StructureByteStride = CommandSize;
 		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 		//SRV作成
@@ -197,7 +195,6 @@ void IndirectSample::Init(Camera& Cam)
 
 		//CBV1（ブロック情報）
 		com.m_gpuAddressArray[1] = blockBuffAddress;
-		//com.m_gpuAddressArray[0] = blockBuffAddress;
 		blockBuffAddress += incrementSize;
 
 		//SRV0（テクスチャ情報）
@@ -211,14 +208,12 @@ void IndirectSample::Init(Camera& Cam)
 	D3D12App::Instance()->UploadCPUResource(m_commandBuffer->GetResource(), commandDataSize, s_blockNum, commands.data());
 }
 
-void IndirectSample::Update(bool EnableCalling)
-//void IndirectSample::Update(bool EnableCalling, Camera& Cam)
+//void IndirectSample::Update(bool EnableCulling)
+void IndirectSample::Update(float CullingOffset)
 {
 	for (auto& b : m_blockDataArray)
 	{
-		//b.proj = Cam.GetProjectionMat();
-		//b.view = Cam.GetViewMat();
-		//b.m_offset += b.m_vel;
+		b.m_offset += b.m_vel;
 		if (MAX_OFFSET.y < b.m_offset.y)
 		{
 			b.m_offset = KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
@@ -232,7 +227,9 @@ void IndirectSample::Update(bool EnableCalling)
 	}
 	m_blockBuff->Mapping(m_blockDataArray.data());
 
-	m_enableCulling = EnableCalling;
+	m_callingConfig.cullOffset = CullingOffset;
+	m_callingConfigBuffer->Mapping(&m_callingConfig);
+	//m_enableCulling = EnableCalling;
 }
 
 void IndirectSample::Draw(Camera& Cam)

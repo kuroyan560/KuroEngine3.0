@@ -125,18 +125,17 @@ void GSmain(
     float4 center = input[0]; //中心
     center.xyz += offset;
     //matrix rotateMat = GetRoateMat(input[0].rotate); //回転角度
-    float radius = scale;
     
     //形状によって頂点数が変わる
     for (uint i = 0; i < vertNum; ++i)
     {
         //CUBE
-        float side = radius * (2 / sqrt(3)); //辺の長さ
+        float side_h = scale / 2.0f;
         int index = cubeOffsetIdx[i];
         float4 pos = center;
-        pos.x += cubeOffset[index].x * side;
-        pos.y += cubeOffset[index].y * side;
-        pos.z += cubeOffset[index].z * side;
+        pos.x += cubeOffset[index].x * side_h;
+        pos.y += cubeOffset[index].y * side_h;
+        pos.z += cubeOffset[index].z * side_h;
             
         //pos = center + mul(rotateMat, pos - center);
             

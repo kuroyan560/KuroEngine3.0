@@ -43,7 +43,8 @@ class GameScene : public BaseScene
 
 	IndirectSample m_indirectSample;
 
-	bool m_enableCalling = false;
+	//bool m_enableCulling = false;
+	float m_cullingOffset = 1.0f;
 
 public:
 	GameScene();
