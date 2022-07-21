@@ -5,34 +5,34 @@
 #include"Collision.h"
 #include"Collider.h"
 
-Enemy::Enemy(const EnemyBreed& Breed, const Transform& InitTransform) : breed(Breed), transform(InitTransform)
+Enemy::Enemy(const EnemyBreed& Breed, const Transform& InitTransform) : m_breed(Breed), m_transform(InitTransform)
 {
 	//系統クラスから攻撃パターンのクローンを受け取る
-	if (breed.GetAttack())
+	if (m_breed.GetAttack())
 	{
 		//attack = std::make_shared<EnemyAttack>(breed.GetAttack());
 	}
 	//アニメーション情報を持つならアニメーター生成
-	if (!breed.GetModel()->skelton->animations.empty())
+	if (!m_breed.GetModel()->m_skelton->animations.empty())
 	{
-		animator = std::make_shared<ModelAnimator>(breed.GetModel());
+		m_animator = std::make_shared<ModelAnimator>(m_breed.GetModel());
 	}
 
 	//コライダー生成
 	const float COLLIDER_RADIUS = 7.0f;
-	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS, &transform);
+	auto colSphere = std::make_shared<CollisionSphere>(COLLIDER_RADIUS, &m_transform);
 	colSphere->m_offset = { 0.0f, 0.5f, 0.0f };
-	collider = Collider::Generate(colSphere);
-	collider->SetMyAttribute(COLLIDER_ATTRIBUTE::ENEMY);
-	collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::PLAYER);
+	m_collider = Collider::Generate(colSphere);
+	m_collider->SetMyAttribute(COLLIDER_ATTRIBUTE::ENEMY);
+	m_collider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 
 	Init();
 }
 
 void Enemy::Init()
 {
-	hp = breed.GetMaxHp();
-	if (attack)attack->Init();
+	m_hp = m_breed.GetMaxHp();
+	if (m_attack)m_attack->Init();
 }
 
 void Enemy::Update()
@@ -40,10 +40,10 @@ void Enemy::Update()
 	//死んでいる
 	if (!IsAlive())return;
 
-	if (attack)attack->Update();
+	if (m_attack)m_attack->Update();
 }
 
 void Enemy::Damage(const int& Amount)
 {
-	hp -= Amount;
+	m_hp -= Amount;
 }

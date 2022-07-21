@@ -10,18 +10,18 @@ class Model
 {
 public:
 	//ヘッダ（モデル情報）
-	ImportHeader header;
+	ImportHeader m_header;
 	//メッシュ
-	std::vector<ModelMesh>meshes;
+	std::vector<ModelMesh>m_meshes;
 	//スケルトン（ボーン構成）
-	std::shared_ptr<Skeleton> skelton;
+	std::shared_ptr<Skeleton> m_skelton;
 
-	Model(const std::string& Dir, const std::string& FileName) :header(Dir, FileName) {}
+	Model(const std::string& Dir, const std::string& FileName) :m_header(Dir, FileName) {}
 
 	//全メッシュをスムージング
 	void AllMeshSmoothing()
 	{
-		for (auto& m : meshes)
+		for (auto& m : m_meshes)
 		{
 			m.Smoothing();
 		}
@@ -32,7 +32,7 @@ public:
 
 	void AllMeshBuildTangentAndBiNormal()
 	{
-		for (auto& m : meshes)
+		for (auto& m : m_meshes)
 		{
 			m.BuildTangentAndBiNormal();
 		}

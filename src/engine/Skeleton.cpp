@@ -39,7 +39,7 @@ void Skeleton::CreateBoneTree()
 
 int Skeleton::GetIndex(const std::string& BoneName)
 {
-	KuroFunc::ErrorMessage(bones.empty(), "Skeleton", "GetIndex", "ボーン情報がありません\n");
-	KuroFunc::ErrorMessage(!boneIdxTable.contains(BoneName), "Skeleton", "GetIndex", "存在しないボーンが参照されました (" + BoneName + ")\n");
+	assert(!bones.empty());
+	assert(boneIdxTable.contains(BoneName));
 	return boneIdxTable[BoneName];
 }

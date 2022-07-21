@@ -11,13 +11,13 @@ std::shared_ptr<GraphicsPipeline> CollisionPrimitive::GetPrimitivePipeline()
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		PIPELINE_OPTION.wireFrame = true;
-		PIPELINE_OPTION.calling = false;
+		PIPELINE_OPTION.m_wireFrame = true;
+		PIPELINE_OPTION.m_calling = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Primitive.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Primitive.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Primitive.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Primitive.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>INPUT_LAYOUT =
@@ -101,7 +101,8 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	}
 
 	ConstData constData;
-	constData.m_world = XMMatrixScaling(m_radius, m_radius, m_radius) * GetLocalMat() * GetWorldMat() * XMMatrixTranslation(m_offset.x, m_offset.y, m_offset.z);
+	constData.m_world = XMMatrixScaling(m_radius, m_radius, m_radius) 
+		* GetLocalMat() * GetWorldMat() * XMMatrixTranslation(m_offset.x, m_offset.y, m_offset.z);
 	constData.m_hit = Hit;
 	m_constBuff->Mapping(&constData);
 
@@ -169,14 +170,14 @@ void CollisionAABB::StructBox(const Vec3<ValueMinMax>& PValues)
 	}
 
 	std::array<Vec3<float>, VERT_NUM>vertices;
-	vertices[LU_NZ] = { m_pValues.x.min,m_pValues.y.max,m_pValues.z.min };
-	vertices[RU_NZ] = { m_pValues.x.max,m_pValues.y.max,m_pValues.z.min };
-	vertices[RB_NZ] = { m_pValues.x.max,m_pValues.y.min,m_pValues.z.min };
-	vertices[LB_NZ] = { m_pValues.x.min,m_pValues.y.min,m_pValues.z.min };
-	vertices[LU_FZ] = { m_pValues.x.min,m_pValues.y.max,m_pValues.z.max };
-	vertices[RU_FZ] = { m_pValues.x.max,m_pValues.y.max,m_pValues.z.max };
-	vertices[RB_FZ] = { m_pValues.x.max,m_pValues.y.min,m_pValues.z.max };
-	vertices[LB_FZ] = { m_pValues.x.min,m_pValues.y.min,m_pValues.z.max };
+	vertices[LU_NZ] = { m_pValues.x.m_min,m_pValues.y.m_max,m_pValues.z.m_min };
+	vertices[RU_NZ] = { m_pValues.x.m_max,m_pValues.y.m_max,m_pValues.z.m_min };
+	vertices[RB_NZ] = { m_pValues.x.m_max,m_pValues.y.m_min,m_pValues.z.m_min };
+	vertices[LB_NZ] = { m_pValues.x.m_min,m_pValues.y.m_min,m_pValues.z.m_min };
+	vertices[LU_FZ] = { m_pValues.x.m_min,m_pValues.y.m_max,m_pValues.z.m_max };
+	vertices[RU_FZ] = { m_pValues.x.m_max,m_pValues.y.m_max,m_pValues.z.m_max };
+	vertices[RB_FZ] = { m_pValues.x.m_max,m_pValues.y.m_min,m_pValues.z.m_max };
+	vertices[LB_FZ] = { m_pValues.x.m_min,m_pValues.y.m_min,m_pValues.z.m_max };
 	m_vertBuff->Mapping(vertices.data());
 }
 
@@ -203,12 +204,12 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		PIPELINE_OPTION.wireFrame = true;
+		PIPELINE_OPTION.m_wireFrame = true;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Mesh.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Mesh.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Mesh.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/CollisionPrimitive/Mesh.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -292,9 +293,9 @@ bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec
 	//AABBの各軸の最小値最大値にワールド変換
 	const auto& ptVal = AABB->GetPtValue();
 
-	Vec3<float>ptMin(ptVal.x.min, ptVal.y.min, ptVal.z.min);
+	Vec3<float>ptMin(ptVal.x.m_min, ptVal.y.m_min, ptVal.z.m_min);
 	ptMin = KuroMath::TransformVec3(ptMin, AABB->GetWorldMat());
-	Vec3<float>ptMax(ptVal.x.max, ptVal.y.max, ptVal.z.max);
+	Vec3<float>ptMax(ptVal.x.m_max, ptVal.y.m_max, ptVal.z.m_max);
 	ptMax = KuroMath::TransformVec3(ptMax, AABB->GetWorldMat());
 
 	//回転によって最小・最大が入れ替わっていることがあるので調整

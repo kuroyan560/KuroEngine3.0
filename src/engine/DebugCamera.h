@@ -3,14 +3,14 @@
 #include<memory>
 class DebugCamera
 {
-	std::shared_ptr<Camera>cam;
+	std::shared_ptr<Camera>m_cam;
 
 	//カメラ～注視点までの距離
-	float dist = 20.0f;
+	float m_dist = 20.0f;
 	//スケーリング
-	Vec2<float>scale;
+	Vec2<float>m_scale;
 	//回転行列
-	Matrix matRot = XMMatrixIdentity();
+	Matrix m_matRot = XMMatrixIdentity();
 
 	void MoveXMVector(const XMVECTOR& MoveVector);
 
@@ -21,11 +21,11 @@ public:
 
 	operator std::shared_ptr<Camera>& ()
 	{
-		return cam;
+		return m_cam;
 	}
 
 	operator Camera& ()
 	{
-		return *cam;
+		return *m_cam;
 	}
 };

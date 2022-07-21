@@ -25,12 +25,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	//ÉGÉìÉWÉìê›íË=====================
 	EngineOption engineOption;
-	engineOption.windowName = "KuroEngine3.0";
-	engineOption.windowSize = { 1280,720 };
-	engineOption.iconPath = nullptr;
-	engineOption.backBuffClearColor = Color(0.0f, 0.0f, 0.0f, 1.0f);
-	engineOption.useHDR = false;
-	engineOption.frameRate = 43;
+	engineOption.m_windowName = "KuroEngine3.0";
+	engineOption.m_windowSize = { 1280,720 };
+	engineOption.m_iconPath = nullptr;
+	engineOption.m_backBuffClearColor = Color(0.0f, 0.0f, 0.0f, 1.0f);
+	engineOption.m_useHDR = false;
+	engineOption.m_frameRate = 43;
 
 	//===============================
 

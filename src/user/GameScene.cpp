@@ -17,32 +17,31 @@
 
 GameScene::GameScene()
 {
-	//床
-	floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
-	floorModel->transform.SetPos({ 0,-1,0 });
-	floorModel->transform.SetScale({ 20.0f,0.0f,20.0f });
-	floorModel->model->meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
+	m_floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
+	m_floorModel->m_transform.SetPos({ 0,-1,0 });
+	m_floorModel->m_transform.SetScale({ 20.0f,0.0f,20.0f });
+	m_floorModel->m_model->m_meshes[0].material->texBuff[COLOR_TEX] = D3D12App::Instance()->GenerateTextureBuffer("resource/user/floor.png");
 
 	//床用コライダー
 	auto floorCol_Mesh = std::make_shared<CollisionMesh>(
-		floorModel->model->meshes[0].GetCollisionTriangles(),
-		&floorModel->transform, nullptr, 
+		m_floorModel->m_model->m_meshes[0].GetCollisionTriangles(),
+		&m_floorModel->m_transform, nullptr, 
 		true);
-	floorCol = Collider::Generate(floorCol_Mesh);
-	floorCol->SetMyAttribute(FLOOR);
-	floorCol->SetHitCheckAttribute(FOOT_POINT);
+	m_floorCol = Collider::Generate(floorCol_Mesh);
+	m_floorCol->SetMyAttribute(FLOOR);
+	m_floorCol->SetHitCheckAttribute(FOOT_POINT);
 
-	shadowMapDevice.SetHeight(100.0f);
-	shadowMapDevice.SetBlurPower(4.0f);
+	m_shadowMapDevice.SetHeight(100.0f);
+	m_shadowMapDevice.SetBlurPower(4.0f);
 
-	dirLig.SetDir(Vec3<float>(0, 0, -1));
-	ligMgr.RegisterDirLight(&dirLig);
-	ligMgr.RegisterPointLight(&ptLig);
-	hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	ligMgr.RegisterHemiSphereLight(&hemiLig);
+	m_dirLig.SetDir(Vec3<float>(0, 0, -1));
+	m_ligMgr.RegisterDirLight(&m_dirLig);
+	m_ligMgr.RegisterPointLight(&m_ptLig);
+	m_hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	m_hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
+	m_ligMgr.RegisterHemiSphereLight(&m_hemiLig);
 
-	GameManager::Instance()->RegisterCamera(Player::CAMERA_KEY, Player::GetCam());
+	GameManager::Instance()->RegisterCamera(Player::s_cameraKey, Player::GetCam());
 
 	Transform sandbagTrans;
 
@@ -60,21 +59,22 @@ GameScene::GameScene()
 	sandbagTrans.SetPos({ 0,6,0 });
 	EnemyManager::Instance()->Spawn(SANDBAG, sandbagTrans);
 
-	staticCubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
+	m_staticCubeMap = std::make_shared<StaticallyCubeMap>("SkyBox");
 	const std::string cubeMpaDir = "resource/user/hdri/";
-	staticCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
-	staticCubeMap->AttachTex(cubeMpaDir, ".png");
-	staticCubeMap->transform.SetScale(30);
+	m_staticCubeMap->AttachCubeMapTex(D3D12App::Instance()->GenerateTextureBuffer(cubeMpaDir + "hdri_cube.dds", true));
+	m_staticCubeMap->AttachTex(cubeMpaDir, ".png");
+	m_staticCubeMap->m_transform.SetScale(30);
 
-	dynamicCubeMap = std::make_shared<DynamicCubeMap>();
+	m_dynamicCubeMap = std::make_shared<DynamicCubeMap>();
 
-	noise.ResetNoise();
+	//noise.ResetNoise();
 }
 
 void GameScene::OnInitialize()
 {
-	player.Init();
-	GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
+	m_player.Init();
+	//GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
+	m_indirectSample.Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -84,7 +84,7 @@ void GameScene::OnUpdate()
 
 	//テストモデルの位置
 	//auto modelPos = testModel->transform.GetPos();
-	auto modelPos = ptLig.GetPos();
+	auto modelPos = m_ptLig.GetPos();
 	if (UsersInput::Instance()->KeyInput(DIK_E))
 	{
 		modelPos.y += UINT;
@@ -111,15 +111,15 @@ void GameScene::OnUpdate()
 	}
 
 	//testModel->transform.SetPos(modelPos);
-	ptLig.SetPos(modelPos);
+	m_ptLig.SetPos(modelPos);
 
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_2))
 	{
-		dirLig.SetActive();
+		m_dirLig.SetActive();
 	}
 	if (UsersInput::Instance()->KeyOnTrigger(DIK_3))
 	{
-		hemiLig.SetActive();
+		m_hemiLig.SetActive();
 	}
 
 	if (UsersInput::Instance()->ControllerOnTrigger(0,XBOX_BUTTON::A))
@@ -129,48 +129,77 @@ void GameScene::OnUpdate()
 
 	GameManager::Instance()->Update();
 
-	player.Update();
+	m_player.Update();
 
 	EnemyManager::Instance()->Update();
 
 	Collider::UpdateAllColliders();
 
 	HitEffect::Update();
+
+	//m_indirectSample.Update(m_enableCulling);
+	m_indirectSample.Update(m_cullingOffset);
 }
 
 
 void GameScene::OnDraw()
 {
-	//キューブマップに描き込む
-	dynamicCubeMap->Clear();
-	dynamicCubeMap->CopyCubeMap(staticCubeMap);
-	dynamicCubeMap->DrawToCubeMap(ligMgr, { player.GetModelObj() });
+	auto cmdList = D3D12App::Instance()->GetCmdList();
 
 	//デプスステンシル
 	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
 		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
-	dsv->Clear(D3D12App::Instance()->GetCmdList());
+	dsv->Clear(cmdList);
+
+	//現在のカメラ取得
+	auto& nowCam = *GameManager::Instance()->GetNowCamera();
+	nowCam.GetBuff();
+
+	//GraphicsManagerの管轄外
+	{
+		auto backRT = D3D12App::Instance()->GetBackBuffRenderTarget();
+
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
+		rtvs.emplace_back(backRT->AsRTV(cmdList));
+
+		const Vec2<float> targetSize = backRT->GetGraphSize().Float();
+		//ビューポート設定
+		auto viewPort = CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y);
+		cmdList->RSSetViewports(1, &viewPort);
+
+		//シザー矩形設定
+		auto rect = CD3DX12_RECT(0, 0, static_cast<LONG>(targetSize.x), static_cast<LONG>(targetSize.y));
+		cmdList->RSSetScissorRects(1, &rect);
+
+		cmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, dsv->AsDSV(cmdList));
+
+		m_indirectSample.Draw(nowCam);
+	}
+
+	//キューブマップに描き込む
+	m_dynamicCubeMap->Clear();
+	m_dynamicCubeMap->CopyCubeMap(m_staticCubeMap);
+	m_dynamicCubeMap->DrawToCubeMap(m_ligMgr, { m_player.GetModelObj() });
 
 	//シャドウマップに描き込み
-	shadowMapDevice.DrawShadowMap({ player.GetModelObj() });
+	m_shadowMapDevice.DrawShadowMap({ m_player.GetModelObj() });
 
 	//標準描画
 	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
 
-	//現在のカメラ取得
-	auto& nowCam = *GameManager::Instance()->GetNowCamera();
+
 
 	//キューブマップ描画
 	//staticCubeMap->Draw(nowCam);
 
 	//影つき床
-	shadowMapDevice.DrawShadowReceiver({ floorModel }, nowCam);
+	m_shadowMapDevice.DrawShadowReceiver({ m_floorModel }, nowCam);
 
 	//敵
-	EnemyManager::Instance()->Draw(nowCam, dynamicCubeMap);
+	EnemyManager::Instance()->Draw(nowCam, m_dynamicCubeMap);
 
 	//プレイヤー
-	DrawFunc3D::DrawPBRShadingModel(ligMgr, player.GetModelObj(), nowCam, staticCubeMap);
+	DrawFunc3D::DrawPBRShadingModel(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 
 	static Transform debugTrans;
 	debugTrans.SetPos({ 9,6,0 });
@@ -190,17 +219,27 @@ void GameScene::OnDraw()
 	//ヒットエフェクト
 	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
 
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
-	{
-		noise.ResetNoise();
-	}
+	//if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
+	//{
+	//	noise.ResetNoise();
+	//}
 	//DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
 	HitEffect::Draw(nowCam);
 }
 
 void GameScene::OnImguiDebug()
 {
-	/*
+	ImGui::Begin("Indirect");
+	//ImGui::Checkbox("EnableCulling", &m_enableCulling);
+	ImGui::DragFloat("CullingOffset", &m_cullingOffset);
+	ImGui::End();
+
+	/*ImGui::Begin("Button");
+	ImGui::Text("RB - Player's attack");
+	ImGui::Text("A  - Emit hit effect");
+	ImGui::Text("X - Turn collider's draw flag");
+	ImGui::End();
+
 	ImGui::Begin("Noise");
 	bool change = false;
 
@@ -249,6 +288,7 @@ void GameScene::OnFinalize()
 {
 }
 
+/*
 void GameScene::Noise::ResetNoise()
 {
 	if (!tex)
@@ -260,3 +300,4 @@ void GameScene::Noise::ResetNoise()
 		NoiseGenerator::PerlinNoise2D(tex, initializer);
 	}
 }
+*/

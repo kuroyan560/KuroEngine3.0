@@ -1,23 +1,23 @@
 #include "Transform2D.h"
 
-std::list<Transform2D*> Transform2D::TRANSFORMS;
+std::list<Transform2D*> Transform2D::s_transform2DList;
 
 const Matrix& Transform2D::GetMat()
 {
-	if (!dirty)
+	if (!m_dirty)
 	{
-		bool parentDirty = (parent != nullptr && parent->dirty);
-		if (!parentDirty)return mat;
+		bool parentDirty = (m_parent != nullptr && m_parent->m_dirty);
+		if (!parentDirty)return m_mat;
 	}
 
-	mat = XMMatrixScaling(scale.x, scale.y, 1.0f) * rotate;
-	mat.r[3].m128_f32[0] = pos.x;
-	mat.r[3].m128_f32[1] = pos.y;
+	m_mat = XMMatrixScaling(m_scale.x, m_scale.y, 1.0f) * m_rotate;
+	m_mat.r[3].m128_f32[0] = m_pos.x;
+	m_mat.r[3].m128_f32[1] = m_pos.y;
 
-	if (parent != nullptr)
+	if (m_parent != nullptr)
 	{
-		mat *= parent->GetMat();
+		m_mat *= m_parent->GetMat();
 	}
 
-	return mat;
+	return m_mat;
 }

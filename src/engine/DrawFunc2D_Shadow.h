@@ -10,19 +10,19 @@ class LightManager;
 class DrawFunc2D_Shadow
 {
 	//視点座標用の定数バッファ
-	static std::shared_ptr<ConstantBuffer>EYE_POS_BUFF;
+	static std::shared_ptr<ConstantBuffer>s_eyePosBuff;
 	//白のベタ塗りテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_TEX;
+	static std::shared_ptr<TextureBuffer>s_defaultTex;
 	// (0,0,-1) のベタ塗りノーマルマップ
-	static std::shared_ptr<TextureBuffer>DEFAULT_NORMAL_MAP;
+	static std::shared_ptr<TextureBuffer>s_defaultNormalMap;
 	//黒のベタ塗りテクスチャ
-	static std::shared_ptr<TextureBuffer>DEFAULT_EMISSIVE_MAP;
+	static std::shared_ptr<TextureBuffer>s_defaultEmissiveMap;
 
 	//DrawExtendGraph
-	static int DRAW_EXTEND_GRAPH_COUNT;
+	static int s_drawExtendGraphCount;
 
 	//DrawRotaGraph
-	static int DRAW_ROTA_GRAPH_COUNT;
+	static int s_drawRotaGraphCount;
 
 	static void StaticInit();
 public:
@@ -32,8 +32,8 @@ public:
 	//呼び出しカウントリセット
 	static void CountReset()
 	{
-		DRAW_EXTEND_GRAPH_COUNT = 0;
-		DRAW_ROTA_GRAPH_COUNT = 0;
+		s_drawExtendGraphCount = 0;
+		s_drawRotaGraphCount = 0;
 	}
 
 	/// <summary>

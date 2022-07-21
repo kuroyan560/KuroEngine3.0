@@ -7,9 +7,6 @@
 
 namespace KuroFunc
 {
-	//KuroEngineのエラーメッセージの表示フォーマット
-	void ErrorMessage(const bool& Fail, const std::string& ClassName, const std::string& FuncName, const std::string& Comment);
-
 	std::wstring GetWideStrFromStr(const std::string& Str);
 	std::wstring GetWideStrFromStr(const char* Str);
 
@@ -36,6 +33,8 @@ namespace KuroFunc
 	int GetRand(int Min, int Max);
 	int GetRand(int Max);
 	float GetRand(float Min, float Max);
+	Vec2<float> GetRand(Vec2<float> Min, Vec2<float> Max);
+	Vec3<float> GetRand(Vec3<float> Min, Vec3<float> Max);
 	float GetRand(float Max);
 	//正負ランダム
 	int GetRandPlusMinus();

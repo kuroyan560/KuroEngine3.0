@@ -6,29 +6,29 @@
 class DrawFunc2D
 {
 	//DrawLine
-	static int DRAW_LINE_COUNT;	//呼ばれた回数
+	static int s_DrawLineCount;	//呼ばれた回数
 
 	//DrawBox
-	static int DRAW_BOX_COUNT;
+	static int s_DrawBoxCount;
 
 	//DrawCircle
-	static int DRAW_CIRCLE_COUNT;
+	static int s_DrawCircleCount;
 
 	//DrawExtendGraph
-	static int DRAW_EXTEND_GRAPH_COUNT;
+	static int s_DrawExtendGraphCount;
 
 	//DrawRotaGraph
-	static int DRAW_ROTA_GRAPH_COUNT;
+	static int s_DrawRotaGraphCount;
 
 public:
 	//呼び出しカウントリセット
 	static void CountReset()
 	{
-		DRAW_LINE_COUNT = 0;
-		DRAW_BOX_COUNT = 0;
-		DRAW_CIRCLE_COUNT = 0;
-		DRAW_EXTEND_GRAPH_COUNT = 0;
-		DRAW_ROTA_GRAPH_COUNT = 0;
+		s_DrawLineCount = 0;
+		s_DrawBoxCount = 0;
+		s_DrawCircleCount = 0;
+		s_DrawExtendGraphCount = 0;
+		s_DrawRotaGraphCount = 0;
 	}
 
 	/// <summary>

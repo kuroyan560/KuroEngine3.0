@@ -8,39 +8,39 @@ struct Angle
 	static const float ConvertToRadian(const float& Degree) { return PI() / 180.0f * Degree; }
 	static const int ConvertToDegree(const float& Radian) { return static_cast<int>(Radian / (PI() / 180.0f)); }
 
-	float radian = 0.0f;
+	float m_radian = 0.0f;
 
 	Angle() {}
 	Angle(const int& Degree) { SetByDegree(Degree); }
-	Angle(const float& Radian) :radian(Radian) {}
+	Angle(const float& Radian) :m_radian(Radian) {}
 
-	void SetByDegree(const int& Degree) { radian = Degree * RADIAN_PER_DEGREE(); }
-	float GetDegree() { return (radian / RADIAN_PER_DEGREE()); }
+	void SetByDegree(const int& Degree) { m_radian = Degree * RADIAN_PER_DEGREE(); }
+	float GetDegree() { return (m_radian / RADIAN_PER_DEGREE()); }
 	float GetNormalize()const {
-		float result = radian;
+		float result = m_radian;
 		if (result < 0)result += ROUND();
 		if (ROUND() <= result)result -= ROUND();
 		return result;
 	}
 	float Normalize() {
 			//0~PI*2
-			while (radian < 0)radian += ROUND();
-			while (ROUND() <= radian)radian -= ROUND();
-		return radian;
+			while (m_radian < 0)m_radian += ROUND();
+			while (ROUND() <= m_radian)m_radian -= ROUND();
+		return m_radian;
 	}
 
 	operator const float& ()const
 	{
-		return radian;
+		return m_radian;
 	}
 
 	Angle operator-()const {
-		return Angle(-radian);
+		return Angle(-m_radian);
 	}
 
 	//‘ã“ü‰‰ŽZŽq
 	void operator=(const float& rhs) {
-		radian = rhs;
+		m_radian = rhs;
 	}
 	void operator=(const int& rhs) {
 		SetByDegree(rhs);
@@ -48,26 +48,26 @@ struct Angle
 
 	//Žl‘¥‰‰ŽZ(ƒ‰ƒWƒAƒ“E“x)
 	void operator+=(const float& rhs) {
-		radian += rhs;
+		m_radian += rhs;
 	};
 	void operator+=(const int& rhs) {
-		radian += rhs * RADIAN_PER_DEGREE();
+		m_radian += rhs * RADIAN_PER_DEGREE();
 	}
 	void operator-=(const float& rhs) {
-		radian -= rhs;
+		m_radian -= rhs;
 	};
 	void operator-=(const int& rhs) {
-		radian -= rhs * RADIAN_PER_DEGREE();
+		m_radian -= rhs * RADIAN_PER_DEGREE();
 	}
 	float* operator&() {
-		return &radian;
+		return &m_radian;
 	}
 
 	Angle operator+(Angle rhs)const {
-		return Angle(radian + rhs.radian);
+		return Angle(m_radian + rhs.m_radian);
 	}
 	Angle operator-(Angle rhs)const {
-		return Angle(radian - rhs.radian);
+		return Angle(m_radian - rhs.m_radian);
 	}
 	void operator+=(Angle rhs) {
 		*this = *this + rhs;
@@ -78,15 +78,15 @@ struct Angle
 
 	//”äŠr
 	bool operator==(const Angle& rhs)const {
-		return (radian == rhs.radian);
+		return (m_radian == rhs.m_radian);
 	};
 	bool operator!=(const Angle& rhs)const {
 		return !(*this == rhs);
 	};
 	bool operator<(Angle rhs)const {
-		return radian < rhs.radian;
+		return m_radian < rhs.m_radian;
 	}
 	bool operator>(Angle rhs)const {
-		return rhs.radian < radian;
+		return rhs.m_radian < m_radian;
 	}
 };

@@ -6,9 +6,9 @@
 #include"Model.h"
 #include"LightManager.h"
 
-std::shared_ptr<TextureBuffer>CubeMap::DEFAULT_CUBE_MAP_TEX;
+std::shared_ptr<TextureBuffer>CubeMap::s_defaultCubeMapTex;
 
-const std::array<std::string, CubeMap::SURFACE_NUM>CubeMap::SURFACE_NAME_TAG =
+const std::array<std::string, CubeMap::SURFACE_NUM>CubeMap::s_surfaceNameTag =
 {
 	"- Front(+Z)",
 	"- Back(-Z)",
@@ -21,17 +21,17 @@ const std::array<std::string, CubeMap::SURFACE_NUM>CubeMap::SURFACE_NAME_TAG =
 CubeMap::CubeMap()
 {
 	//デフォルトのテクスチャ
-	if (!DEFAULT_CUBE_MAP_TEX)
+	if (!s_defaultCubeMapTex)
 	{
-		DEFAULT_CUBE_MAP_TEX = D3D12App::Instance()->GenerateTextureBuffer("resource/engine/whiteCube.dds", true);
+		s_defaultCubeMapTex = D3D12App::Instance()->GenerateTextureBuffer("resource/engine/whiteCube.dds", true);
 	}
 
-	cubeMap = DEFAULT_CUBE_MAP_TEX;
+	m_cubeMap = s_defaultCubeMapTex;
 }
 
 void CubeMap::CopyCubeMap(std::shared_ptr<CubeMap> Src)
 {
-	this->cubeMap->CopyTexResource(D3D12App::Instance()->GetCmdList(), Src->cubeMap.get());
+	this->m_cubeMap->CopyTexResource(D3D12App::Instance()->GetCmdList(), Src->m_cubeMap.get());
 }
 
 std::shared_ptr<StaticallyCubeMap>& StaticallyCubeMap::GetDefaultCubeMap()
@@ -62,36 +62,36 @@ void StaticallyCubeMap::ResetMeshVertices()
 	};
 
 	//辺の長さの半分
-	const float sideLengthHalf = sideLength * 0.5f;
+	const float sideLengthHalf = m_sideLength * 0.5f;
 
 	//基準となるFRONT(+Z)
-	surfaces[FRONT].mesh.vertices.resize(IDX_NUM);
-	surfaces[FRONT].mesh.vertices[LB].pos = { -sideLengthHalf,-sideLengthHalf,sideLengthHalf };
-	surfaces[FRONT].mesh.vertices[LB].uv = { 0.0f,1.0f };
-	surfaces[FRONT].mesh.vertices[LT].pos = { -sideLengthHalf,sideLengthHalf,sideLengthHalf };
-	surfaces[FRONT].mesh.vertices[LT].uv = { 0.0f,0.0f };
-	surfaces[FRONT].mesh.vertices[RB].pos = { sideLengthHalf,-sideLengthHalf,sideLengthHalf };
-	surfaces[FRONT].mesh.vertices[RB].uv = { 1.0f,1.0f };
-	surfaces[FRONT].mesh.vertices[RT].pos = { sideLengthHalf,sideLengthHalf,sideLengthHalf };
-	surfaces[FRONT].mesh.vertices[RT].uv = { 1.0f,0.0f };
+	m_surfaces[FRONT].m_mesh.vertices.resize(IDX_NUM);
+	m_surfaces[FRONT].m_mesh.vertices[LB].m_pos = { -sideLengthHalf,-sideLengthHalf,sideLengthHalf };
+	m_surfaces[FRONT].m_mesh.vertices[LB].m_uv = { 0.0f,1.0f };
+	m_surfaces[FRONT].m_mesh.vertices[LT].m_pos = { -sideLengthHalf,sideLengthHalf,sideLengthHalf };
+	m_surfaces[FRONT].m_mesh.vertices[LT].m_uv = { 0.0f,0.0f };
+	m_surfaces[FRONT].m_mesh.vertices[RB].m_pos = { sideLengthHalf,-sideLengthHalf,sideLengthHalf };
+	m_surfaces[FRONT].m_mesh.vertices[RB].m_uv = { 1.0f,1.0f };
+	m_surfaces[FRONT].m_mesh.vertices[RT].m_pos = { sideLengthHalf,sideLengthHalf,sideLengthHalf };
+	m_surfaces[FRONT].m_mesh.vertices[RT].m_uv = { 1.0f,0.0f };
 
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
 		if (surfaceIdx == FRONT)continue;	//基準面だった場合はスルー
 
-		surfaces[surfaceIdx].mesh.vertices.resize(IDX_NUM);
+		m_surfaces[surfaceIdx].m_mesh.vertices.resize(IDX_NUM);
 
 		for (int vertIdx = 0; vertIdx < IDX_NUM; ++vertIdx)
 		{
 			//基準面の頂点を回転させて求める
-			surfaces[surfaceIdx].mesh.vertices[vertIdx].pos = KuroMath::TransformVec3(surfaces[FRONT].mesh.vertices[vertIdx].pos, OFFSET_MAT[surfaceIdx]);
+			m_surfaces[surfaceIdx].m_mesh.vertices[vertIdx].m_pos = KuroMath::TransformVec3(m_surfaces[FRONT].m_mesh.vertices[vertIdx].m_pos, OFFSET_MAT[surfaceIdx]);
 			//UVは同じ
-			surfaces[surfaceIdx].mesh.vertices[vertIdx].uv = surfaces[FRONT].mesh.vertices[vertIdx].uv;
+			m_surfaces[surfaceIdx].m_mesh.vertices[vertIdx].m_uv = m_surfaces[FRONT].m_mesh.vertices[vertIdx].m_uv;
 		}
 	}
 }
 
-StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideLength) : name(Name), sideLength(SideLength)
+StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideLength) : m_name(Name), m_sideLength(SideLength)
 {
 	//デフォルトのカラー
 	static Color DEFAULT_COLOR(0.4f, 0.4f, 0.4f, 1.0f);
@@ -112,10 +112,10 @@ StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideL
 
 		D3D12_CLEAR_VALUE clearTexValue;
 		clearTexValue.Format = texFormat;
-		clearTexValue.Color[0] = DEFAULT_COLOR.r;
-		clearTexValue.Color[1] = DEFAULT_COLOR.g;
-		clearTexValue.Color[2] = DEFAULT_COLOR.b;
-		clearTexValue.Color[3] = DEFAULT_COLOR.a;
+		clearTexValue.Color[0] = DEFAULT_COLOR.m_r;
+		clearTexValue.Color[1] = DEFAULT_COLOR.m_g;
+		clearTexValue.Color[2] = DEFAULT_COLOR.m_b;
+		clearTexValue.Color[3] = DEFAULT_COLOR.m_a;
 
 		const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
@@ -151,14 +151,14 @@ StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideL
 		auto rtvDescHandles = D3D12App::Instance()->CreateRTV(buff, &rtvDesc);
 
 		//単色塗りつぶし
-		float clearVal[4] = { DEFAULT_COLOR.r,DEFAULT_COLOR.g,DEFAULT_COLOR.b,DEFAULT_COLOR.a };
+		float clearVal[4] = { DEFAULT_COLOR.m_r,DEFAULT_COLOR.m_g,DEFAULT_COLOR.m_b,DEFAULT_COLOR.m_a };
 		D3D12App::Instance()->GetCmdList()->ClearRenderTargetView(rtvDescHandles, clearVal, 0, nullptr);
 
 		DEFAULT_CUBE_MAP_TEX = std::make_shared<TextureBuffer>(buff, texBarrier, srvDescHandles, texDesc);
 	}
 
 	//デフォルトキューブマップ割当
-	cubeMap = DEFAULT_CUBE_MAP_TEX;
+	m_cubeMap = DEFAULT_CUBE_MAP_TEX;
 
 	//メッシュ情報の構築
 	ResetMeshVertices();
@@ -166,25 +166,25 @@ StaticallyCubeMap::StaticallyCubeMap(const std::string& Name, const float& SideL
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
 		//面ごとのメッシュの名前設定
-		surfaces[surfaceIdx].mesh.name = name + SURFACE_NAME_TAG[surfaceIdx];
+		m_surfaces[surfaceIdx].m_mesh.name = m_name + s_surfaceNameTag[surfaceIdx];
 
 		//メッシュのバッファ生成
-		surfaces[surfaceIdx].mesh.CreateBuff();
+		m_surfaces[surfaceIdx].m_mesh.CreateBuff();
 
 		//デフォルトのテクスチャアタッチ
-		surfaces[surfaceIdx].tex = DEFAULT_TEX;
+		m_surfaces[surfaceIdx].m_tex = DEFAULT_TEX;
 	}
 
-	transformBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, (Name + " - ConstantBuffer - Transform").c_str());
+	m_transformBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, (Name + " - ConstantBuffer - Transform").c_str());
 }
 
 void StaticallyCubeMap::SetSideLength(const float& Length)
 {
-	sideLength = Length;
+	m_sideLength = Length;
 	ResetMeshVertices();
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
-		surfaces[surfaceIdx].mesh.Mapping();
+		m_surfaces[surfaceIdx].m_mesh.Mapping();
 	}
 }
 
@@ -213,8 +213,8 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/CubeMap.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -239,26 +239,26 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
-	transformBuff->Mapping(&transform.GetMat());
+	m_transformBuff->Mapping(&m_transform.GetMat());
 
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
-		auto& s = surfaces[surfaceIdx];
+		auto& s = m_surfaces[surfaceIdx];
 		KuroEngine::Instance().Graphics().ObjectRender(
-			s.mesh.vertBuff,
-			{ Cam.GetBuff(),transformBuff, s.tex },
+			s.m_mesh.vertBuff,
+			{ Cam.GetBuff(),m_transformBuff, s.m_tex },
 			{ CBV,CBV,SRV },
-			sideLength * 0.5f,
+			m_sideLength * 0.5f,
 			false);
 	}
 }
 
-int DynamicCubeMap::ID = 0;
-std::shared_ptr<ConstantBuffer>DynamicCubeMap::VIEW_PROJ_MATRICIES;
+int DynamicCubeMap::s_id = 0;
+std::shared_ptr<ConstantBuffer>DynamicCubeMap::s_viewProjMat;
 
 DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 {
-	if (ID == 0)
+	if (s_id == 0)
 	{
 		std::array<Vec3<float>, SURFACE_NUM>target =
 		{
@@ -284,7 +284,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 		std::array<std::unique_ptr<Camera>, SURFACE_NUM>camera;	//各面に描画する際に用いるカメラ
 		for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 		{
-			camera[surfaceIdx] = std::make_unique<Camera>("DynamicCubeMap" + SURFACE_NAME_TAG[surfaceIdx]);
+			camera[surfaceIdx] = std::make_unique<Camera>("DynamicCubeMap" + s_surfaceNameTag[surfaceIdx]);
 			camera[surfaceIdx]->SetPos({ 0,0,0 });
 			camera[surfaceIdx]->SetAngleOfView(Angle(90));
 			camera[surfaceIdx]->SetTarget(target[surfaceIdx]);
@@ -293,7 +293,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 			viewProj[surfaceIdx] = camera[surfaceIdx]->GetViewMat() * camera[surfaceIdx]->GetProjectionMat();
 		}
 
-		VIEW_PROJ_MATRICIES = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), SURFACE_NUM, viewProj.data(), "DynamicCubeMap - ViewProjMatricies");
+		s_viewProjMat = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), SURFACE_NUM, viewProj.data(), "DynamicCubeMap - ViewProjMatricies");
 	}
 
 #pragma region キューブマップテクスチャバッファ生成
@@ -324,7 +324,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 		&clearTexValue,
 		IID_PPV_ARGS(&buff));
 	
-	std::wstring name = L"DynamicCubeMap" + std::to_wstring(ID++);
+	std::wstring name = L"DynamicCubeMap" + std::to_wstring(s_id++);
 	buff->SetName(name.c_str());
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC cubeMapSrvDesc{};
@@ -336,7 +336,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	cubeMapSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 	auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, cubeMapSrvDesc);
 
-	cubeMap = std::make_shared<TextureBuffer>(buff, texBarrier, srvDescHandles, texDesc);
+	m_cubeMap = std::make_shared<TextureBuffer>(buff, texBarrier, srvDescHandles, texDesc);
 
 	//キューブマップ用のレンダーターゲットビュー
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
@@ -346,7 +346,7 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	rtvDesc.Texture2DArray.FirstArraySlice = 0;
 	auto rtvDescHandles = D3D12App::Instance()->CreateRTV(buff, &rtvDesc);
 
-	cubeRenderTarget = std::make_shared<RenderTarget>(cubeMap->GetResource(), srvDescHandles, rtvDescHandles, texDesc);
+	m_cubeRenderTarget = std::make_shared<RenderTarget>(m_cubeMap->GetResource(), srvDescHandles, rtvDescHandles, texDesc);
 
 #pragma endregion
 
@@ -377,15 +377,15 @@ DynamicCubeMap::DynamicCubeMap(const int& CubeMapEdge)
 	cubeMapDsvDesc.Texture2DArray.FirstArraySlice = 0;
 	auto dsvDescHandles = D3D12App::Instance()->CreateDSV(depthBuff, &cubeMapDsvDesc);
 
-	cubeDepth = std::make_shared<DepthStencil>(depthBuff, depthBarrier, dsvDescHandles, depthDesc);
+	m_cubeDepth = std::make_shared<DepthStencil>(depthBuff, depthBarrier, dsvDescHandles, depthDesc);
 
 #pragma endregion
 }
 
 void DynamicCubeMap::Clear()
 {
-	cubeRenderTarget->Clear(D3D12App::Instance()->GetCmdList());
-	cubeDepth->Clear(D3D12App::Instance()->GetCmdList());
+	m_cubeRenderTarget->Clear(D3D12App::Instance()->GetCmdList());
+	m_cubeDepth->Clear(D3D12App::Instance()->GetCmdList());
 }
 
 void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<std::weak_ptr<ModelObject>>& ModelObject)
@@ -400,9 +400,9 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "VSmain", "vs_5_0");
-		SHADERS.gs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "GSmain", "gs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "GSmain", "gs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DynamicCubeMap.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -422,25 +422,25 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 		};
 
 		//レンダーターゲット描画先情報
-		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(cubeRenderTarget->GetDesc().Format, AlphaBlendMode_Trans) };
+		std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(m_cubeRenderTarget->GetDesc().Format, AlphaBlendMode_Trans) };
 		//パイプライン生成
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetRenderTargets({ cubeRenderTarget }, cubeDepth);
+	KuroEngine::Instance().Graphics().SetRenderTargets({ m_cubeRenderTarget }, m_cubeDepth);
 	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
 
 	for (auto& modelPtr : ModelObject)
 	{
 		auto m = modelPtr.lock();
 
-		for (auto& mesh : m->model->meshes)
+		for (auto& mesh : m->m_model->m_meshes)
 		{
 			KuroEngine::Instance().Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
 				{
-					VIEW_PROJ_MATRICIES,
+					s_viewProjMat,
 					LigManager.GetLigNumInfo(),
 					LigManager.GetLigInfo(Light::DIRECTION),
 					LigManager.GetLigInfo(Light::POINT),
@@ -454,7 +454,7 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 					mesh.material->buff,
 				},
 				{ CBV,CBV,SRV,SRV,SRV,SRV,CBV,SRV,SRV,SRV,SRV,CBV },
-				m->transform.GetPos().z,
+				m->m_transform.GetPos().z,
 				true);
 		}
 	}

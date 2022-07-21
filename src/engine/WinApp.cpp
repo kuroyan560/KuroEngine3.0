@@ -1,7 +1,7 @@
 #include "WinApp.h"
 #include"KuroFunc.h"
 
-WinApp* WinApp::INSTANCE = nullptr;
+WinApp* WinApp::s_instance = nullptr;
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
@@ -22,26 +22,26 @@ LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 void WinApp::Initialize(const std::string& WinName, const Vec2<int>WinSize, const bool& FullScreen, const wchar_t* IconPath = nullptr)
 {
     const std::wstring winWideName = KuroFunc::GetWideStrFromStr(WinName);
-    winSize = WinSize;
+    m_winSize = WinSize;
 
-    wc.cbSize = sizeof(wc);
-    wc.lpfnWndProc = (WNDPROC)WindowProc;
-    wc.lpszClassName = winWideName.c_str();
-    wc.style = CS_HREDRAW | CS_VREDRAW;
+    m_wc.cbSize = sizeof(m_wc);
+    m_wc.lpfnWndProc = (WNDPROC)WindowProc;
+    m_wc.lpszClassName = winWideName.c_str();
+    m_wc.style = CS_HREDRAW | CS_VREDRAW;
     auto hInstance = GetModuleHandle(nullptr);
-    wc.hInstance = hInstance;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    m_wc.hInstance = hInstance;
+    m_wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 
     //ウィンドウアイコン設定
     if (IconPath != nullptr)
     {
-        wc.hIcon = (HICON)LoadImage(
+        m_wc.hIcon = (HICON)LoadImage(
             NULL, IconPath, IMAGE_ICON,
             0, 0, LR_SHARED | LR_LOADFROMFILE);
     }
     
     //ウィンドウクラスをOSに登録
-    RegisterClassEx(&wc);
+    RegisterClassEx(&m_wc);
 
     RECT rect;
     DWORD dwStyle = WS_OVERLAPPEDWINDOW & ~WS_SIZEBOX;
@@ -61,18 +61,18 @@ void WinApp::Initialize(const std::string& WinName, const Vec2<int>WinSize, cons
             devMode.dmPosition.y + static_cast<LONG>(devMode.dmPelsHeight)
         };
 
-        winSize.x = rect.right - rect.left;
-        winSize.y = rect.bottom - rect.top;
+        m_winSize.x = rect.right - rect.left;
+        m_winSize.y = rect.bottom - rect.top;
 
-        winDifferRate = winSize.Float() / WinSize.Float();
+        m_winDifferRate = m_winSize.Float() / WinSize.Float();
     }
     else
     {
-        rect = { 0,0, winSize.x, winSize.y };
+        rect = { 0,0, m_winSize.x, m_winSize.y };
         AdjustWindowRect(&rect, dwStyle, FALSE);
     }
 
-    hwnd = CreateWindow(wc.lpszClassName,  //クラス名
+    m_hwnd = CreateWindow(m_wc.lpszClassName,  //クラス名
         winWideName.c_str(),    //タイトルバー
         dwStyle,    //ウィンドウスタイル
         CW_USEDEFAULT,  //表示X座標（OSに任せる）
@@ -87,10 +87,10 @@ void WinApp::Initialize(const std::string& WinName, const Vec2<int>WinSize, cons
     //ウィンドウ表示
     if (FullScreen)
     {
-        SetWindowLong(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW & ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX /*| WS_SYSMENU*/ | WS_THICKFRAME));
+        SetWindowLong(m_hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW & ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX /*| WS_SYSMENU*/ | WS_THICKFRAME));
 
         SetWindowPos(
-            hwnd,
+            m_hwnd,
             HWND_TOPMOST,
             rect.left,
             rect.top,
@@ -99,11 +99,11 @@ void WinApp::Initialize(const std::string& WinName, const Vec2<int>WinSize, cons
             SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
         //ウィンドウ表示
-        ShowWindow(hwnd, SW_MAXIMIZE);
+        ShowWindow(m_hwnd, SW_MAXIMIZE);
     }
     else
     {
         //ウィンドウ表示
-        ShowWindow(hwnd, SW_SHOW);
+        ShowWindow(m_hwnd, SW_SHOW);
     }
 }

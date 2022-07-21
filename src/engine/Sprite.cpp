@@ -1,21 +1,21 @@
 #include "Sprite.h"
 #include"KuroEngine.h"
 
-std::shared_ptr<GraphicsPipeline>Sprite::PIPELINE[AlphaBlendModeNum];
-std::shared_ptr<TextureBuffer>Sprite::DEFAULT_TEX;
+std::shared_ptr<GraphicsPipeline>Sprite::s_pipeline[AlphaBlendModeNum];
+std::shared_ptr<TextureBuffer>Sprite::s_defaultTex;
 
-Sprite::Sprite(const std::shared_ptr<TextureBuffer>& Texture, const char* Name) : mesh(Name)
+Sprite::Sprite(const std::shared_ptr<TextureBuffer>& Texture, const char* Name) : m_mesh(Name)
 {
-	if (!PIPELINE[0])
+	if (!s_pipeline[0])
 	{
 		//パイプライン設定
 		static PipelineInitializeOption PIPELINE_OPTION(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		PIPELINE_OPTION.depthTest = false;
+		PIPELINE_OPTION.m_depthTest = false;
 
 		//シェーダー情報
 		static Shaders SHADERS;
-		SHADERS.vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "VSmain", "vs_5_0");
-		SHADERS.ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "PSmain", "ps_5_0");
+		SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "VSmain", "vs_6_4");
+		SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/engine/Sprite.hlsl", "PSmain", "ps_6_4");
 
 		//ルートパラメータ
 		static std::vector<RootParam>ROOT_PARAMETER =
@@ -30,52 +30,52 @@ Sprite::Sprite(const std::shared_ptr<TextureBuffer>& Texture, const char* Name) 
 		{
 			std::vector<RenderTargetInfo>RENDER_TARGET_INFO = { RenderTargetInfo(D3D12App::Instance()->GetBackBuffFormat(), (AlphaBlendMode)i) };
 			//パイプライン生成
-			PIPELINE[i] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, SpriteMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
+			s_pipeline[i] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, SpriteMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 		}
 
 		//白テクスチャ
-		DEFAULT_TEX = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f));
+		s_defaultTex = D3D12App::Instance()->GenerateTextureBuffer(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 
 	//デフォルトのテクスチャバッファ
-	texBuff = DEFAULT_TEX;
+	m_texBuff = s_defaultTex;
 
 	//テクスチャセット
 	SetTexture(Texture);
 
 	//行列初期化
-	constData.mat = transform.GetMat();
+	m_constData.m_mat = m_transform.GetMat();
 
 	//定数バッファ生成
-	constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(constData), 1, &constData, Name);
+	m_constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(m_constData), 1, &m_constData, Name);
 }
 
 void Sprite::SetTexture(const std::shared_ptr<TextureBuffer>& Texture)
 {
 	if (Texture == nullptr)return;
-	texBuff = Texture;
+	m_texBuff = Texture;
 }
 
 void Sprite::SetColor(const Color& Color)
 {
-	if (constData.color == Color)return;
-	constData.color = Color;
-	constBuff->Mapping(&constData);
+	if (m_constData.m_color == Color)return;
+	m_constData.m_color = Color;
+	m_constBuff->Mapping(&m_constData);
 }
 
 void Sprite::Draw(const AlphaBlendMode& BlendMode)
 {
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[(int)BlendMode]);
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(s_pipeline[(int)BlendMode]);
 
-	if (transform.GetDirty())
+	if (m_transform.GetDirty())
 	{
-		constData.mat = transform.GetMat();
-		constBuff->Mapping(&constData);
+		m_constData.m_mat = m_transform.GetMat();
+		m_constBuff->Mapping(&m_constData);
 	}
 
-	mesh.Render({
+	m_mesh.Render({
 		KuroEngine::Instance().GetParallelMatProjBuff(),	//平行投影行列
-		texBuff,			//テクスチャリソース
-		constBuff },//カラー & ワールド行列
+		m_texBuff,			//テクスチャリソース
+		m_constBuff },//カラー & ワールド行列
 		{ CBV,SRV,CBV });
 }

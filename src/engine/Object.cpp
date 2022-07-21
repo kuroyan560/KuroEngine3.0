@@ -5,12 +5,12 @@
 
 void ModelObject::AttachModel(const std::shared_ptr<Model>& Model)
 {
-	model = Model;
+	m_model = Model;
 	
 	//アニメーション情報を持つならアニメーター生成
-	if (!model->skelton->animations.empty())
+	if (!m_model->m_skelton->animations.empty())
 	{
-		animator = std::make_shared<ModelAnimator>(model);
+		m_animator = std::make_shared<ModelAnimator>(m_model);
 	}
 }
 
@@ -21,12 +21,12 @@ ModelObject::ModelObject(const std::string& Dir, const std::string& FileName)
 
 const std::shared_ptr<ConstantBuffer>& ModelObject::GetTransformBuff()
 {
-	if (!transformBuff)
+	if (!m_transformBuff)
 	{
-		transformBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, (model->header.fileName + " - ModelObject - Transform").c_str());
+		m_transformBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Matrix), 1, nullptr, (m_model->m_header.fileName + " - ModelObject - Transform").c_str());
 	}
 
-	transformBuff->Mapping(&transform.GetMat());
+	m_transformBuff->Mapping(&m_transform.GetMat());
 
-	return transformBuff;
+	return m_transformBuff;
 }

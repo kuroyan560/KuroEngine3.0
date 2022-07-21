@@ -10,15 +10,15 @@ private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	ComPtr<IDXGISwapChain4> swapchain;
-	std::vector<std::shared_ptr<RenderTarget>> images;
+	ComPtr<IDXGISwapChain4> m_swapchain;
+	std::vector<std::shared_ptr<RenderTarget>> m_images;
 
-	std::vector<UINT64> fenceValues;
-	std::vector<ComPtr<ID3D12Fence1>> fences;
+	std::vector<UINT64> m_fenceValues;
+	std::vector<ComPtr<ID3D12Fence1>> m_fences;
 
-	DXGI_SWAP_CHAIN_DESC1 desc;
+	DXGI_SWAP_CHAIN_DESC1 m_desc;
 
-	HANDLE waitEvent;
+	HANDLE m_waitEvent;
 	void SetMetadata();
 public:
 	Swapchain(const ComPtr<ID3D12Device>& Device,
@@ -29,11 +29,11 @@ public:
 		const Color& ClearValue);
 
 	//スワップチェインゲッタ
-	const ComPtr<IDXGISwapChain4>& GetSwapchain() { return swapchain; }
+	const ComPtr<IDXGISwapChain4>& GetSwapchain() { return m_swapchain; }
 
 	//次のコマンドが積めるようになるまで待機
 	void WaitPreviousFrame(const ComPtr<ID3D12CommandQueue>& CmdQueue, const int& FrameIdx);
 
 	//現在のバックバッファのレンダーターゲット
-	const std::shared_ptr<RenderTarget>& GetBackBufferRenderTarget() { return images[swapchain->GetCurrentBackBufferIndex()]; }
+	const std::shared_ptr<RenderTarget>& GetBackBufferRenderTarget() { return m_images[m_swapchain->GetCurrentBackBufferIndex()]; }
 };

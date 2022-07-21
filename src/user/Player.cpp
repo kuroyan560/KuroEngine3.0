@@ -7,10 +7,10 @@
 #include"Model.h"
 #include"ModelAnimator.h"
 
-bool Player::INSTANCED = false;
-const std::string Player::CAMERA_KEY = "PlayerCamera";
-std::unique_ptr<PlayerCamera> Player::CAMERA;
-Player::CanInput Player::CAN_INPUT;
+bool Player::s_instanced = false;
+const std::string Player::s_cameraKey = "PlayerCamera";
+std::unique_ptr<PlayerCamera> Player::s_camera;
+Player::CanInput Player::s_canInput;
 
 void Player::Move()
 {
@@ -27,7 +27,7 @@ void Player::Move()
 	if (!stickL.IsZero())
 	{
 		//走り状態
-		status = RUN;
+		m_status = RUN;
 
 		//入力方向
 		moveVec = { stickL.x,0.0f,-stickL.y };
@@ -36,27 +36,27 @@ void Player::Move()
 		//moveVec = KuroMath::TransformVec3(moveVec, model->transform.GetRotate()).GetNormal();
 		//カメラ位置角度のオフセットからスティックの入力方向補正
 		static const Angle ANGLE_OFFSET(-90);
-		moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -CAMERA->posAngle + ANGLE_OFFSET)).GetNormal();
+		moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->m_posAngle + ANGLE_OFFSET)).GetNormal();
 
 		//移動
 		const float moveSpeed = 0.6f;
-		auto pos = model->transform.GetPos();
+		auto pos = m_model->m_transform.GetPos();
 		pos += moveVec * moveSpeed;
-		model->transform.SetPos(pos);
+		m_model->m_transform.SetPos(pos);
 
 		//方向転換
-		const auto up = model->transform.GetUp();
-		model->transform.SetLookAtRotate(pos + moveVec);
+		const auto up = m_model->m_transform.GetUp();
+		m_model->m_transform.SetLookAtRotate(pos + moveVec);
 	}
 	else if (attackInput)
 	{
 		//攻撃状態
-		status = ATTACK;
+		m_status = ATTACK;
 	}
 	else
 	{
 		//待機状態
-		status = WAIT;
+		m_status = WAIT;
 	}
 }
 
@@ -64,116 +64,116 @@ void Player::AnimationSwitch()
 {
 	if (StatusTrigger(WAIT))	//待機モーション
 	{
-		model->animator->speed = 1.0f;
-		model->animator->Play("Wait", true, false);
+		m_model->m_animator->speed = 1.0f;
+		m_model->m_animator->Play("Wait", true, false);
 	}
 	else if (StatusTrigger(RUN))	//走りモーション
 	{
-		model->animator->speed = 1.5f;
-		model->animator->Play("Run", true, false);
+		m_model->m_animator->speed = 1.5f;
+		m_model->m_animator->Play("Run", true, false);
 	}
 	else if (StatusTrigger(ATTACK))	//攻撃モーション
 	{
-		model->animator->speed = 3.0f;
-		attack.Start();	//攻撃処理開始
+		m_model->m_animator->speed = 3.0f;
+		m_attack.Start();	//攻撃処理開始
 	}
 }
 
-Player::Player() : pushBackColliderCallBack(this), pushBackColliderCallBack_Foot(this)
+Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this)
 {
-	KuroFunc::ErrorMessage(INSTANCED, "Player", "Constructor", "Only one Player's instance can exsit.");
-	INSTANCED = true;
-	model = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
+	assert(!s_instanced);
+	s_instanced = true;
+	m_model = std::make_shared<ModelObject>("resource/user/", "PrePlayer.gltf");
 
 /*--- コライダー生成 ---*/
 	//本体
-	auto bodyCol_Sphere = std::make_shared<CollisionSphere>(3.0f, &model->transform);
+	auto bodyCol_Sphere = std::make_shared<CollisionSphere>(3.0f, &m_model->m_transform);
 	bodyCol_Sphere->m_offset = { 0,6,0 };
 	auto bodyCol = Collider::Generate(bodyCol_Sphere);
-	bodyCol->SetCallBack(&pushBackColliderCallBack);	//押し戻しコールバック処理をアタッチ
+	bodyCol->SetCallBack(&m_pushBackColliderCallBack);	//押し戻しコールバック処理をアタッチ
 	bodyCol->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	colliders.emplace_back(bodyCol);
+	m_colliders.emplace_back(bodyCol);
 
 	//床用足元
-	auto footCol_Point = std::make_shared<CollisionPoint>(Vec3<float>(), &model->transform);
+	auto footCol_Point = std::make_shared<CollisionPoint>(Vec3<float>(), &m_model->m_transform);
 	auto footCol = Collider::Generate(footCol_Point);
-	footCol->SetCallBack(&pushBackColliderCallBack_Foot);	//床との押し戻しコールバック処理をアタッチ
+	footCol->SetCallBack(&m_pushBackColliderCallBack_Foot);	//床との押し戻しコールバック処理をアタッチ
 	footCol->SetMyAttribute(COLLIDER_ATTRIBUTE::FOOT_POINT);
 	footCol->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::FLOOR);
-	colliders.emplace_back(footCol);
+	m_colliders.emplace_back(footCol);
 
 	//右手武器
-	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_L"));
+	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &m_model->m_transform, &m_model->m_animator->GetBoneLocalMat("Hand_L"));
 	boneCol_R_Sphere->m_offset = { 0,-0.5f,0.7f };
 	auto boneCol_R = Collider::Generate(boneCol_R_Sphere);
 	boneCol_R->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	boneCol_R->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
-	colliders.emplace_back(boneCol_R);
+	m_colliders.emplace_back(boneCol_R);
 
 	//左手武器
-	auto boneCol_L_Sphere = std::make_shared<CollisionSphere>(1.4f, &model->transform, &model->animator->GetBoneLocalMat("Hand_R"));
+	auto boneCol_L_Sphere = std::make_shared<CollisionSphere>(1.4f, &m_model->m_transform, &m_model->m_animator->GetBoneLocalMat("Hand_R"));
 	boneCol_L_Sphere->m_offset = { 0,-0.5f,0.7f };
 	auto boneCol_L = Collider::Generate(boneCol_L_Sphere);
 	boneCol_L->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
 	boneCol_L->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
-	colliders.emplace_back(boneCol_L);
+	m_colliders.emplace_back(boneCol_L);
 
 	//攻撃処理に武器コライダーをアタッチ
-	attack.Attach(model->animator, boneCol_L, boneCol_R);
+	m_attack.Attach(m_model->m_animator, boneCol_L, boneCol_R);
 }
 
 void Player::Init()
 {
-	status = RUN;
-	oldStatus = RUN;
+	m_status = RUN;
+	m_oldStatus = RUN;
 
 	static Vec3<float>INIT_POS = { 0,0,-5 };
-	model->transform.SetPos(INIT_POS);
-	model->transform.SetRotate(XMMatrixIdentity());
+	m_model->m_transform.SetPos(INIT_POS);
+	m_model->m_transform.SetRotate(XMMatrixIdentity());
 
-	CAMERA->Init(model->transform);
-	model->animator->Play("Wait", true, false);
+	s_camera->Init(m_model->m_transform);
+	m_model->m_animator->Play("Wait", true, false);
 
-	attack.Init();
+	m_attack.Init();
 }
 
 void Player::Update()
 {
 	//移動の処理
-	if (CAN_INPUT.playerControl)
+	if (s_canInput.m_playerControl)
 	{
 		Move();
 	}
 
 	//プレイヤー追従カメラ更新
-	if (CAN_INPUT.camControl)
+	if (s_canInput.m_camControl)
 	{
-		CAMERA->Update(model->transform);
+		s_camera->Update(m_model->m_transform);
 	}
 
 	//攻撃処理更新
-	attack.Update();
-	if (status != ATTACK)attack.Stop();
+	m_attack.Update();
+	if (m_status != ATTACK)m_attack.Stop();
 	
 	//アニメーション切り替え
 	AnimationSwitch();
 
 	//アニメーション更新
-	model->animator->Update();
+	m_model->m_animator->Update();
 
 	//ステータスを記録
-	oldStatus = status;
+	m_oldStatus = m_status;
 }
 
 void Player::Draw(Camera& Cam)
 {
-	DrawFunc3D::DrawNonShadingModel(model, Cam);
+	DrawFunc3D::DrawNonShadingModel(m_model, Cam);
 }
 
 void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
 {
 	//現在の座標
-	Vec3<float>nowPos = parent->model->transform.GetPos();
+	Vec3<float>nowPos = m_parent->m_model->m_transform.GetPos();
 
 	//押し戻し後の座標格納先
 	Vec3<float>pushBackPos = nowPos;
@@ -211,13 +211,13 @@ void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std
 	else assert(0);	//用意していない
 
 	//新しい座標をセット
-	parent->model->transform.SetPos(pushBackPos);
+	m_parent->m_model->m_transform.SetPos(pushBackPos);
 }
 
 void Player::PushBackColliderCallBack_Foot::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
 {
 	//現在の座標
-	Vec3<float>nowPos = parent->model->transform.GetPos();
+	Vec3<float>nowPos = parent->m_model->m_transform.GetPos();
 
 	//床の高さ取得
 	float floorY = Inter.y;
@@ -230,5 +230,5 @@ void Player::PushBackColliderCallBack_Foot::OnCollision(const Vec3<float>& Inter
 	pushBackPos.y += floorY - myPt->GetWorldPos().y;	//押し戻し
 
 	//新しい座標をセット
-	parent->model->transform.SetPos(pushBackPos);
+	parent->m_model->m_transform.SetPos(pushBackPos);
 }

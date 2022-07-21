@@ -7,10 +7,10 @@ class GaussianBlur;
 class ModelObject;
 class ShadowMapDevice
 {
-	std::shared_ptr<RenderTarget>shadowMap;
-	std::shared_ptr<DepthStencil>shadowMapDepth;
-	Camera lightCamera;
-	std::shared_ptr<GaussianBlur> gaussianBlur;
+	std::shared_ptr<RenderTarget>m_shadowMap;
+	std::shared_ptr<DepthStencil>m_shadowMapDepth;
+	Camera m_lightCamera;
+	std::shared_ptr<GaussianBlur> m_gaussianBlur;
 
 public:
 	ShadowMapDevice();

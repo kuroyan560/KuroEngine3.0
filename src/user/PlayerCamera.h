@@ -10,16 +10,16 @@ struct PlayerCamera : public ImguiDebugInterface
 private:
 	void CalculatePos(const Transform& Player);
 public:
-	std::shared_ptr<Camera>cam;
-	float dist = 5.0f;		//プレイヤーとの距離
-	bool mirrorX = false;		//X入力ミラー
-	bool mirrorY = false;		//Y入力ミラー
+	std::shared_ptr<Camera>m_cam;
+	float m_dist = 5.0f;		//プレイヤーとの距離
+	bool m_mirrorX = false;		//X入力ミラー
+	bool m_mirrorY = false;		//Y入力ミラー
 
 	//位置の角度
-	Angle posAngle;
+	Angle m_posAngle;
 
 	//カメラの高さ
-	float height;
+	float m_height;
 
 	PlayerCamera();
 	void Init(const Transform& Player);

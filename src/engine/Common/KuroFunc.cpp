@@ -22,15 +22,6 @@ bool operator==(const Matrix& lhs, const Matrix& rhs)
 	return !(lhs != rhs);
 }
 
-void KuroFunc::ErrorMessage(const bool& Fail, const std::string& ClassName, const std::string& FuncName, const std::string& Comment)
-{
-	if (Fail)
-	{
-		printf("ERROR - %s - %s : %s", ClassName.c_str(), FuncName.c_str(), Comment.c_str());
-		assert(0);
-	}
-}
-
 std::wstring KuroFunc::GetWideStrFromStr(const std::string& Str)
 {
 	auto num1 = MultiByteToWideChar(
@@ -245,6 +236,16 @@ float KuroFunc::GetRand(float Min, float Max)
 {
 	double result = (Max - Min) * ((double)rand() / RAND_MAX) + Min;
 	return static_cast<float>(result);
+}
+
+Vec2<float> KuroFunc::GetRand(Vec2<float> Min, Vec2<float> Max)
+{
+	return Vec2<float>(GetRand(Min.x, Max.x), GetRand(Min.y, Max.y));
+}
+
+Vec3<float> KuroFunc::GetRand(Vec3<float> Min, Vec3<float> Max)
+{
+	return Vec3<float>(GetRand(Min.x, Max.x), GetRand(Min.y, Max.y), GetRand(Min.z, Max.z));
 }
 
 float KuroFunc::GetRand(float Max)

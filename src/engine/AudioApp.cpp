@@ -1,32 +1,32 @@
 #include "AudioApp.h"
 
-AudioApp* AudioApp::INSTANCE = nullptr;
+AudioApp* AudioApp::s_instance = nullptr;
 
 using namespace std;
 
 AudioApp::AudioApp()
 {
 
-	if (INSTANCE != nullptr)
+	if (s_instance != nullptr)
 	{
 		printf("既にインスタンスがあります。AudioAppは１つのインスタンスしか持てません\n");
 		assert(0);
 	}
-	INSTANCE = this;
+	s_instance = this;
 
 	HRESULT result;
 
 	//XAudioエンジンのインスタンスを生成
-	result = XAudio2Create(&xAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
+	result = XAudio2Create(&m_xAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
 
 	//マスターボイスを生成
-	result = xAudio2->CreateMasteringVoice(&masterVoice);
+	result = m_xAudio2->CreateMasteringVoice(&m_masterVoice);
 }
 
 AudioApp::~AudioApp()
 {
-	xAudio2.Reset();
-	for (auto itr = audios.begin(); itr != audios.end(); ++itr)
+	m_xAudio2.Reset();
+	for (auto itr = m_audios.begin(); itr != m_audios.end(); ++itr)
 	{
 		itr->Unload();
 	}
@@ -34,32 +34,32 @@ AudioApp::~AudioApp()
 
 void AudioApp::Update()
 {
-	for (auto& audio : audios)
+	for (auto& audio : m_audios)
 	{
-		audio.playTrigger = false;
+		audio.m_playTrigger = false;
 	}
 
-	if (!playHandleArray.empty())
+	if (!m_playHandleArray.empty())
 	{
-		for (auto& audioArray : playHandleArray)
+		for (auto& audioArray : m_playHandleArray)
 		{
-			if (NowPlay(audioArray.handles[audioArray.nowIdx]))
+			if (NowPlay(audioArray.m_handles[audioArray.m_nowIdx]))
 			{
-				audioArray.nowIdx++;
+				audioArray.m_nowIdx++;
 
-				if (audioArray.nowIdx < audioArray.handles.size())
+				if (audioArray.m_nowIdx < audioArray.m_handles.size())
 				{
-					PlayWave(audioArray.handles[audioArray.nowIdx]);
+					PlayWave(audioArray.m_handles[audioArray.m_nowIdx]);
 				}
 			}
 		}
 
 		//全部再生しきったら削除
-		for (auto itr = playHandleArray.begin(); itr != playHandleArray.end();)
+		for (auto itr = m_playHandleArray.begin(); itr != m_playHandleArray.end();)
 		{
-			if (itr->handles.size() <= itr->nowIdx)
+			if (itr->m_handles.size() <= itr->m_nowIdx)
 			{
-				itr = playHandleArray.erase(itr);
+				itr = m_playHandleArray.erase(itr);
 			}
 			else ++itr;
 		}
@@ -68,16 +68,16 @@ void AudioApp::Update()
 
 bool AudioApp::NowPlay(const int& Handle)
 {
-	auto itr = audios.begin();
+	auto itr = m_audios.begin();
 	for (int i = 0; i < Handle; i++)
 	{
 		itr++;
 	}
 
-	if (itr->pSourceVoice != nullptr)
+	if (itr->m_pSourceVoice != nullptr)
 	{
 		XAUDIO2_VOICE_STATE state;
-		itr->pSourceVoice->GetState(&state);
+		itr->m_pSourceVoice->GetState(&state);
 		return !(state.pCurrentBufferContext == nullptr);
 	}
 	else return false;
@@ -85,26 +85,26 @@ bool AudioApp::NowPlay(const int& Handle)
 
 void AudioApp::ChangeVolume(const int& Handle, float Volume)
 {
-	auto itr = audios.begin();
+	auto itr = m_audios.begin();
 	for (int i = 0; i < Handle; i++)
 	{
 		itr++;
 	}
-	itr->volume = Volume;
-	if (itr->pSourceVoice != nullptr)
+	itr->m_volume = Volume;
+	if (itr->m_pSourceVoice != nullptr)
 	{
-		itr->pSourceVoice->SetVolume(itr->volume);
+		itr->m_pSourceVoice->SetVolume(itr->m_volume);
 	}
 }
 
 float AudioApp::GetVolume(const int& Handle)
 {
-	auto itr = audios.begin();
+	auto itr = m_audios.begin();
 	for (int i = 0; i < Handle; i++)
 	{
 		itr++;
 	}
-	return itr->volume;
+	return itr->m_volume;
 }
 
 int AudioApp::LoadAudio(string FileName, const float& Volume)
@@ -170,12 +170,12 @@ int AudioApp::LoadAudio(string FileName, const float& Volume)
 	//file.close();
 
 	//return audios.size() - 1;
-	if (!audios.empty())
+	if (!m_audios.empty())
 	{
 		int i = 0;
-		for (auto itr = audios.begin(); itr != audios.end(); itr++)
+		for (auto itr = m_audios.begin(); itr != m_audios.end(); itr++)
 		{
-			if (itr->filePass == FileName)
+			if (itr->m_filePass == FileName)
 			{
 				return i;
 			}
@@ -183,7 +183,7 @@ int AudioApp::LoadAudio(string FileName, const float& Volume)
 		}
 	}
 
-	audios.emplace_back(FileName);
+	m_audios.emplace_back(FileName);
 
 	HRESULT result;
 
@@ -203,35 +203,35 @@ int AudioApp::LoadAudio(string FileName, const float& Volume)
 		Chunk chunk;
 		file.read((char*)&chunk, sizeof(Chunk));
 
-		if (strncmp(chunk.id, "RIFF", 4) == 0)
+		if (strncmp(chunk.m_id, "RIFF", 4) == 0)
 		{
-			audios.back().riff.chunk = chunk;
-			file.read(audios.back().riff.type, sizeof(audios.back().riff.type));
+			m_audios.back().m_riff.m_chunk = chunk;
+			file.read(m_audios.back().m_riff.m_type, sizeof(m_audios.back().m_riff.m_type));
 		}
-		else if (strncmp(chunk.id, "fmt ", 4) == 0)
+		else if (strncmp(chunk.m_id, "fmt ", 4) == 0)
 		{
-			audios.back().format.chunk = chunk;
-			file.read((char*)&audios.back().format.fmt, chunk.size);
+			m_audios.back().m_format.m_chunk = chunk;
+			file.read((char*)&m_audios.back().m_format.m_fmt, chunk.m_size);
 		}
-		else if (strncmp(chunk.id, "data", 4) == 0)
+		else if (strncmp(chunk.m_id, "data", 4) == 0)
 		{
-			audios.back().data = chunk;
+			m_audios.back().m_data = chunk;
 			//Dataチャンクのデータ部（波形データ）の読み込み
-			audios.back().pBuffer = new char[audios.back().data.size];
-			file.read(audios.back().pBuffer, audios.back().data.size);
+			m_audios.back().m_pBuffer = new char[m_audios.back().m_data.m_size];
+			file.read(m_audios.back().m_pBuffer, m_audios.back().m_data.m_size);
 			break;
 		}
 		else
 		{
 			//不必要な情報なら無視
-			file.seekg(chunk.size, ios::cur);
+			file.seekg(chunk.m_size, ios::cur);
 		}
 	}
 
 	//Waveファイルを閉じる
 	file.close();
 
-	int handle = audios.size() - 1;
+	int handle = m_audios.size() - 1;
 
 	ChangeVolume(handle, Volume);
 
@@ -242,14 +242,14 @@ int AudioApp::PlayWave(const int& Handle, bool LoopFlag)
 {
 	HRESULT result;
 
-	auto itr = audios.begin();
+	auto itr = m_audios.begin();
 	for (int i = 0; i < Handle; i++)
 	{
 		itr++;
 	}
 
 	//同時に同じ音源を再生しない
-	if (itr->playTrigger)
+	if (itr->m_playTrigger)
 	{
 		return -1;
 	}
@@ -257,57 +257,57 @@ int AudioApp::PlayWave(const int& Handle, bool LoopFlag)
 	//ループ再生で再生しようとしたら既に流れているものを停止
 	if (LoopFlag && NowPlay(Handle))
 	{
-		itr->pSourceVoice->Stop();
+		itr->m_pSourceVoice->Stop();
 	}
 
 //③サウンド再生
 	WAVEFORMATEX wfex{};
 	//波形フォーマットの設定
-	memcpy(&wfex, &itr->format.fmt, sizeof(itr->format.fmt));
-	wfex.wBitsPerSample = itr->format.fmt.nBlockAlign * 8 / itr->format.fmt.nChannels;
+	memcpy(&wfex, &itr->m_format.m_fmt, sizeof(itr->m_format.m_fmt));
+	wfex.wBitsPerSample = itr->m_format.m_fmt.nBlockAlign * 8 / itr->m_format.m_fmt.nChannels;
 
 	//波形フォーマットを元にSourceVoiceの生成
-	result = xAudio2->CreateSourceVoice(&itr->pSourceVoice, &wfex, 0, 2.0f, &voiceCallback);
+	result = m_xAudio2->CreateSourceVoice(&itr->m_pSourceVoice, &wfex, 0, 2.0f, &m_voiceCallback);
 	if FAILED(result)
 	{
 		return -1;
 	}
 	//再生する波形データの設定
 	XAUDIO2_BUFFER buf{};
-	buf.pAudioData = (BYTE*)itr->pBuffer;
-	buf.pContext = itr->pBuffer;
+	buf.pAudioData = (BYTE*)itr->m_pBuffer;
+	buf.pContext = itr->m_pBuffer;
 	buf.Flags = XAUDIO2_END_OF_STREAM;
-	buf.AudioBytes = itr->data.size;
+	buf.AudioBytes = itr->m_data.m_size;
 	if (LoopFlag)
 	{
 		buf.LoopCount = XAUDIO2_LOOP_INFINITE;
 	}
 	
 	//音量の設定
-	itr->pSourceVoice->SetVolume(itr->volume);
+	itr->m_pSourceVoice->SetVolume(itr->m_volume);
 
 	//波形データの再生
-	result = itr->pSourceVoice->SubmitSourceBuffer(&buf);
-	result = itr->pSourceVoice->Start();
+	result = itr->m_pSourceVoice->SubmitSourceBuffer(&buf);
+	result = itr->m_pSourceVoice->Start();
 
-	itr->playTrigger = true;
+	itr->m_playTrigger = true;
 }
 
 void AudioApp::StopWave(const int& Handle)
 {
-	auto itr = audios.begin();
+	auto itr = m_audios.begin();
 	for (int i = 0; i < Handle; i++)
 	{
 		itr++;
 	}
-	if (itr->pSourceVoice != nullptr)
+	if (itr->m_pSourceVoice != nullptr)
 	{
-		itr->pSourceVoice->Stop();
-		itr->pSourceVoice->FlushSourceBuffers();
+		itr->m_pSourceVoice->Stop();
+		itr->m_pSourceVoice->FlushSourceBuffers();
 	}
 }
 
 void AudioApp::AudioData::Unload()
 {
-	if (pBuffer != nullptr)delete[] pBuffer;
+	if (m_pBuffer != nullptr)delete[] m_pBuffer;
 }

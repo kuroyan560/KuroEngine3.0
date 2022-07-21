@@ -23,20 +23,20 @@ private:
 
 private:
 	//各種別ごとに生成できる最大数
-	static const int MAX_NUM = 100;
+	static const int s_maxNum = 100;
 	//各モデルのボーン最大数
-	static const int MAX_BONE_NUM = 32;
+	static const int s_maxBoneNum = 32;
 	//描画パイプライン（インスタンシング描画）
-	std::shared_ptr<GraphicsPipeline>pipeline;
+	std::shared_ptr<GraphicsPipeline>m_pipeline;
 
 	//系統（型オブジェクト）
-	std::array<std::unique_ptr<EnemyBreed>, ENEMY_TYPE_NUM>breeds;
+	std::array<std::unique_ptr<EnemyBreed>, ENEMY_TYPE_NUM>m_breeds;
 	//生成済エネミー配列
-	std::array<EnemyArray, ENEMY_TYPE_NUM>enemys;
+	std::array<EnemyArray, ENEMY_TYPE_NUM>m_enemys;
 	//ワールド行列配列用構造化バッファ
-	std::array<std::shared_ptr<StructuredBuffer>, ENEMY_TYPE_NUM>worldMatriciesBuff;
+	std::array<std::shared_ptr<StructuredBuffer>, ENEMY_TYPE_NUM>m_worldMatriciesBuff;
 	//ボーン行列配列用構造化バッファ
-	std::array<std::shared_ptr<StructuredBuffer>, ENEMY_TYPE_NUM>boneMatriciesBuff;
+	std::array<std::shared_ptr<StructuredBuffer>, ENEMY_TYPE_NUM>m_boneMatriciesBuff;
 
 public:
 	void Spawn(const ENEMY_TYPE& Type, const Transform& InitTransform);
@@ -45,6 +45,6 @@ public:
 
 	std::shared_ptr<Model>GetModel(const ENEMY_TYPE& Type)
 	{
-		return breeds[Type]->GetModel();
+		return m_breeds[Type]->GetModel();
 	}
 };

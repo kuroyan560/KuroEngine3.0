@@ -173,8 +173,8 @@ ModelAnimator::ModelAnimator(std::weak_ptr<Model> Model)
 void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 {
 	auto model = Model.lock();
-	auto skel = model->skelton;
-	KuroFunc::ErrorMessage(MAX_BONE_NUM < skel->bones.size(), "ModelAnimator", "AttachSkeleton", "The bone's number is over than limit.");
+	auto skel = model->m_skelton;
+	assert(skel->bones.size() <= MAX_BONE_NUM);
 
 	//バッファ未生成
 	if (!boneBuff)
@@ -183,7 +183,7 @@ void ModelAnimator::Attach(std::weak_ptr<Model> Model)
 	}
 	
 	//バッファのリネーム
-	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->header.GetModelName())).c_str());
+	boneBuff->GetResource()->SetName((L"BoneMatricies - " + KuroFunc::GetWideStrFromStr(model->m_header.GetModelName())).c_str());
 
 	Reset();
 
@@ -209,8 +209,8 @@ void ModelAnimator::Play(const std::string& AnimationName, const bool& Loop, con
 	if (!Blend)Reset();
 
 	auto skel = attachSkelton.lock();
-	KuroFunc::ErrorMessage(!skel, "ModelAnimator", "Play", "Any skeleton doesn't be attached.");
-	KuroFunc::ErrorMessage(!skel->animations.contains(AnimationName), "ModelAnimator", "Play", "That animation wasn't found.");
+	assert(skel);
+	assert(skel->animations.contains(AnimationName));
 
 	//既に再生中か調べる
 	auto already = std::find_if(playAnimations.begin(), playAnimations.end(), [AnimationName](PlayAnimation& Anim)

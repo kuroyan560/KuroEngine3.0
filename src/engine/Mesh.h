@@ -26,7 +26,7 @@ public:
 	//バッファ生成
 	void CreateBuff()
 	{
-		KuroFunc::ErrorMessage(vertices.empty(), "Mesh", "CreateBuff", "メッシュのバッファ生成をしようとしましたが、頂点が空です\n");
+		assert(!vertices.empty());
 
 		//頂点バッファ生成
 		if(!vertBuff)vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(VertexType), static_cast<int>(vertices.size()), &vertices[0], name.c_str());
@@ -39,14 +39,14 @@ public:
 	//マッピング
 	void Mapping()
 	{
-		KuroFunc::ErrorMessage(invalid, "Mesh", "Mapping", "メッシュのバッファのマッピングに失敗、バッファ生成がまだ行われていません\n");
+		assert(!invalid);
 		vertBuff->Mapping(&vertices[0]);
 		if (idxBuff)idxBuff->Mapping(&indices[0]);
 	}
 	//バッファ名セッタ
 	void SetNameToBuff(const std::string& Name)
 	{
-		KuroFunc::ErrorMessage(invalid, "Mesh", "SetNameToBuff", "メッシュのバッファの改名に失敗、バッファ生成がまだ行われていません\n");
+		assert(!invalid);
 		auto wideName = KuroFunc::GetWideStrFromStr(name).c_str();
 		vertBuff->SetName(wideName);
 		if (idxBuff)idxBuff->SetName(wideName);

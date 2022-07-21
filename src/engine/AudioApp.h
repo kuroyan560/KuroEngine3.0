@@ -16,41 +16,41 @@
 class AudioApp
 {
 private:
-	static AudioApp* INSTANCE;
+	static AudioApp* s_instance;
 public:
 	static AudioApp* Instance()
 	{
-		if (INSTANCE == nullptr)
+		if (s_instance == nullptr)
 		{
 			printf("AudioAppのインスタンスを呼び出そうとしましたがnullptrでした\n");
 			assert(0);
 		}
-		return INSTANCE;
+		return s_instance;
 	}
 private:
 	//チャンクヘッダ
 	struct Chunk
 	{
-		char id[4];		//チャンク毎のID
-		int32_t size;	//チャンクのサイズ
+		char m_id[4];		//チャンク毎のID
+		int32_t m_size;	//チャンクのサイズ
 	};
 
 	//RTFFヘッダチャンク
 	struct RiffHeader
 	{
-		Chunk chunk;	//"RIFF"
-		char type[4];	//"WAVE"
+		Chunk m_chunk;	//"RIFF"
+		char m_type[4];	//"WAVE"
 	};
 
 	//FMTチャンク
 	struct FormatChunck
 	{
-		Chunk chunk;	//"fmt "
-		WAVEFORMAT fmt;	//波形フォーマット
+		Chunk m_chunk;	//"fmt "
+		WAVEFORMAT m_fmt;	//波形フォーマット
 	};
 
-	Microsoft::WRL::ComPtr<IXAudio2>xAudio2;
-	IXAudio2MasteringVoice* masterVoice;
+	Microsoft::WRL::ComPtr<IXAudio2>m_xAudio2;
+	IXAudio2MasteringVoice* m_masterVoice;
 
 	class XAudio2VoiceCallback : public IXAudio2VoiceCallback
 	{
@@ -71,34 +71,34 @@ private:
 		//ボイスの実行エラー時
 		STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error) {};
 	};
-	XAudio2VoiceCallback voiceCallback;
+	XAudio2VoiceCallback m_voiceCallback;
 
 	class AudioData
 	{
 	public:
-		std::string filePass;
-		RiffHeader riff;
-		FormatChunck format;
-		Chunk data;
-		char* pBuffer = nullptr;
-		IXAudio2SourceVoice* pSourceVoice = nullptr;
-		float volume = 1.0f;
-		bool loop = false;
-		bool playTrigger = false;
+		std::string m_filePass;
+		RiffHeader m_riff;
+		FormatChunck m_format;
+		Chunk m_data;
+		char* m_pBuffer = nullptr;
+		IXAudio2SourceVoice* m_pSourceVoice = nullptr;
+		float m_volume = 1.0f;
+		bool m_loop = false;
+		bool m_playTrigger = false;
 
 		AudioData(std::string FilePass)
-			:filePass(FilePass) {};
+			:m_filePass(FilePass) {};
 		void Unload();
 	};
 
 	struct PlayAudioArray
 	{
-		std::vector<int>handles;
-		int nowIdx = 0;
-		PlayAudioArray(const std::vector<int>& Handles) :handles(Handles) {}
+		std::vector<int>m_handles;
+		int m_nowIdx = 0;
+		PlayAudioArray(const std::vector<int>& Handles) :m_handles(Handles) {}
 	};
-	std::list<AudioData>audios;
-	std::vector<PlayAudioArray>playHandleArray;
+	std::list<AudioData>m_audios;
+	std::vector<PlayAudioArray>m_playHandleArray;
 
 public:
 	AudioApp();
@@ -113,7 +113,7 @@ public:
 	int PlayWaveArray(const std::vector<int>& Handles)	//複数の音声を同フレームで再生しないよう、順番に再生
 	{
 		if (Handles.empty())return 0;
-		playHandleArray.emplace_back(Handles);
+		m_playHandleArray.emplace_back(Handles);
 		return PlayWave(Handles[0]);
 	}
 	void StopWave(const int& Handle);

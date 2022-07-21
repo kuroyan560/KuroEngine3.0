@@ -15,7 +15,7 @@ class ConstantBuffer;
 class CubeMap
 {
 protected:
-	static std::shared_ptr<TextureBuffer>DEFAULT_CUBE_MAP_TEX;
+	static std::shared_ptr<TextureBuffer>s_defaultCubeMapTex;
 public:
 	enum SURFACE_TYPE
 	{
@@ -35,15 +35,15 @@ public:
 	};
 
 	//メッシュ名に付与するタグ
-	static const std::array<std::string, SURFACE_NUM>SURFACE_NAME_TAG;
+	static const std::array<std::string, SURFACE_NUM>s_surfaceNameTag;
 	
 protected:
 	CubeMap();
-	std::shared_ptr<TextureBuffer>cubeMap;	//ライティングで参照する（ディメンションがTEXTURE_CUBE）
+	std::shared_ptr<TextureBuffer>m_cubeMap;	//ライティングで参照する（ディメンションがTEXTURE_CUBE）
 
 public:
 
-	const std::shared_ptr<TextureBuffer>& GetCubeMapTex() { return cubeMap; }
+	const std::shared_ptr<TextureBuffer>& GetCubeMapTex() { return m_cubeMap; }
 	void CopyCubeMap(std::shared_ptr<CubeMap>Src);
 };
 
@@ -53,28 +53,28 @@ class StaticallyCubeMap : public CubeMap
 private:
 	struct Vertex
 	{
-		Vec3<float>pos;
-		Vec2<float>uv;
+		Vec3<float>m_pos;
+		Vec2<float>m_uv;
 	};
 	struct Surface
 	{
-		Mesh<Vertex>mesh;
-		std::shared_ptr<TextureBuffer>tex;
+		Mesh<Vertex>m_mesh;
+		std::shared_ptr<TextureBuffer>m_tex;
 	};
 
 public:
 	static std::shared_ptr<StaticallyCubeMap>&GetDefaultCubeMap();
 
 private:
-	std::string name;
-	float sideLength = 10.0f;	//辺の長さ
-	std::array<Surface, SURFACE_NUM>surfaces;	//描画に使用
-	std::shared_ptr<ConstantBuffer>transformBuff;
+	std::string m_name;
+	float m_sideLength = 10.0f;	//辺の長さ
+	std::array<Surface, SURFACE_NUM>m_surfaces;	//描画に使用
+	std::shared_ptr<ConstantBuffer>m_transformBuff;
 
 	void ResetMeshVertices();
 
 public:
-	Transform transform;
+	Transform m_transform;
 
 	StaticallyCubeMap(const std::string& Name, const float& SideLength = 100.0f);
 
@@ -89,20 +89,20 @@ public:
 		else if (Surface == NY)Surface = PY;
 		else if (Surface == PX)Surface = NX;
 		else if (Surface == NX)Surface = PX;
-		surfaces[Surface].tex = Tex;
+		m_surfaces[Surface].m_tex = Tex;
 	}
 	void AttachTex(const std::string& Dir, const std::string& Extention);
 
 	//描画に用いるテクスチャ取得
 	std::shared_ptr<TextureBuffer>GetTex(const SURFACE_TYPE& Surface)
 	{
-		return surfaces[Surface].tex;
+		return m_surfaces[Surface].m_tex;
 	}
 
 	//ライティングに用いるテクスチャをアタッチ
 	void AttachCubeMapTex(const std::shared_ptr<TextureBuffer>& CubeMapTex)
 	{
-		cubeMap = CubeMapTex;
+		m_cubeMap = CubeMapTex;
 	}
 
 	//描画
@@ -114,12 +114,12 @@ public:
 class DynamicCubeMap : public CubeMap
 {
 private:
-	static int ID;
-	static std::shared_ptr<ConstantBuffer>VIEW_PROJ_MATRICIES;
+	static int s_id;
+	static std::shared_ptr<ConstantBuffer>s_viewProjMat;
 
 private:
-	std::shared_ptr<RenderTarget>cubeRenderTarget;
-	std::shared_ptr<DepthStencil>cubeDepth;
+	std::shared_ptr<RenderTarget>m_cubeRenderTarget;
+	std::shared_ptr<DepthStencil>m_cubeDepth;
 
 public:
 	DynamicCubeMap(const int& CubeMapEdge = 512);

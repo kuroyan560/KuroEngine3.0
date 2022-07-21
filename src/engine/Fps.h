@@ -7,18 +7,18 @@
 #pragma comment(lib,"winmm.lib")
 class Fps
 {
-	const int frameRate;
-	const float minFrameTime;
-	float frameTime = 0;
-	LARGE_INTEGER timeStart;
-	LARGE_INTEGER timeEnd;
-	LARGE_INTEGER timeFreq;
+	const int m_frameRate;
+	const float m_minFrameTime;
+	float m_frameTime = 0;
+	LARGE_INTEGER m_timeStart;
+	LARGE_INTEGER m_timeEnd;
+	LARGE_INTEGER m_timeFreq;
 	// fpsを取得するなら0で初期化しないとゴミが混ざってマイナスから始まったりする(かも知れない)
-	float fps = 0;
+	float m_fps = 0;
 
 public:
 	Fps(const int& FrameRate);
 	void Update();
 
-	const float& GetNowFps()const { return fps; }
+	const float& GetNowFps()const { return m_fps; }
 };

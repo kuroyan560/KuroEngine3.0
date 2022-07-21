@@ -24,28 +24,28 @@ private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	static ImguiApp* INSTANCE;
+	static ImguiApp* s_instance;
 
 public:
 	static ImguiApp* Instance()
 	{
-		if (INSTANCE == nullptr)
+		if (s_instance == nullptr)
 		{
 			printf("ImguiAppのインスタンスを呼び出そうとしましたがnullptrでした\n");
 			assert(0);
 		}
-		return INSTANCE;
+		return s_instance;
 	}
 
 private:
-	ComPtr<ID3D12DescriptorHeap>heap;
+	ComPtr<ID3D12DescriptorHeap>m_heap;
 
-	const std::array<std::string, IMGUI_DEBUG_MODE_NUM>modeName =
+	const std::array<std::string, IMGUI_DEBUG_MODE_NUM>m_modeName =
 	{
 		"Reference",
 		"Rewrite"
 	};
-	const float indent = 32.0f;
+	const float m_indent = 32.0f;
 
 public:
 	ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd);

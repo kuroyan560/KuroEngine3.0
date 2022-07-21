@@ -4,73 +4,73 @@
 
 void PlayerAttack::AnimPlay()
 {
-	attachAnimator.lock()->Play(animName[nowIdx], false, false);
+	m_attachAnimator.lock()->Play(m_animName[m_nowIdx], false, false);
 }
 
 void PlayerAttack::Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& LeftHandCollider, std::shared_ptr<Collider>& RightHandCollider)
 {
-	attachAnimator = Animator;
-	leftHandCol = LeftHandCollider;
-	rightHandCol = RightHandCollider;
-	leftHandCol.lock()->SetCallBack(&attackColliderCallBack);
-	rightHandCol.lock()->SetCallBack(&attackColliderCallBack);
+	m_attachAnimator = Animator;
+	m_leftHandCol = LeftHandCollider;
+	m_rightHandCol = RightHandCollider;
+	m_leftHandCol.lock()->SetCallBack(&m_attackColliderCallBack);
+	m_rightHandCol.lock()->SetCallBack(&m_attackColliderCallBack);
 }
 
 void PlayerAttack::Init()
 {
-	leftHandCol.lock()->SetActive(false);
-	rightHandCol.lock()->SetActive(false);
-	isActive = false;
+	m_leftHandCol.lock()->SetActive(false);
+	m_rightHandCol.lock()->SetActive(false);
+	m_isActive = false;
 }
 
 void PlayerAttack::Update()
 {
 	//攻撃中でない
-	if (!isActive)return;
+	if (!m_isActive)return;
 
-	auto animator = attachAnimator.lock();
+	auto animator = m_attachAnimator.lock();
 
 	//現在の攻撃アニメーションが終了したら次のアニメーションへ
-	if (!animator->IsPlay(animName[nowIdx]))
+	if (!animator->IsPlay(m_animName[m_nowIdx]))
 	{
 		//一番最初のアニメーション
-		if(readyAnim)
+		if(m_readyAnim)
 		{
-			leftHandCol.lock()->SetActive(true);
-			rightHandCol.lock()->SetActive(true);
-			readyAnim = false;
+			m_leftHandCol.lock()->SetActive(true);
+			m_rightHandCol.lock()->SetActive(true);
+			m_readyAnim = false;
 		}
 
-		emitHitEffect = true;
+		m_emitHitEffect = true;
 
 		//複数の攻撃アニメーションをループ
-		nowIdx++;
-		if (ATTACK_ANIM_NUM <= nowIdx)nowIdx = 0;
+		m_nowIdx++;
+		if (s_attackAnimNum <= m_nowIdx)m_nowIdx = 0;
 		AnimPlay();
 	}
 }
 
 void PlayerAttack::Start()
 {
-	nowIdx = 0;
+	m_nowIdx = 0;
 	AnimPlay();
-	isActive = true;
-	readyAnim = true;
+	m_isActive = true;
+	m_readyAnim = true;
 }
 
 void PlayerAttack::Stop()
 {
-	isActive = false;
-	leftHandCol.lock()->SetActive(false);
-	rightHandCol.lock()->SetActive(false);
+	m_isActive = false;
+	m_leftHandCol.lock()->SetActive(false);
+	m_rightHandCol.lock()->SetActive(false);
 }
 
 #include"HitEffect.h"
 void PlayerAttack::AttackColliderCallBack::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
 {
-	if (parent->emitHitEffect)
+	if (m_parent->m_emitHitEffect)
 	{
 		HitEffect::Generate(Inter);
-		parent->emitHitEffect = false;
+		m_parent->m_emitHitEffect = false;
 	}
 }
