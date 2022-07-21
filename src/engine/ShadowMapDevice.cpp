@@ -163,11 +163,14 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 	}
 }
 
-void ShadowMapDevice::SetHeight(const float& Height)
+void ShadowMapDevice::SetPos(const Vec3<float> Pos)
 {
-	auto pos = m_lightCamera.GetPos();
-	pos.y = Height;
-	m_lightCamera.SetPos(pos);
+	m_lightCamera.SetPos(Pos);
+}
+
+void ShadowMapDevice::SetTarget(const Vec3<float> Target)
+{
+	m_lightCamera.SetTarget(Target);
 }
 
 void ShadowMapDevice::SetBlurPower(const float& BlurPower)

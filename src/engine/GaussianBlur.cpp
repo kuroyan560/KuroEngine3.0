@@ -139,6 +139,5 @@ void GaussianBlur::Register(const std::shared_ptr<TextureBuffer>& SourceTex)
 #include"KuroEngine.h"
 void GaussianBlur::DrawResult(const AlphaBlendMode& AlphaBlend)
 {
-    KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() });
     DrawFunc2D::DrawExtendGraph2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), m_finalResult, AlphaBlend);
 }

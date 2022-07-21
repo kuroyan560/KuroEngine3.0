@@ -14,6 +14,7 @@
 #include"NoiseGenerator.h"
 #include"HitEffect.h"
 #include"CubeMap.h"
+#include"BasicDraw.h"
 
 GameScene::GameScene()
 {
@@ -31,15 +32,14 @@ GameScene::GameScene()
 	m_floorCol->SetMyAttribute(FLOOR);
 	m_floorCol->SetHitCheckAttribute(FOOT_POINT);
 
-	m_shadowMapDevice.SetHeight(100.0f);
 	m_shadowMapDevice.SetBlurPower(4.0f);
 
-	m_dirLig.SetDir(Vec3<float>(0, 0, -1));
-	m_ligMgr.RegisterDirLight(&m_dirLig);
-	m_ligMgr.RegisterPointLight(&m_ptLig);
+	m_dirLig.SetDir(Vec3<float>(0, -1, 0));
 	m_hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
 	m_hemiLig.SetGroundColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
-	m_ligMgr.RegisterHemiSphereLight(&m_hemiLig);
+	m_ligMgr.RegisterDirLight(&m_dirLig);
+	//m_ligMgr.RegisterPointLight(&m_ptLig);
+	//m_ligMgr.RegisterHemiSphereLight(&m_hemiLig);
 
 	GameManager::Instance()->RegisterCamera(Player::s_cameraKey, Player::GetCam());
 
@@ -139,17 +139,31 @@ void GameScene::OnUpdate()
 
 	//m_indirectSample.Update(m_enableCulling);
 	m_indirectSample.Update(m_cullingOffset);
+
+	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
+	static const float SHADOW_MAP_HEIGHT = 100.0f;
+	auto playerPos = m_player.GetModelObj().lock()->m_transform.GetPos();
+	auto shadowLightPos = playerPos;;
+	shadowLightPos.y = SHADOW_MAP_HEIGHT;
+	m_shadowMapDevice.SetPos(shadowLightPos);
+	m_shadowMapDevice.SetTarget(playerPos);
 }
 
 
 void GameScene::OnDraw()
 {
+	BasicDraw::CountReset();
+
 	auto cmdList = D3D12App::Instance()->GetCmdList();
+	auto backBuff = D3D12App::Instance()->GetBackBuffRenderTarget();
 
 	//デプスステンシル
-	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(
-		D3D12App::Instance()->GetBackBuffRenderTarget()->GetGraphSize());
+	static std::shared_ptr<DepthStencil>dsv = D3D12App::Instance()->GenerateDepthStencil(backBuff->GetGraphSize());
 	dsv->Clear(cmdList);
+
+	//エミッシブマップ
+	static std::shared_ptr<RenderTarget>emissiveMap = D3D12App::Instance()->GenerateRenderTarget(backBuff->GetDesc().Format, Color(0, 0, 0, 0), backBuff->GetGraphSize(), L"EmissiveMap");
+	emissiveMap->Clear(cmdList);
 
 	//現在のカメラ取得
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
@@ -157,12 +171,10 @@ void GameScene::OnDraw()
 
 	//GraphicsManagerの管轄外
 	{
-		auto backRT = D3D12App::Instance()->GetBackBuffRenderTarget();
-
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
-		rtvs.emplace_back(backRT->AsRTV(cmdList));
+		rtvs.emplace_back(backBuff->AsRTV(cmdList));
 
-		const Vec2<float> targetSize = backRT->GetGraphSize().Float();
+		const Vec2<float> targetSize = backBuff->GetGraphSize().Float();
 		//ビューポート設定
 		auto viewPort = CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y);
 		cmdList->RSSetViewports(1, &viewPort);
@@ -185,9 +197,7 @@ void GameScene::OnDraw()
 	m_shadowMapDevice.DrawShadowMap({ m_player.GetModelObj() });
 
 	//標準描画
-	KuroEngine::Instance().Graphics().SetRenderTargets({ D3D12App::Instance()->GetBackBuffRenderTarget() }, dsv);
-
-
+	KuroEngine::Instance().Graphics().SetRenderTargets({ backBuff,emissiveMap }, dsv);
 
 	//キューブマップ描画
 	//staticCubeMap->Draw(nowCam);
@@ -199,14 +209,14 @@ void GameScene::OnDraw()
 	EnemyManager::Instance()->Draw(nowCam, m_dynamicCubeMap);
 
 	//プレイヤー
-	DrawFunc3D::DrawPBRShadingModel(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
+	//DrawFunc3D::DrawPBRShadingModel(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
+	BasicDraw::Draw(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 
-	static Transform debugTrans;
-	debugTrans.SetPos({ 9,6,0 });
-	//DrawFunc3D::DrawPBRShadingModel(ligMgr, EnemyManager::Instance()->GetModel(SANDBAG), debugTrans, nowCam, nullptr, cubeMap);
+	//ライトブルーム
+	m_lightBloomDevice.Draw(emissiveMap, backBuff);
 
 	//当たり判定デバッグ描画
-	static bool COLLIDER_DRAW = true;
+	static bool COLLIDER_DRAW = false;
 	if (UsersInput::Instance()->ControllerOnTrigger(0, XBOX_BUTTON::X))
 	{
 		COLLIDER_DRAW = !COLLIDER_DRAW;

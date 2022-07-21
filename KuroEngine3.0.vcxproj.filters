@@ -262,6 +262,9 @@
     <ClCompile Include="src\user\IndirectSample.cpp">
       <Filter>src\user</Filter>
     </ClCompile>
+    <ClCompile Include="src\user\BasicDraw.cpp">
+      <Filter>src\user</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -488,6 +491,9 @@
     </ClInclude>
     <ClInclude Include="lib\dxcapi.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\BasicDraw.h">
+      <Filter>src\user</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

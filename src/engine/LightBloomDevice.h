@@ -4,7 +4,6 @@
 #include<vector>
 class ComputePipeline;
 class RenderTarget;
-class DepthStencil;
 class TextureBuffer;
 class GaussianBlur;
 class ConstantBuffer;
@@ -29,8 +28,6 @@ private:
 	LightBloomConfig m_config;
 
 	//エミッシブマップ
-	std::shared_ptr<RenderTarget>m_emissiveMap;
-	std::shared_ptr<DepthStencil>m_emissiveMapDepth;
 	std::shared_ptr<TextureBuffer>m_emissiveMapFiltered;
 	//設定情報送信用
 	std::shared_ptr<ConstantBuffer>m_constBuff;
@@ -40,10 +37,8 @@ private:
 public:
 	LightBloomDevice();
 
-	//エミッシブマップに書き込むためにレンダーターゲットをセット
-	void SetRenderTargets();
-	//レンダーターゲットに加算して描画（Clear：描画後レンダーターゲットをクリアするか）
-	void Draw(const bool& Clear = true);
+	//レンダーターゲットに加算して描画
+	void Draw(std::weak_ptr<RenderTarget>EmissiveMap, std::weak_ptr<RenderTarget>Target);
 
 
 	//セッタ

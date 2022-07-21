@@ -17,7 +17,8 @@ public:
 	void DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>>& Models);
 	void DrawShadowReceiver(const std::vector<std::weak_ptr<ModelObject>>& Models, Camera& GameCamera, const AlphaBlendMode& BlendMode = AlphaBlendMode_Trans);
 
-	void SetHeight(const float& Height = 10.0f);
+	void SetPos(const Vec3<float>Pos = { 0.0f,10.0f,0.0f });
+	void SetTarget(const Vec3<float>Target = { 0,0,0 });
 	void SetBlurPower(const float& BlurPower = 8.0f);
 };
 
