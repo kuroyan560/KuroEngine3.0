@@ -24,11 +24,9 @@ private:
 
 	//アタッチされたアニメーターとコライダー
 	std::weak_ptr<ModelAnimator>m_attachAnimator;
-	std::weak_ptr<Collider>m_leftHandCol;
-	std::weak_ptr<Collider>m_rightHandCol;
 
-	//一番最初の攻撃アニメーションか（最初の攻撃は振りかぶってるだけ）
-	bool m_readyAnim = false;
+	//攻撃判定をとるコライダー
+	std::weak_ptr<Collider>m_attackCollider;
 
 	//攻撃中か
 	bool m_isActive = false;
@@ -39,12 +37,12 @@ private:
 	//アニメーション再生
 	void AnimPlay();
 
-	//ヒットエフェクトを出すかのフラグ
-	bool m_emitHitEffect = false;
+	//１度の攻撃で１回だけコールバック処理を呼び出すためのフラグ
+	bool m_callBack = false;
 
 public:
 	PlayerAttack() :m_attackColliderCallBack(this) {}
-	void Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& LeftHandCollider, std::shared_ptr<Collider>& RightHandCollider);
+	void Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& AttackCollider);
 	void Init();
 	void Update();
 	void Start();

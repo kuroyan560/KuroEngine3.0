@@ -74,7 +74,7 @@ void Player::AnimationSwitch()
 	}
 	else if (StatusTrigger(ATTACK))	//攻撃モーション
 	{
-		m_model->m_animator->speed = 3.0f;
+		m_model->m_animator->speed = 1.0f;
 		m_attack.Start();	//攻撃処理開始
 	}
 }
@@ -102,24 +102,16 @@ Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_
 	footCol->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::FLOOR);
 	m_colliders.emplace_back(footCol);
 
-	//右手武器
-	auto boneCol_R_Sphere = std::make_shared<CollisionSphere>(1.4f, &m_model->m_transform, &m_model->m_animator->GetBoneLocalMat("Hand_L"));
-	boneCol_R_Sphere->m_offset = { 0,-0.5f,0.7f };
-	auto boneCol_R = Collider::Generate(boneCol_R_Sphere);
-	boneCol_R->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	boneCol_R->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
-	m_colliders.emplace_back(boneCol_R);
-
-	//左手武器
-	auto boneCol_L_Sphere = std::make_shared<CollisionSphere>(1.4f, &m_model->m_transform, &m_model->m_animator->GetBoneLocalMat("Hand_R"));
-	boneCol_L_Sphere->m_offset = { 0,-0.5f,0.7f };
-	auto boneCol_L = Collider::Generate(boneCol_L_Sphere);
-	boneCol_L->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
-	boneCol_L->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
-	m_colliders.emplace_back(boneCol_L);
+	//通常攻撃用コライダー
+	auto nrmAttackCol_Sphere = std::make_shared<CollisionSphere>(3.0f, &m_model->m_transform);
+	nrmAttackCol_Sphere->m_offset = { 0,6.0f,6.0f };
+	auto nrmAttackCol = Collider::Generate(nrmAttackCol_Sphere);
+	nrmAttackCol->SetMyAttribute(COLLIDER_ATTRIBUTE::PLAYER);
+	nrmAttackCol->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
+	m_colliders.emplace_back(nrmAttackCol);
 
 	//攻撃処理に武器コライダーをアタッチ
-	m_attack.Attach(m_model->m_animator, boneCol_L, boneCol_R);
+	m_attack.Attach(m_model->m_animator, nrmAttackCol);
 }
 
 void Player::Init()
