@@ -24,8 +24,10 @@ float4 GetPixelColor(int x, int y, int2 texSize)
     return inputImage[uint2(x, y)];
 }
 
+static const int THREAD_DIV = 4;
+
 //Xブラーを実装
-[numthreads(4, 4, 1)]
+[numthreads(THREAD_DIV, THREAD_DIV, 1)]
 void XBlur(uint3 DTid : SV_DispatchThreadID)
 {
     uint2 basepos = uint2(DTid.x * 2, DTid.y);
@@ -50,7 +52,7 @@ void XBlur(uint3 DTid : SV_DispatchThreadID)
     outputImage[DTid.xy] = color;
 }
 
-[numthreads(4, 4, 1)]
+[numthreads(THREAD_DIV, THREAD_DIV, 1)]
 void YBlur(uint3 DTid : SV_DispatchThreadID)
 {
     uint2 basepos = uint2(DTid.x, DTid.y * 2);
@@ -75,7 +77,7 @@ void YBlur(uint3 DTid : SV_DispatchThreadID)
     outputImage[DTid.xy] = color;
 }
 
-[numthreads(4, 4, 1)]
+[numthreads(THREAD_DIV, THREAD_DIV, 1)]
 void Final(uint3 DTid : SV_DispatchThreadID)
 {
     // バイリニアフィルタをかける

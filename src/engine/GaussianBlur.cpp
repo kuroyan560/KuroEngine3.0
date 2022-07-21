@@ -92,7 +92,10 @@ void GaussianBlur::Execute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandLis
     m_texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     SourceTex->SetComputeDescriptorBuffer(CmdList, SRV, 2);
     m_xBlurResult->SetComputeDescriptorBuffer(CmdList, UAV, 3);
-    CmdList->Dispatch(static_cast<UINT>(m_xBlurResult->GetDesc().Width / DIV), static_cast<UINT>(m_xBlurResult->GetDesc().Height / DIV), 1);
+    CmdList->Dispatch(
+        static_cast<UINT>(ceil(m_xBlurResult->GetDesc().Width / DIV)),
+        static_cast<UINT>(ceil(m_xBlurResult->GetDesc().Height / DIV)),
+        1);
 
     //Yƒuƒ‰[
     s_yBlurPipeline->SetPipeline(CmdList);
@@ -100,7 +103,10 @@ void GaussianBlur::Execute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandLis
     m_texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     m_xBlurResult->SetComputeDescriptorBuffer(CmdList, SRV, 2);
     m_yBlurResult->SetComputeDescriptorBuffer(CmdList, UAV, 3);
-    CmdList->Dispatch(static_cast<UINT>(m_yBlurResult->GetDesc().Width / DIV), static_cast<UINT>(m_yBlurResult->GetDesc().Height / DIV), 1);
+    CmdList->Dispatch(
+        static_cast<UINT>(ceil(m_yBlurResult->GetDesc().Width / DIV)),
+        static_cast<UINT>(ceil(m_yBlurResult->GetDesc().Height / DIV)),
+        1);
 
     //ÅIŒ‹‰Ê‡¬
     s_finalPipeline->SetPipeline(CmdList);
@@ -108,7 +114,10 @@ void GaussianBlur::Execute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandLis
     m_texInfoConstBuff->SetComputeDescriptorBuffer(CmdList, CBV, 1);
     m_yBlurResult->SetComputeDescriptorBuffer(CmdList, SRV, 2);
     m_finalResult->SetComputeDescriptorBuffer(CmdList, UAV, 3);
-    CmdList->Dispatch(static_cast<UINT>(m_finalResult->GetDesc().Width / DIV), static_cast<UINT>(m_finalResult->GetDesc().Height / DIV), 1);
+    CmdList->Dispatch(
+        static_cast<UINT>(ceil(m_finalResult->GetDesc().Width / DIV)), 
+        static_cast<UINT>(ceil(m_finalResult->GetDesc().Height / DIV)), 
+        1);
 }
 
 void GaussianBlur::Register(const std::shared_ptr<TextureBuffer>& SourceTex)
