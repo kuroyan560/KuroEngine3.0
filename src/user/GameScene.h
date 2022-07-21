@@ -5,6 +5,7 @@
 #include"GameManager.h"
 #include"ShadowMapDevice.h"
 #include"LightBloomDevice.h"
+#include"DOF.h"
 #include"NoiseGenerator.h"
 #include"IndirectSample.h"
 
@@ -20,6 +21,7 @@ class GameScene : public BaseScene
 {
 	ShadowMapDevice m_shadowMapDevice;
 	LightBloomDevice m_lightBloomDevice;
+	DOF m_dof;
 
 	std::shared_ptr<ModelObject>m_floorModel;
 	std::shared_ptr<Collider>m_floorCol;
@@ -30,6 +32,7 @@ class GameScene : public BaseScene
 	Light::Point m_ptLig;
 	
 	Player m_player;
+	std::shared_ptr<ModelObject>m_testObj;
 
 	std::shared_ptr<StaticallyCubeMap>m_staticCubeMap;
 	std::shared_ptr<DynamicCubeMap>m_dynamicCubeMap;

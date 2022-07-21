@@ -20,7 +20,7 @@ struct LightBloomConfig
 class LightBloomDevice
 {
 private:
-	std::shared_ptr<ComputePipeline>m_pipeline;
+	static std::shared_ptr<ComputePipeline>s_pipeline;
 	void GeneratePipeline();
 
 private:
@@ -28,7 +28,7 @@ private:
 	LightBloomConfig m_config;
 
 	//エミッシブマップ
-	std::shared_ptr<TextureBuffer>m_emissiveMapFiltered;
+	std::shared_ptr<TextureBuffer>m_processedEmissiveMap;
 	//設定情報送信用
 	std::shared_ptr<ConstantBuffer>m_constBuff;
 	//ガウシアンブラー

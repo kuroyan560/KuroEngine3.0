@@ -265,6 +265,9 @@
     <ClCompile Include="src\user\BasicDraw.cpp">
       <Filter>src\user</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\DOF.cpp">
+      <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -494,6 +497,9 @@
     </ClInclude>
     <ClInclude Include="src\user\BasicDraw.h">
       <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DOF.h">
+      <Filter>src\engine\レンダリング関連</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

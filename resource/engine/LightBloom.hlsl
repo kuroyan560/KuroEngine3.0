@@ -7,7 +7,7 @@ cbuffer cbuff0 : register(b0)
 Texture2D<float4> emissiveMap : register(t0);
 RWTexture2D<float4> pixels : register(u0);
 
-[numthreads(16, 16, 1)]
+[numthreads(32, 32, 1)]
 void CSmain( uint2 DTid : SV_DispatchThreadID )
 {
     float4 col = emissiveMap[DTid];

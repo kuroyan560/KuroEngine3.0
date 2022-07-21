@@ -3,6 +3,8 @@
 #include"GaussianBlur.h"
 #include"DrawFunc2D.h"
 
+std::shared_ptr<ComputePipeline>LightBloomDevice::s_pipeline;
+
 void LightBloomDevice::GeneratePipeline()
 {
 	//シェーダー
@@ -17,21 +19,19 @@ void LightBloomDevice::GeneratePipeline()
 	};
 
 	//パイプライン生成
-	m_pipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParams, { WrappedSampler(false,false) });
+	s_pipeline = D3D12App::Instance()->GenerateComputePipeline(cs, rootParams, { WrappedSampler(false,false) });
 }
 
 LightBloomDevice::LightBloomDevice()
 {
 	//パイプライン生成
-	if (!m_pipeline)GeneratePipeline();
+	if (!s_pipeline)GeneratePipeline();
 
 	//ウィンドウサイズ取得
 	const auto winSize = WinApp::Instance()->GetExpandWinSize().Int();
 
-	//エミッシブマップのフォーマット
-
 	//エミッシブマップ
-	m_emissiveMapFiltered = D3D12App::Instance()->GenerateTextureBuffer(winSize, DXGI_FORMAT_R32G32B32A32_FLOAT, "LightBloom - EmissiveMap - Filtered");
+	m_processedEmissiveMap = D3D12App::Instance()->GenerateTextureBuffer(winSize, DXGI_FORMAT_R32G32B32A32_FLOAT, "LightBloom - EmissiveMap - Processed");
 
 	//定数バッファ生成
 	m_constBuff = D3D12App::Instance()->GenerateConstantBuffer(sizeof(LightBloomConfig), 1, &m_config, "LgihtBloom - Config - ConstantBuffer");
@@ -45,13 +45,13 @@ void LightBloomDevice::Draw(std::weak_ptr<RenderTarget>EmissiveMap, std::weak_pt
 	auto emissiveMap = EmissiveMap.lock();
 
 	//エミッシブマップをしきい値などに応じて加工
-	KuroEngine::Instance().Graphics().SetComputePipeline(m_pipeline);
-	static const int DIV = 16;
+	KuroEngine::Instance().Graphics().SetComputePipeline(s_pipeline);
+	static const int DIV = 32;
 	Vec3<int>threadNum = { emissiveMap->GetGraphSize().x / DIV,emissiveMap->GetGraphSize().y / DIV,1 };
-	KuroEngine::Instance().Graphics().Dispatch(threadNum, { m_constBuff,emissiveMap,m_emissiveMapFiltered }, { CBV,SRV,UAV });
+	KuroEngine::Instance().Graphics().Dispatch(threadNum, { m_constBuff,emissiveMap,m_processedEmissiveMap }, { CBV,SRV,UAV });
 
 	//エミッシブマップにブラーをかける
-	m_gaussianBlur->Register(m_emissiveMapFiltered);
+	m_gaussianBlur->Register(m_processedEmissiveMap);
 
 	KuroEngine::Instance().Graphics().SetRenderTargets({ Target.lock() });
 

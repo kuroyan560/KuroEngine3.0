@@ -18,6 +18,7 @@
 
 GameScene::GameScene()
 {
+	//床
 	m_floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
 	m_floorModel->m_transform.SetPos({ 0,-1,0 });
 	m_floorModel->m_transform.SetScale({ 20.0f,0.0f,20.0f });
@@ -32,7 +33,9 @@ GameScene::GameScene()
 	m_floorCol->SetMyAttribute(FLOOR);
 	m_floorCol->SetHitCheckAttribute(FOOT_POINT);
 
-	m_shadowMapDevice.SetBlurPower(4.0f);
+	//テスト用
+	m_testObj = std::make_shared<ModelObject>("resource/user/", "player_anim_test.glb");
+	m_testObj->m_transform.SetScale(8.0f);
 
 	m_dirLig.SetDir(Vec3<float>(0, -1, 0));
 	m_hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
@@ -44,18 +47,6 @@ GameScene::GameScene()
 	GameManager::Instance()->RegisterCamera(Player::s_cameraKey, Player::GetCam());
 
 	Transform sandbagTrans;
-
-	//const float offset = 4.0f;
-	//for (int x = 0; x < 10; ++x)
-	//{
-	//	for (int z = 0; z < 10; ++z)
-	//	{
-	//		initSandBagPos.SetPos({ (float)x * offset,2,(float)z * offset });
-	//		EnemyManager::Instance()->Spawn(EnemyManager::SANDBAG, initSandBagPos);
-	//	}
-	//}
-
-	//sandbagTrans.SetScale(7);
 	sandbagTrans.SetPos({ 0,6,0 });
 	EnemyManager::Instance()->Spawn(SANDBAG, sandbagTrans);
 
@@ -73,7 +64,7 @@ GameScene::GameScene()
 void GameScene::OnInitialize()
 {
 	m_player.Init();
-	//GameManager::Instance()->ChangeCamera(Player::CAMERA_KEY);
+	GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
 	m_indirectSample.Init(*GameManager::Instance()->GetNowCamera());
 }
 
@@ -165,11 +156,16 @@ void GameScene::OnDraw()
 	static std::shared_ptr<RenderTarget>emissiveMap = D3D12App::Instance()->GenerateRenderTarget(backBuff->GetDesc().Format, Color(0, 0, 0, 0), backBuff->GetGraphSize(), L"EmissiveMap");
 	emissiveMap->Clear(cmdList);
 
+	//深度マップ
+	static std::shared_ptr<RenderTarget>depthMap = D3D12App::Instance()->GenerateRenderTarget(DXGI_FORMAT_R32_FLOAT, Color(0, 0, 0, 0), backBuff->GetGraphSize(), L"DepthMap");
+	depthMap->Clear(cmdList);
+
 	//現在のカメラ取得
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
 	nowCam.GetBuff();
 
 	//GraphicsManagerの管轄外
+	/*
 	{
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
 		rtvs.emplace_back(backBuff->AsRTV(cmdList));
@@ -187,6 +183,7 @@ void GameScene::OnDraw()
 
 		m_indirectSample.Draw(nowCam);
 	}
+	*/
 
 	//キューブマップに描き込む
 	m_dynamicCubeMap->Clear();
@@ -197,7 +194,7 @@ void GameScene::OnDraw()
 	m_shadowMapDevice.DrawShadowMap({ m_player.GetModelObj() });
 
 	//標準描画
-	KuroEngine::Instance().Graphics().SetRenderTargets({ backBuff,emissiveMap }, dsv);
+	KuroEngine::Instance().Graphics().SetRenderTargets({ backBuff,emissiveMap,depthMap }, dsv);
 
 	//キューブマップ描画
 	//staticCubeMap->Draw(nowCam);
@@ -208,12 +205,17 @@ void GameScene::OnDraw()
 	//敵
 	EnemyManager::Instance()->Draw(nowCam, m_dynamicCubeMap);
 
+	//テスト用
+	BasicDraw::Draw(m_ligMgr, m_testObj, nowCam, m_staticCubeMap);
+
 	//プレイヤー
-	//DrawFunc3D::DrawPBRShadingModel(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 	BasicDraw::Draw(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 
+	//DOF
+	m_dof.Draw(backBuff, depthMap);
+
 	//ライトブルーム
-	m_lightBloomDevice.Draw(emissiveMap, backBuff);
+	//m_lightBloomDevice.Draw(emissiveMap, backBuff);
 
 	//当たり判定デバッグ描画
 	static bool COLLIDER_DRAW = false;

@@ -56,6 +56,7 @@ struct VSOutput
     float3 biNormal : BINORMAL;
     float2 uv : TEXCOORD;
     float3 reflect : REFLECT;
+    float depthInView : CAM_Z;
 };
 
 VSOutput VSmain(Vertex input)
@@ -101,6 +102,7 @@ VSOutput VSmain(Vertex input)
     VSOutput output;
     float4 wpos = mul(world, resultPos); //ワールド変換
     output.svpos = mul(cam.view, wpos); //ビュー変換
+    output.depthInView = output.svpos.z;    //カメラから見た深度を記録
     output.svpos = mul(cam.proj, output.svpos); //プロジェクション変換
     output.worldpos = wpos;
     output.normal = normalize(mul(world, input.normal));
@@ -117,6 +119,7 @@ struct PSOutput
 {
     float4 color : SV_Target0;
     float4 emissive : SV_Target1;
+    float depth : SV_Target2;
 };
 
 //Schlickによる近似式
@@ -308,9 +311,9 @@ PSOutput PSmain(VSOutput input) : SV_TARGET
     float bright = dot(result.xyz, float3(0.2125f, 0.7154f, 0.0721f));
     //マテリアルのエミッシブが０なら、明るさの闘値より大きい場合描画色採用
     emissiveCol = result.xyz * step(s_emissiveBrightThreshold, bright) * (1.0f - floor(length(emissiveCol)));
-    
     output.emissive = float4(emissiveCol, 1.0f);
     
+    output.depth = input.depthInView;
     
     return output;
 }
