@@ -64,8 +64,8 @@ GameScene::GameScene()
 void GameScene::OnInitialize()
 {
 	m_player.Init();
-	GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
-	m_indirectSample.Init(*GameManager::Instance()->GetNowCamera());
+	//GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
+	m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -128,8 +128,7 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	//m_indirectSample.Update(m_enableCulling);
-	m_indirectSample.Update(m_cullingOffset);
+	m_hitParticle.Update();
 
 	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
 	static const float SHADOW_MAP_HEIGHT = 100.0f;
@@ -162,11 +161,11 @@ void GameScene::OnDraw()
 
 	//現在のカメラ取得
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
-	nowCam.GetBuff();
 
 	//GraphicsManagerの管轄外
-	/*
 	{
+		nowCam.GetBuff();
+
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
 		rtvs.emplace_back(backBuff->AsRTV(cmdList));
 
@@ -181,9 +180,9 @@ void GameScene::OnDraw()
 
 		cmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, dsv->AsDSV(cmdList));
 
-		m_indirectSample.Draw(nowCam);
+		m_hitParticle.Draw(nowCam);
 	}
-	*/
+	
 
 	//キューブマップに描き込む
 	m_dynamicCubeMap->Clear();

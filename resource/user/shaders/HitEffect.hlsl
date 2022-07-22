@@ -1,4 +1,4 @@
-#include"../engine/Camera.hlsli"
+#include"../../engine/Camera.hlsli"
 
 cbuffer cbuff0 : register(b0)
 {

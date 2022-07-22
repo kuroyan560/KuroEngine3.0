@@ -7,7 +7,7 @@
 #include"LightBloomDevice.h"
 #include"DOF.h"
 #include"NoiseGenerator.h"
-#include"IndirectSample.h"
+#include"HitParticle.h"
 
 class Model;
 class ModelObject;
@@ -45,7 +45,7 @@ class GameScene : public BaseScene
 		void ResetNoise();
 	}noise;*/
 
-	IndirectSample m_indirectSample;
+	HitParticle m_hitParticle;
 
 	//bool m_enableCulling = false;
 	float m_cullingOffset = 1.0f;

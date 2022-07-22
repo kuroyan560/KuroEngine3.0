@@ -1,4 +1,4 @@
-#include"../engine/Camera.hlsli"
+#include"../../engine/Camera.hlsli"
 
 //cbuffer cbuff0 : register(b0)
 //{
@@ -20,7 +20,7 @@ cbuffer cbuff1 : register(b1)
     float4 color;
     float scale;
     float3 vel;
-    float3 offset;
+    float3 pos;
 };
 
 SamplerState smp : register(s0);
@@ -123,7 +123,7 @@ void GSmain(
     element.color = color;
     
     float4 center = input[0]; //中心
-    center.xyz += offset;
+    center.xyz += pos;
     //matrix rotateMat = GetRoateMat(input[0].rotate); //回転角度
     
     //形状によって頂点数が変わる

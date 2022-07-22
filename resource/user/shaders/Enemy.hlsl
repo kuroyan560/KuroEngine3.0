@@ -1,6 +1,6 @@
-#include"../Engine/ModelInfo.hlsli"
-#include"../Engine/Camera.hlsli"
-#include"../Engine/Math.hlsli"
+#include"../../Engine/ModelInfo.hlsli"
+#include"../../Engine/Camera.hlsli"
+#include"../../Engine/Math.hlsli"
 
 //ボーン最大数はEnemyManagerと合わせる必要がある
 static const int MAX_BONE_NUM = 32;

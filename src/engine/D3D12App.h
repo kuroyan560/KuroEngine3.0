@@ -192,5 +192,7 @@ public:
 	//バックバッファレンダーターゲットをセット
 	void SetBackBufferRenderTarget();
 
-	//
+	//ワンショットコマンドアロケーターを利用してコンピュートパイプラインを直ちに実行
+	void DispathOneShot(std::weak_ptr<ComputePipeline>Pipeline, Vec3<int>ThreadNum,
+		std::vector<std::shared_ptr<DescriptorData>>& Datas, std::vector<DESC_HANDLE_TYPE>& DescTypes);
 };

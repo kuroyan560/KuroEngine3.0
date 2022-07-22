@@ -259,14 +259,17 @@
     <ClCompile Include="src\engine\LightBloomDevice.cpp">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClCompile>
-    <ClCompile Include="src\user\IndirectSample.cpp">
-      <Filter>src\user</Filter>
-    </ClCompile>
     <ClCompile Include="src\user\BasicDraw.cpp">
       <Filter>src\user</Filter>
     </ClCompile>
     <ClCompile Include="src\engine\DOF.cpp">
       <Filter>src\engine\レンダリング関連</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\HitParticle.cpp">
+      <Filter>src\user</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\IndirectSample.cpp">
+      <Filter>src\user</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -489,9 +492,6 @@
     <ClInclude Include="src\engine\LightBloomDevice.h">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClInclude>
-    <ClInclude Include="src\user\IndirectSample.h">
-      <Filter>src\user</Filter>
-    </ClInclude>
     <ClInclude Include="lib\dxcapi.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -500,6 +500,12 @@
     </ClInclude>
     <ClInclude Include="src\engine\DOF.h">
       <Filter>src\engine\レンダリング関連</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\HitParticle.h">
+      <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\IndirectSample.h">
+      <Filter>src\user</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

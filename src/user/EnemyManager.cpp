@@ -15,8 +15,8 @@ EnemyManager::EnemyManager()
 
 	//シェーダー情報
 	static Shaders SHADERS;
-	SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/user/Enemy.hlsl", "VSmain", "vs_6_4");
-	SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/user/Enemy.hlsl", "PSmain", "ps_6_4");
+	SHADERS.m_vs = D3D12App::Instance()->CompileShader("resource/user/shaders/Enemy.hlsl", "VSmain", "vs_6_4");
+	SHADERS.m_ps = D3D12App::Instance()->CompileShader("resource/user/shaders/Enemy.hlsl", "PSmain", "ps_6_4");
 
 	//ルートパラメータ
 	static std::vector<RootParam>ROOT_PARAMETER =

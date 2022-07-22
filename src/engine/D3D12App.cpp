@@ -1625,3 +1625,37 @@ void D3D12App::SetBackBufferRenderTarget()
 	const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> BACK_BUFF_HANDLE = { m_swapchain->GetBackBufferRenderTarget()->AsRTV(m_commandList) };
 	m_commandList->OMSetRenderTargets(static_cast<UINT>(BACK_BUFF_HANDLE.size()), &BACK_BUFF_HANDLE[0], FALSE, nullptr);
 }
+
+void D3D12App::DispathOneShot(std::weak_ptr<ComputePipeline>Pipeline, Vec3<int> ThreadNum, 
+	std::vector<std::shared_ptr<DescriptorData>>& Datas, std::vector<DESC_HANDLE_TYPE>& DescTypes)
+{
+	assert(Datas.size() == DescTypes.size());
+
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>cmdList;
+	auto hr = m_device->CreateCommandList(
+		0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+		m_oneshotCommandAllocator.Get(),
+		nullptr, IID_PPV_ARGS(&cmdList));
+	assert(SUCCEEDED(hr));
+
+	Pipeline.lock()->SetPipeline(cmdList);
+	for (int descIdx = 0; descIdx < Datas.size(); ++descIdx)
+	{
+		Datas[descIdx]->SetComputeDescriptorBuffer(cmdList, DescTypes[descIdx], descIdx);
+	}
+	cmdList->Dispatch(static_cast<UINT>(ThreadNum.x), static_cast<UINT>(ThreadNum.y), static_cast<UINT>(ThreadNum.z));
+
+	ID3D12CommandList* commandList[] = { cmdList.Get() };
+	cmdList->Close();
+	m_commandQueue->ExecuteCommandLists(1, commandList);
+
+	ComPtr<ID3D12Fence1> fence;
+	hr = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+	assert(SUCCEEDED(hr));
+	const UINT64 expectValue = 1;
+	m_commandQueue->Signal(fence.Get(), expectValue);
+	do
+	{
+	} while (fence->GetCompletedValue() != expectValue);
+	m_oneshotCommandAllocator->Reset();
+}

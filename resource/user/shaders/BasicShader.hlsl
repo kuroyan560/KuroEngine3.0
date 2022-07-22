@@ -1,7 +1,7 @@
-#include"../engine/ModelInfo.hlsli"
-#include"../engine/Camera.hlsli"
-#include"../engine/LightInfo.hlsli"
-#include"../engine/Math.hlsli"
+#include"../../engine/ModelInfo.hlsli"
+#include"../../engine/Camera.hlsli"
+#include"../../engine/LightInfo.hlsli"
+#include"../../engine/Math.hlsli"
 
 cbuffer cbuff0 : register(b0)
 {
