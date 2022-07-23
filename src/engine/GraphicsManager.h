@@ -149,9 +149,13 @@ class GraphicsManager
 		std::weak_ptr<IndirectCommandBuffer>m_cmdBuff;
 		std::weak_ptr<IndirectDevice>m_indirectDevice;
 		UINT m_argBufferOffset = 0;
+		std::weak_ptr<VertexBuffer>m_vertBuff;
+		std::weak_ptr<IndexBuffer>m_idxBuff;
 	public:
-		ExcuteIndirectCommand(const std::weak_ptr<IndirectCommandBuffer>& CmdBuff, const std::weak_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
-			:m_cmdBuff(CmdBuff), m_indirectDevice(IndirectDevice), m_argBufferOffset(ArgBufferOffset) {}
+		ExcuteIndirectCommand(const std::weak_ptr<IndirectCommandBuffer>& CmdBuff, const std::weak_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset,
+			const std::weak_ptr<VertexBuffer>& VertBuff = std::weak_ptr<VertexBuffer>(), const std::weak_ptr<IndexBuffer>& IdxBuff = std::weak_ptr<IndexBuffer>())
+			:m_cmdBuff(CmdBuff), m_indirectDevice(IndirectDevice), m_argBufferOffset(ArgBufferOffset), m_vertBuff(VertBuff), m_idxBuff(IdxBuff) {}
+
 		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -222,8 +226,12 @@ public:
 		const std::vector<std::shared_ptr<DescriptorData>>& DescDatas,
 		const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes);
 
-	//ExcuteIndirectコマンド積み上げ
-	void ExecuteIndirect(const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset = 0);
+	//ExecuteIndirectコマンド積み上げ
+	void ExecuteIndirectDispatch(const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset = 0);
+	void ExecuteIndirectDraw(const std::shared_ptr<VertexBuffer>& VertexBuff,
+		const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset = 0);
+	void ExecuteIndirectDrawIndexed(const std::shared_ptr<VertexBuffer>& VertexBuff, const std::shared_ptr<IndexBuffer>& IndexBuff,
+		const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset = 0);
 
 	//コマンドリスト全実行
 	void CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList);

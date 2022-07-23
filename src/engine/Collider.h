@@ -7,7 +7,7 @@
 //振る舞い（ビット演算）
 enum COLLIDER_ATTRIBUTE
 {
-	NONE = 0b11111111,
+	COLLIDER_NONE = 0b11111111,
 	ENEMY = 0b00000001,
 	PLAYER = 0b00000010,
 	FLOOR = 0b00000100,
@@ -43,10 +43,10 @@ public:
 
 private:
 	//自身の振る舞い
-	char m_myAttribute = COLLIDER_ATTRIBUTE::NONE;
+	char m_myAttribute = COLLIDER_ATTRIBUTE::COLLIDER_NONE;
 
 	//衝突判定を行う相手の振る舞い
-	char m_hitCheckAttribute = COLLIDER_ATTRIBUTE::NONE;
+	char m_hitCheckAttribute = COLLIDER_ATTRIBUTE::COLLIDER_NONE;
 
 	//コールバック関数
 	CollisionCallBack* m_callBack = nullptr;

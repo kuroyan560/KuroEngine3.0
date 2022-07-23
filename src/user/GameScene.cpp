@@ -65,7 +65,8 @@ void GameScene::OnInitialize()
 {
 	m_player.Init();
 	//GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
-	m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
+	//m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
+	m_indirectSmp.Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -128,7 +129,8 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	m_hitParticle.Update();
+	//m_hitParticle.Update();
+	m_indirectSmp.Update(m_cullingOffset);
 
 	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
 	static const float SHADOW_MAP_HEIGHT = 100.0f;
@@ -162,28 +164,6 @@ void GameScene::OnDraw()
 	//現在のカメラ取得
 	auto& nowCam = *GameManager::Instance()->GetNowCamera();
 
-	//GraphicsManagerの管轄外
-	{
-		nowCam.GetBuff();
-
-		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtvs;
-		rtvs.emplace_back(backBuff->AsRTV(cmdList));
-
-		const Vec2<float> targetSize = backBuff->GetGraphSize().Float();
-		//ビューポート設定
-		auto viewPort = CD3DX12_VIEWPORT(0.0f, 0.0f, targetSize.x, targetSize.y);
-		cmdList->RSSetViewports(1, &viewPort);
-
-		//シザー矩形設定
-		auto rect = CD3DX12_RECT(0, 0, static_cast<LONG>(targetSize.x), static_cast<LONG>(targetSize.y));
-		cmdList->RSSetScissorRects(1, &rect);
-
-		cmdList->OMSetRenderTargets(static_cast<UINT>(rtvs.size()), &rtvs[0], FALSE, dsv->AsDSV(cmdList));
-
-		m_hitParticle.Draw(nowCam);
-	}
-	
-
 	//キューブマップに描き込む
 	m_dynamicCubeMap->Clear();
 	m_dynamicCubeMap->CopyCubeMap(m_staticCubeMap);
@@ -209,6 +189,8 @@ void GameScene::OnDraw()
 
 	//プレイヤー
 	BasicDraw::Draw(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
+
+	m_indirectSmp.Draw(nowCam);
 
 	//DOF
 	m_dof.Draw(backBuff, depthMap);

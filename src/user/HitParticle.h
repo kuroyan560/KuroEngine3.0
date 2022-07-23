@@ -58,15 +58,13 @@ class HitParticle
 
 
 	//死亡パーティクルのコマンド
-	std::shared_ptr<DescriptorData>m_deadComBuffer;
-	//std::shared_ptr<GPUResource>m_deadComCounterBuffer;
+	std::shared_ptr<IndirectCommandBuffer>m_deadComBuffer;
 	
 	//稼働中パーティクルのコマンド
-	std::shared_ptr<DescriptorData>m_aliveComBuffer;
-	std::shared_ptr<GPUResource>m_aliveComCounterBuffer;
+	std::shared_ptr<IndirectCommandBuffer>m_aliveComBuffer;
 
 	bool m_invalidCommandBuffer = true;
-	void GenerateCommandBuffers(const size_t& CommandSize);
+	void GenerateCommandBuffers(const int& GpuAddressNum);
 
 public:
 	HitParticle();

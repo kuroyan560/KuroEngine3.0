@@ -51,7 +51,7 @@ void GraphicsManager::RenderCommand::Execute(const ComPtr<ID3D12GraphicsCommandL
 	m_vertexBuff.lock()->ChangeBarrierForVertexBuffer(CmdList);
 
 	//頂点ビューセット
-	CmdList->IASetVertexBuffers(0, 1, &m_vertexBuff.lock()->GetVBView());
+	m_vertexBuff.lock()->SetView(CmdList);
 
 	//インデックスなし
 	if (m_idxBuff.expired())
@@ -61,7 +61,7 @@ void GraphicsManager::RenderCommand::Execute(const ComPtr<ID3D12GraphicsCommandL
 	//インデックスあり
 	else
 	{
-		CmdList->IASetIndexBuffer(&m_idxBuff.lock()->GetIBView());
+		m_idxBuff.lock()->SetView(CmdList);
 		CmdList->DrawIndexedInstanced(m_idxBuff.lock()->m_indexNum, m_instanceNum, 0, 0, 0);
 	}
 }
@@ -160,9 +160,25 @@ void GraphicsManager::Dispatch(const Vec3<int>& ThreadNum, const std::vector<std
 	m_gCommands.emplace_back(std::make_shared<DispatchCommand>(ThreadNum, ConvertToWeakPtrArray(DescDatas), DescHandleTypes));
 }
 
-void GraphicsManager::ExecuteIndirect(const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
+void GraphicsManager::ExecuteIndirectDispatch(const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
 {
+	assert(CmdBuff->IndirectType() == DISPATCH);
+	assert(IndirectDevice->IndirectType() == DISPATCH);
 	m_gCommands.emplace_back(std::make_shared<ExcuteIndirectCommand>(CmdBuff, IndirectDevice, ArgBufferOffset));
+}
+
+void GraphicsManager::ExecuteIndirectDraw(const std::shared_ptr<VertexBuffer>& VertexBuff, const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
+{
+	assert(CmdBuff->IndirectType() == DRAW);
+	assert(IndirectDevice->IndirectType() == DRAW);
+	m_gCommands.emplace_back(std::make_shared<ExcuteIndirectCommand>(CmdBuff, IndirectDevice, ArgBufferOffset, VertexBuff));
+}
+
+void GraphicsManager::ExecuteIndirectDrawIndexed(const std::shared_ptr<VertexBuffer>& VertexBuff, const std::shared_ptr<IndexBuffer>& IndexBuff, const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
+{
+	assert(CmdBuff->IndirectType() == DRAW_INDEXED);
+	assert(IndirectDevice->IndirectType() == DRAW_INDEXED);
+	m_gCommands.emplace_back(std::make_shared<ExcuteIndirectCommand>(CmdBuff, IndirectDevice, ArgBufferOffset, VertexBuff, IndexBuff));
 }
 
 
@@ -221,5 +237,8 @@ void GraphicsManager::CopyTex::Execute(const ComPtr<ID3D12GraphicsCommandList>& 
 
 void GraphicsManager::ExcuteIndirectCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
+	if (auto buff = m_vertBuff.lock())buff->SetView(CmdList);
+	if (auto buff = m_idxBuff.lock())buff->SetView(CmdList);
+
 	m_indirectDevice.lock()->Execute(CmdList, m_cmdBuff.lock(), m_argBufferOffset);
 }

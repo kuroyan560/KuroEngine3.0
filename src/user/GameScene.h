@@ -8,6 +8,7 @@
 #include"DOF.h"
 #include"NoiseGenerator.h"
 #include"HitParticle.h"
+#include"IndirectSample.h"
 
 class Model;
 class ModelObject;
@@ -45,7 +46,8 @@ class GameScene : public BaseScene
 		void ResetNoise();
 	}noise;*/
 
-	HitParticle m_hitParticle;
+	//HitParticle m_hitParticle;
+	IndirectSample m_indirectSmp;
 
 	//bool m_enableCulling = false;
 	float m_cullingOffset = 1.0f;

@@ -445,7 +445,6 @@ public:
 	{
 		m_resource->SetName(Name);
 	}
-	const D3D12_VERTEX_BUFFER_VIEW& GetVBView() { return m_vbView; }
 
 	//読み取り専用構造化バッファ取得
 	std::weak_ptr<RWStructuredBuffer>GetRWStructuredBuff()
@@ -457,6 +456,10 @@ public:
 	void ChangeBarrierForVertexBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 	{
 		m_resource->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_GENERIC_READ);
+	}
+	void SetView(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+	{
+		CmdList->IASetVertexBuffers(0, 1, &m_vbView);
 	}
 };
 
@@ -491,7 +494,10 @@ public:
 	{
 		m_resource.SetName(Name);
 	}
-	const D3D12_INDEX_BUFFER_VIEW& GetIBView() { return m_ibView; }
+	void SetView(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+	{
+		CmdList->IASetIndexBuffer(&m_ibView);
+	}
 };
 
 //シェーダー情報
@@ -731,21 +737,31 @@ private:
 
 private:
 	//Indirectの形式
-	EXCUTE_INDIRECT_TYPE m_indirectType = NONE;
+	EXCUTE_INDIRECT_TYPE m_indirectType = EXCUTE_INDIRECT_TYPE::NONE;
 	//コマンドの最大数
 	int m_maxCommandCount = 0;
 	//コマンドバッファ
 	std::shared_ptr<DescriptorData>m_buff;
 	//カウンターバッファ
 	std::shared_ptr<GPUResource>m_counterBuffer;
+	//コマンド１つあたりにサイズ
+	size_t m_commandSize;
 public:
-	IndirectCommandBuffer(EXCUTE_INDIRECT_TYPE IndirectType, int MaxCommandCount,
+	IndirectCommandBuffer(EXCUTE_INDIRECT_TYPE IndirectType, int MaxCommandCount, size_t CommandSize,
 		std::shared_ptr<DescriptorData>Buff, std::shared_ptr<GPUResource>CounterBuffer = nullptr)
-		:m_indirectType(IndirectType), m_maxCommandCount(MaxCommandCount), m_buff(Buff), m_counterBuffer(CounterBuffer)
+		:m_indirectType(IndirectType), m_maxCommandCount(MaxCommandCount), m_commandSize(CommandSize), m_buff(Buff), m_counterBuffer(CounterBuffer)
 	{
 		assert(DRAW <= IndirectType && IndirectType < EXCUTE_INDIRECT_TYPE_NUM);
 	}
 	void ResetCounterBuffer();
+
+	//ゲッタ
+	const EXCUTE_INDIRECT_TYPE& IndirectType() { return m_indirectType; }
+	const std::shared_ptr<DescriptorData>& GetBuff()
+	{
+		return m_buff;
+	}
+	const size_t& GetCommandSize() { return m_commandSize; }
 };
 
 
@@ -769,4 +785,6 @@ public:
 	}
 
 	void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<IndirectCommandBuffer>CmdBuff, UINT ArgBufferOffset = 0);
+
+	const EXCUTE_INDIRECT_TYPE& IndirectType() { return m_indirectType; }
 };

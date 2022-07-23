@@ -130,6 +130,8 @@ void IndirectDevice::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, s
 	//コマンドシグネチャとバッファの Indirect 形式が一致
 	assert(m_indirectType == CmdBuff->m_indirectType);
 
+	CmdBuff->GetBuff()->GetResource()->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+
 	//実行
 	CmdList->ExecuteIndirect(
 		m_cmdSignature.Get(),

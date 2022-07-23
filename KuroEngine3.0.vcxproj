@@ -215,7 +215,6 @@
     <ClCompile Include="src\engine\Swapchain.cpp" />
     <ClCompile Include="src\engine\UsersInput.cpp" />
     <ClCompile Include="src\engine\WinApp.cpp" />
-    <ClCompile Include="src\user\HitParticle.cpp" />
     <ClCompile Include="src\user\BasicDraw.cpp" />
     <ClCompile Include="src\user\Enemy.cpp" />
     <ClCompile Include="src\user\EnemyBreed.cpp" />
@@ -295,7 +294,6 @@
     <ClInclude Include="src\engine\Swapchain.h" />
     <ClInclude Include="src\engine\UsersInput.h" />
     <ClInclude Include="src\engine\WinApp.h" />
-    <ClInclude Include="src\user\HitParticle.h" />
     <ClInclude Include="src\user\BasicDraw.h" />
     <ClInclude Include="src\user\Enemy.h" />
     <ClInclude Include="src\user\EnemyBreed.h" />

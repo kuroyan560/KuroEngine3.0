@@ -971,7 +971,7 @@ std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(c
 
 		auto desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(UINT), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
-		auto barrier = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+		auto barrier = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 		auto hr = m_device->CreateCommittedResource(
 			&heapProp,
 			D3D12_HEAP_FLAG_NONE,
@@ -980,7 +980,11 @@ std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(c
 			nullptr,
 			IID_PPV_ARGS(&buff));
 		assert(SUCCEEDED(hr));
-		buff->SetName(KuroFunc::GetWideStrFromStr(std::string(Name) + "- CounterBuffer").c_str());
+
+		std::string name;
+		if (Name)name = std::string(Name);
+		name += "- CounterBuffer";
+		buff->SetName(KuroFunc::GetWideStrFromStr(name).c_str());
 
 		counterBuffer = std::make_shared<GPUResource>(buff, barrier);
 	}
@@ -995,7 +999,7 @@ std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(c
 	//ヒーププロパティ
 	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	//リソース設定
-	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(commandSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(commandSize * MaxCommandCount, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	//リソースバリア
 	auto barrier = D3D12_RESOURCE_STATE_COPY_DEST;
 
@@ -1008,7 +1012,8 @@ std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(c
 		barrier,
 		nullptr,
 		IID_PPV_ARGS(&buff));
-	buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
+	assert(SUCCEEDED(hr));
+	if(Name)buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
 
 	//UAV設定
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -1029,14 +1034,14 @@ std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(c
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
 	//ビュー生成
-	auto uavDescHandles = D3D12App::Instance()->CreateUAV(buff, uavDesc, counterBuffer ? counterBuffer->GetBuff() : nullptr);
+	auto uavDescHandles = D3D12App::Instance()->CreateUAV(buff, uavDesc, CounterBuffer ? counterBuffer->GetBuff() : nullptr);
 	auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, srvDesc);
 
 	std::shared_ptr<DescriptorData>data = std::make_shared<DescriptorData>(buff, barrier);
 	data->InitDescHandle(UAV, uavDescHandles);
 	data->InitDescHandle(SRV, srvDescHandles);
 
-	return std::make_shared<IndirectCommandBuffer>(IndirectType, MaxCommandCount, data, counterBuffer);
+	return std::make_shared<IndirectCommandBuffer>(IndirectType, MaxCommandCount, commandSize, data, counterBuffer);
 }
 
 DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc)
@@ -1701,7 +1706,7 @@ std::shared_ptr<IndirectDevice> D3D12App::GenerateIndirectDevice(const EXCUTE_IN
 	auto hr = m_device->CreateCommandSignature(&cmdSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&cmdSignature));
 	assert(SUCCEEDED(hr));
 
-	return std::make_shared<IndirectDevice>(cmdSignature, gpuBuffNum);
+	return std::make_shared<IndirectDevice>(ExcuteIndirectType, cmdSignature);
 }
 
 void D3D12App::SetBackBufferRenderTarget()

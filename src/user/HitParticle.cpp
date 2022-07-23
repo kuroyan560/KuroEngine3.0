@@ -19,80 +19,14 @@ const int HitParticle::GetThreadNumX()
 	return threadNumX;
 }
 
-void HitParticle::GenerateCommandBuffers(const size_t& CommandSize)
+void HitParticle::GenerateCommandBuffers(const int& GpuAddressNum)
 {
 	using namespace Microsoft::WRL;
 
-	auto device = D3D12App::Instance()->GetDevice();
-
-	//カウンターバッファ生成
-	{
-		m_aliveComCounterBuffer = IndirectDevice::GenerateCounterBuffer(device);
-		//m_deadComCounterBuffer = IndirectDevice::GenerateCounterBuffer(device);
-	}
 	//コマンドバッファ作成
 	{
-		//ヒーププロパティ
-		auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		//リソース設定
-		D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(CommandSize * s_particleNum,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-		//リソースバリア
-		auto barrier = D3D12_RESOURCE_STATE_COPY_DEST;
-
-		//死亡パーティクルコマンドバッファ
-		ComPtr<ID3D12Resource1>deadPtBuff;
-		auto hr = device->CreateCommittedResource(
-			&prop,
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			barrier,
-			nullptr,
-			IID_PPV_ARGS(&deadPtBuff));
-		deadPtBuff->SetName(L"HitParticle - DeadParticleCommandBuffer");
-
-		//生存パーティクルコマンドバッファ
-		ComPtr<ID3D12Resource1>alivePtBuff;
-		auto hr = device->CreateCommittedResource(
-			&prop,
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			barrier,
-			nullptr,
-			IID_PPV_ARGS(&alivePtBuff));
-		alivePtBuff->SetName(L"HitParticle - AliveParticleCommandBuffer");
-
-		//UAV設定
-		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-		uavDesc.Buffer.FirstElement = 0;
-		uavDesc.Buffer.NumElements = s_particleNum;
-		uavDesc.Buffer.StructureByteStride = CommandSize;
-		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-
-		//SRV設定
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Buffer.NumElements = s_particleNum;
-		srvDesc.Buffer.StructureByteStride = CommandSize;
-		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-		//死亡パーティクルコマンド
-		auto uavDescHandles = D3D12App::Instance()->CreateUAV(deadPtBuff, uavDesc, m_aliveComCounterBuffer->GetBuff());
-		auto srvDescHandles = D3D12App::Instance()->CreateSRV(deadPtBuff, srvDesc);
-		m_deadComBuffer = std::make_shared<DescriptorData>(deadPtBuff, barrier);
-		m_deadComBuffer->InitDescHandle(UAV, uavDescHandles);
-		m_deadComBuffer->InitDescHandle(SRV, srvDescHandles);
-
-		//稼働中パーティクルコマンド
-		//uavDescHandles = D3D12App::Instance()->CreateUAV(alivePtBuff, uavDesc, m_deadComCounterBuffer->GetBuff());
-		uavDescHandles = D3D12App::Instance()->CreateUAV(alivePtBuff, uavDesc);
-		srvDescHandles = D3D12App::Instance()->CreateSRV(alivePtBuff, srvDesc);
-		m_aliveComBuffer = std::make_shared<DescriptorData>(alivePtBuff, barrier);
-		m_aliveComBuffer->InitDescHandle(UAV, uavDescHandles);
-		m_aliveComBuffer->InitDescHandle(SRV, srvDescHandles);
+		m_deadComBuffer = D3D12App::Instance()->GenerateIndirectCommandBuffer(DRAW, 2, GpuAddressNum, false, nullptr, "HitParticle - DeadParticle");
+		m_aliveComBuffer = D3D12App::Instance()->GenerateIndirectCommandBuffer(DRAW, 2, GpuAddressNum, true, nullptr, "HitParticle - AliveParticle");
 	}
 
 	m_invalidCommandBuffer = false;
@@ -198,8 +132,8 @@ void HitParticle::Init(Camera& Cam)
 {
 	auto cmdList = D3D12App::Instance()->GetCmdList();
 
-	std::array<IndirectCommand<2>, s_particleNum>commands;
-	//std::array<IndirectCommand<1>, s_blockNum>commands;
+	std::array<IndirectDrawCommand<2>, s_particleNum>commands;
+	//std::array<IndirectDrawCommand<1>, s_blockNum>commands;
 	D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_particleBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	auto incrementSize = sizeof(Particle);
@@ -218,19 +152,20 @@ void HitParticle::Init(Camera& Cam)
 		blockBuffAddress += incrementSize;
 	}
 
-	size_t commandDataSize = commands.front().GetSize();
-
 	//コマンドバッファ生成していなかったら生成
-	if (m_invalidCommandBuffer)GenerateCommandBuffers(commandDataSize);
+	if (m_invalidCommandBuffer)GenerateCommandBuffers(2);
 
 	//生存パーティクルコマンドのカウンターバッファのリセット
-	IndirectDevice::ResetCounterBuffer(cmdList, m_aliveComCounterBuffer);
+	m_aliveComBuffer->ResetCounterBuffer();
 
 	//初期化用コンピュートパイプラインを走らせる
 	D3D12App::Instance()->DispathOneShot(
 		m_cInitPipeline,
 		Vec3<int>(GetThreadNumX(), 1, 1),
-		{ m_deadComBuffer,m_aliveComBuffer },
+		{
+			m_deadComBuffer->GetBuff(),
+			m_aliveComBuffer->GetBuff()
+		},
 		{ UAV,UAV }
 	);
 
