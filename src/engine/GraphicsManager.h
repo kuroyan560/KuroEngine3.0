@@ -112,7 +112,6 @@ class GraphicsManager
 			const bool& TransFlg,
 			const int& InstanceNum = 1)
 			:m_vertexBuff(VertexBuff), m_idxBuff(IndexBuff), m_descDatas(DescDatas), m_types(DescHandleTypes), m_depth(Depth), m_trans(TransFlg), m_instanceNum(InstanceNum) {}
-
 		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -130,7 +129,6 @@ class GraphicsManager
 			const std::vector<std::weak_ptr<DescriptorData>>& DescDatas,
 			const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes)
 			:m_threadNum(ThreadNum), m_descDatas(DescDatas), m_types(DescHandleTypes) {}
-
 		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -142,7 +140,18 @@ class GraphicsManager
 	public:
 		CopyTex(const std::weak_ptr<TextureBuffer>& DestTex, const std::weak_ptr<TextureBuffer>& SrcTex)
 			:m_destTex(DestTex), m_srcTex(SrcTex) {}
+		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
+	};
 
+	//ExcuteIndirect
+	class ExcuteIndirectCommand : public GraphicsCommandBase
+	{
+		std::weak_ptr<IndirectCommandBuffer>m_cmdBuff;
+		std::weak_ptr<IndirectDevice>m_indirectDevice;
+		UINT m_argBufferOffset = 0;
+	public:
+		ExcuteIndirectCommand(const std::weak_ptr<IndirectCommandBuffer>& CmdBuff, const std::weak_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
+			:m_cmdBuff(CmdBuff), m_indirectDevice(IndirectDevice), m_argBufferOffset(ArgBufferOffset) {}
 		void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)override;
 	};
 
@@ -212,6 +221,9 @@ public:
 	void Dispatch(const Vec3<int>& ThreadNum,
 		const std::vector<std::shared_ptr<DescriptorData>>& DescDatas,
 		const std::vector<DESC_HANDLE_TYPE>& DescHandleTypes);
+
+	//ExcuteIndirectコマンド積み上げ
+	void ExecuteIndirect(const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset = 0);
 
 	//コマンドリスト全実行
 	void CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>& CmdList);

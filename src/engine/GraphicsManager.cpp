@@ -160,6 +160,11 @@ void GraphicsManager::Dispatch(const Vec3<int>& ThreadNum, const std::vector<std
 	m_gCommands.emplace_back(std::make_shared<DispatchCommand>(ThreadNum, ConvertToWeakPtrArray(DescDatas), DescHandleTypes));
 }
 
+void GraphicsManager::ExecuteIndirect(const std::shared_ptr<IndirectCommandBuffer>& CmdBuff, const std::shared_ptr<IndirectDevice>& IndirectDevice, const UINT& ArgBufferOffset)
+{
+	m_gCommands.emplace_back(std::make_shared<ExcuteIndirectCommand>(CmdBuff, IndirectDevice, ArgBufferOffset));
+}
+
 
 void GraphicsManager::StackRenderCommands()
 {
@@ -212,4 +217,9 @@ void GraphicsManager::CommandsExcute(const Microsoft::WRL::ComPtr<ID3D12Graphics
 void GraphicsManager::CopyTex::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 {
 	m_destTex.lock()->CopyTexResource(CmdList, m_srcTex.lock().get());
+}
+
+void GraphicsManager::ExcuteIndirectCommand::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
+{
+	m_indirectDevice.lock()->Execute(CmdList, m_cmdBuff.lock(), m_argBufferOffset);
 }
