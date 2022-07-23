@@ -691,48 +691,82 @@ public:
 };
 
 template<int GpuAddressNum>
-class IndirectCommand
+class IndirectDrawCommand
 {
 public:
-	static size_t GetSize()
-	{
-		return sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * GpuAddressNum + sizeof(D3D12_DRAW_ARGUMENTS);
-	}
 	//各コマンドでの描画で使用するバッファ
 	std::array<D3D12_GPU_VIRTUAL_ADDRESS, GpuAddressNum>m_gpuAddressArray;
-	//通常描画の引数に使われるパラメータ
+	//DrawInstanced の引数にあたるパラメータ
 	D3D12_DRAW_ARGUMENTS m_drawArgs;
 };
 
-enum EXCUTE_INDIRECT_TYPE { DRAW, DRAW_INDEXED, DISPATCH, EXCUTE_INDIRECT_TYPE_NUM };
+template<int GpuAddressNum>
+class IndirectDrawIndexedCommand
+{
+public:
+	//各コマンドでの描画で使用するバッファ
+	std::array<D3D12_GPU_VIRTUAL_ADDRESS, GpuAddressNum>m_gpuAddressArray;
+	//DrawIndexedInstanced の引数にあたるパラメータ
+	D3D12_DRAW_INDEXED_ARGUMENTS m_drawArgs;
+};
+
+template<int GpuAddressNum>
+class IndirectDispatchCommand
+{
+public:
+	//各コマンドでの描画で使用するバッファ
+	std::array<D3D12_GPU_VIRTUAL_ADDRESS, GpuAddressNum>m_gpuAddressArray;
+	//Dispatch の引数にあたるパラメータ
+	D3D12_DISPATCH_ARGUMENTS m_dispatchArgs;
+};
+
+enum EXCUTE_INDIRECT_TYPE { DRAW, DRAW_INDEXED, DISPATCH, EXCUTE_INDIRECT_TYPE_NUM, NONE };
+class IndirectCommandBuffer
+{
+private:
+	template<class T>
+	using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+	friend class IndirectDevice;
+
+private:
+	//Indirectの形式
+	EXCUTE_INDIRECT_TYPE m_indirectType = NONE;
+	//コマンドの最大数
+	int m_maxCommandCount = 0;
+	//コマンドバッファ
+	std::shared_ptr<DescriptorData>m_buff;
+	//カウンターバッファ
+	std::shared_ptr<GPUResource>m_counterBuffer;
+public:
+	IndirectCommandBuffer(EXCUTE_INDIRECT_TYPE IndirectType, int MaxCommandCount,
+		std::shared_ptr<DescriptorData>Buff, std::shared_ptr<GPUResource>CounterBuffer = nullptr)
+		:m_indirectType(IndirectType), m_maxCommandCount(MaxCommandCount), m_buff(Buff), m_counterBuffer(CounterBuffer)
+	{
+		assert(DRAW <= IndirectType && IndirectType < EXCUTE_INDIRECT_TYPE_NUM);
+	}
+	void ResetCounterBuffer();
+};
+
+
 class IndirectDevice
 {
 private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	//static ComPtr<ID3D12Resource>s_countResetBuffer;
-public:
-	static std::shared_ptr<GPUResource>GenerateCounterBuffer(const ComPtr<ID3D12Device>& Device);
-	static void ResetCounterBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<GPUResource> CounterBuffer);
-
 private:
+	//Indirectの形式
+	EXCUTE_INDIRECT_TYPE m_indirectType = NONE;
 	//コマンドシグネチャ
 	ComPtr<ID3D12CommandSignature>m_cmdSignature;
-	//１つの描画コマンドにつき使用するGPUバッファの数
-	int m_gpuBuffNum;
 
 public:
-	IndirectDevice(const ComPtr<ID3D12CommandSignature>& CmdSignature, const int& GPUBufferNum)
-		:m_cmdSignature(CmdSignature), m_gpuBuffNum(GPUBufferNum) {}
+	IndirectDevice(EXCUTE_INDIRECT_TYPE IndirectType,const ComPtr<ID3D12CommandSignature>& CmdSignature) 
+		:m_indirectType(IndirectType), m_cmdSignature(CmdSignature) 
+	{
+		assert(DRAW <= IndirectType && IndirectType < EXCUTE_INDIRECT_TYPE_NUM);
+	}
 
-	void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
-		int MaxCommandCount,
-		ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
-		ID3D12Resource* CounterBuffer = nullptr, UINT CounterBufferOffset = 0);
-
-	void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
-		int MaxCommandCount,
-		ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
-		std::shared_ptr<GPUResource>CounterBuffer, UINT CounterBufferOffset = 0);
+	void Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<IndirectCommandBuffer>CmdBuff, UINT ArgBufferOffset = 0);
 };

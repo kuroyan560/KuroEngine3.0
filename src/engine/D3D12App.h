@@ -143,6 +143,9 @@ public:
 	/// <param name="SplitSize">分割後のサイズ</param>
 	/// <returns></returns>
 	void GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, const std::string& LoadImgFilePath, const int& AllNum, const Vec2<int>& SplitNum);
+	//Indirect用コマンドバッファ生成
+	std::shared_ptr<IndirectCommandBuffer>GenerateIndirectCommandBuffer(const EXCUTE_INDIRECT_TYPE& IndirectType, const int& MaxCommandCount,
+		const int& GpuAddressNum, const bool& CounterBuffer = false, const void* InitCommandData = nullptr, const char* Name = nullptr);
 
 	//SRV作成（D3D12App経由）
 	DescHandles CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc);

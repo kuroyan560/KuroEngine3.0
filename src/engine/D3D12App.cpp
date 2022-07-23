@@ -954,6 +954,91 @@ void D3D12App::GenerateTextureBuffer(std::shared_ptr<TextureBuffer>* Array, cons
 	return GenerateTextureBuffer(Array, sourceTexture, AllNum, SplitNum, LoadImgFilePath);
 }
 
+std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(const EXCUTE_INDIRECT_TYPE& IndirectType, const int& MaxCommandCount, const int& GpuAddressNum, const bool& CounterBuffer, const void* InitCommandData, const char* Name)
+{
+	std::shared_ptr<GPUResource>counterBuffer;
+	//カウンターバッファ
+	if(CounterBuffer)
+	{
+		ComPtr<ID3D12Resource>buff;
+
+		D3D12_HEAP_PROPERTIES heapProp = {};
+		heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+		heapProp.CreationNodeMask = 1;
+		heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+		heapProp.Type = D3D12_HEAP_TYPE_CUSTOM;
+		heapProp.VisibleNodeMask = 1;
+
+		auto desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(UINT), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+		auto barrier = D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+		auto hr = m_device->CreateCommittedResource(
+			&heapProp,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			barrier,
+			nullptr,
+			IID_PPV_ARGS(&buff));
+		assert(SUCCEEDED(hr));
+		buff->SetName(KuroFunc::GetWideStrFromStr(std::string(Name) + "- CounterBuffer").c_str());
+
+		counterBuffer = std::make_shared<GPUResource>(buff, barrier);
+	}
+
+	//コマンド１つあたりのサイズ
+	size_t commandSize = sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * GpuAddressNum;
+	if (IndirectType == DRAW)commandSize += sizeof(D3D12_DRAW_ARGUMENTS);
+	else if (IndirectType == DRAW_INDEXED)commandSize += sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+	else if (IndirectType == DISPATCH)commandSize += sizeof(D3D12_DISPATCH_ARGUMENTS);
+	else assert(0);
+
+	//ヒーププロパティ
+	auto prop = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	//リソース設定
+	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(commandSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	//リソースバリア
+	auto barrier = D3D12_RESOURCE_STATE_COPY_DEST;
+
+	//バッファ生成
+	ComPtr<ID3D12Resource1>buff;
+	auto hr = m_device->CreateCommittedResource(
+		&prop,
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		barrier,
+		nullptr,
+		IID_PPV_ARGS(&buff));
+	buff->SetName(KuroFunc::GetWideStrFromStr(Name).c_str());
+
+	//UAV設定
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+	uavDesc.Buffer.FirstElement = 0;
+	uavDesc.Buffer.NumElements = MaxCommandCount;
+	uavDesc.Buffer.StructureByteStride = commandSize;
+	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+	//SRV設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.NumElements = MaxCommandCount;
+	srvDesc.Buffer.StructureByteStride = commandSize;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+	//ビュー生成
+	auto uavDescHandles = D3D12App::Instance()->CreateUAV(buff, uavDesc, counterBuffer ? counterBuffer->GetBuff() : nullptr);
+	auto srvDescHandles = D3D12App::Instance()->CreateSRV(buff, srvDesc);
+
+	std::shared_ptr<DescriptorData>data = std::make_shared<DescriptorData>(buff, barrier);
+	data->InitDescHandle(UAV, uavDescHandles);
+	data->InitDescHandle(SRV, srvDescHandles);
+
+	return std::make_shared<IndirectCommandBuffer>(IndirectType, MaxCommandCount, data, counterBuffer);
+}
+
 DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc)
 {
 	m_descHeapCBV_SRV_UAV->CreateSRV(m_device, Buff, ViewDesc);

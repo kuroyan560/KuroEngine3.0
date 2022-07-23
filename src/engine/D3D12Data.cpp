@@ -118,85 +118,24 @@ void ComputePipeline::SetPipeline(const ComPtr<ID3D12GraphicsCommandList>& CmdLi
 	CmdList->SetComputeRootSignature(m_rootSignature.Get());
 }
 
-//Microsoft::WRL::ComPtr<ID3D12Resource>IndirectDevice::s_countResetBuffer;
-
-std::shared_ptr<GPUResource> IndirectDevice::GenerateCounterBuffer(const ComPtr<ID3D12Device>& Device)
+void IndirectCommandBuffer::ResetCounterBuffer()
 {
-	/*
-	if (!s_countResetBuffer)
-	{
-		auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		auto desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(UINT));
-		auto hr = Device->CreateCommittedResource(
-			&heapProp,
-			D3D12_HEAP_FLAG_NONE,
-			&desc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&s_countResetBuffer));
-		assert(SUCCEEDED(hr));
-
-		UINT8* countResetMap = nullptr;
-		CD3DX12_RANGE readRange(0, 0);
-		hr = s_countResetBuffer->Map(0, &readRange, reinterpret_cast<void**>(&countResetMap));
-		assert(SUCCEEDED(hr));
-		ZeroMemory(countResetMap, sizeof(UINT));
-		s_countResetBuffer->Unmap(0, nullptr);
-	}
-	*/
-
-	ComPtr<ID3D12Resource>buff;
-
-	D3D12_HEAP_PROPERTIES heapProp = {};
-	heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-	heapProp.CreationNodeMask = 1;
-	heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
-	heapProp.Type = D3D12_HEAP_TYPE_CUSTOM;
-	heapProp.VisibleNodeMask = 1;
-	//auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-
-	auto desc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(UINT), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-	auto barrier = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	auto hr = Device->CreateCommittedResource(
-		&heapProp,
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		barrier,
-		nullptr,
-		IID_PPV_ARGS(&buff));
-	assert(SUCCEEDED(hr));
-	buff->SetName(L"IndirectDevice - CounterBuffer");
-
-	return std::make_shared<GPUResource>(buff, barrier);
-}
-
-void IndirectDevice::ResetCounterBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<GPUResource> CounterBuffer)
-{
+	assert(m_counterBuffer);
 	UINT num = 0;
-	CounterBuffer->Mapping(sizeof(UINT), 1, &num);
+	m_counterBuffer->Mapping(sizeof(UINT), 1, &num);
 }
 
-void IndirectDevice::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList,
-	int MaxCommandCount,
-	ID3D12Resource* ArgBuffer, UINT ArgBufferOffset,
-	ID3D12Resource* CounterBuffer, UINT CounterBufferOffset)
+void IndirectDevice::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, std::shared_ptr<IndirectCommandBuffer> CmdBuff, UINT ArgBufferOffset)
 {
-	//実行（カウントバッファ有り）
+	//コマンドシグネチャとバッファの Indirect 形式が一致
+	assert(m_indirectType == CmdBuff->m_indirectType);
+
+	//実行
 	CmdList->ExecuteIndirect(
 		m_cmdSignature.Get(),
-		MaxCommandCount,
-		ArgBuffer,
+		CmdBuff->m_maxCommandCount,
+		CmdBuff->m_buff->GetResource()->GetBuff().Get(),
 		ArgBufferOffset,
-		CounterBuffer,
-		CounterBufferOffset);
+		CmdBuff->m_counterBuffer ? CmdBuff->m_counterBuffer->GetBuff().Get() : nullptr,
+		0);
 }
-
-void IndirectDevice::Execute(const ComPtr<ID3D12GraphicsCommandList>& CmdList, int MaxCommandCount, ID3D12Resource* ArgBuffer, UINT ArgBufferOffset, std::shared_ptr<GPUResource> CounterBuffer, UINT CounterBufferOffset)
-{
-	CounterBuffer->ChangeBarrier(CmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-	Execute(CmdList, MaxCommandCount, ArgBuffer, ArgBufferOffset, CounterBuffer->GetBuff().Get(), CounterBufferOffset);
-}
-
-
-
