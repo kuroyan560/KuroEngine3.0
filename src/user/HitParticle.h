@@ -9,7 +9,7 @@ class Camera;
 class HitParticle
 {
 	//ブロック数
-	static const int s_particleNum = 30000;
+	static const int s_particleNum = 10000;
 	static const int s_threadDiv = 32;
 
 	//ブロック個体情報構造体
@@ -39,10 +39,10 @@ class HitParticle
 	//設定
 	struct Config
 	{
+		//カメラのバッファアドレス
+		//D3D12_GPU_VIRTUAL_ADDRESS camAddress;
 		//パーティクル最大数
 		unsigned int m_maxParticleNum = s_particleNum;
-		//カメラのバッファアドレス
-		D3D12_GPU_VIRTUAL_ADDRESS camAddress;
 	}m_config;
 	std::shared_ptr<ConstantBuffer>m_configBuffer;
 
@@ -60,8 +60,8 @@ class HitParticle
 
 public:
 	HitParticle();
-	void Init();
-	void Update(Camera& Cam);
+	void Init(Camera& Cam);
+	void Update();
 	void Draw(Camera& Cam);
 
 	void Emit(int Num, Vec3<float>Pos);

@@ -65,8 +65,7 @@ void GameScene::OnInitialize()
 {
 	m_player.Init();
 	//GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
-	//m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
-	m_hitParticle.Init();
+	m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -119,6 +118,18 @@ void GameScene::OnUpdate()
 		HitEffect::Generate({ 0.0f,7.0f,0.0f });
 	}
 
+	//static int TIMER = 0;
+	//static const int EMIT_SPAN = 10;
+	//if (++TIMER % EMIT_SPAN == 0)
+	//{
+	//	TIMER = 0;
+	//	m_hitParticle.Emit(10, { 5,5,0 });
+	//}
+	if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
+	{
+		m_hitParticle.Emit(10, { 5,5,0 });
+	}
+
 	GameManager::Instance()->Update();
 
 	m_player.Update();
@@ -129,8 +140,8 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	auto& nowCam = *GameManager::Instance()->GetNowCamera();
-	m_hitParticle.Update(nowCam);
+	//auto& nowCam = *GameManager::Instance()->GetNowCamera();
+	m_hitParticle.Update();
 
 	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
 	static const float SHADOW_MAP_HEIGHT = 100.0f;
@@ -139,6 +150,7 @@ void GameScene::OnUpdate()
 	shadowLightPos.y = SHADOW_MAP_HEIGHT;
 	m_shadowMapDevice.SetPos(shadowLightPos);
 	m_shadowMapDevice.SetTarget(playerPos);
+
 }
 
 

@@ -9,6 +9,7 @@ struct Particle
     float3 m_pos;
     int m_life;
     int m_lifeSpan;
+    int pad[3];
 };
 
 struct IndirectCommand
@@ -19,8 +20,8 @@ struct IndirectCommand
 
 cbuffer RootConstants : register(b0)
 {
+    //uint64_t cameraCbvAddress;
     uint maxCommandCount;
-    uint64_t cameraCbvAddress;
 };
 
 RWStructuredBuffer<Particle> particles : register(u0);
@@ -48,6 +49,6 @@ void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
     
     //カメラのGPUアドレスをアタッチして Append
     IndirectCommand appearCommand = inputCommands[index];
-    appearCommand.m_cbvAddress[0] = cameraCbvAddress;
+    //appearCommand.m_cbvAddress[0] = cameraCbvAddress;
     outputCommands.Append(appearCommand);
 }

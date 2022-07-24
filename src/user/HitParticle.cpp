@@ -7,9 +7,7 @@ static const float MIN_SCALE = 0.01f;
 static const float MAX_SCALE = 0.1f;
 static const float MIN_VEL = 0.003f;
 static const float MAX_VEL = 0.05f;
-static const float RANGE = 15.0f;
-static const Vec3<float> MIN_OFFSET = { -RANGE,-RANGE,-RANGE };
-static const Vec3<float> MAX_OFFSET = { RANGE,RANGE,RANGE };
+static const float RANGE = 5.0f;
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
 static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
@@ -78,13 +76,17 @@ HitParticle::HitParticle()
 	m_configBuffer = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Config), 1, &m_config, "IndirectSample - CallingConfig");
 }
 
-void HitParticle::Init()
+void HitParticle::Init(Camera& Cam)
 {
+	//パーティクルの初期化
+	std::array<Particle, s_particleNum>particleInitData;
+	m_particleBuff->Mapping(particleInitData.data());
+
 	if (m_invalidCommandBuffer)
 	{
 		//初期化
 		std::array<IndirectDrawCommand<2>, s_particleNum>commands;
-		//D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
+		D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
 		D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_particleBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
 		auto incrementSize = sizeof(Particle);
 		for (auto& com : commands)
@@ -95,7 +97,7 @@ void HitParticle::Init()
 			com.m_drawArgs.StartVertexLocation = 0;
 
 			//CBV0（カメラ情報）
-			//com.m_gpuAddressArray[0] = camBuffAddress;
+			com.m_gpuAddressArray[0] = camBuffAddress;
 
 			//CBV1（パーティクル情報）
 			com.m_gpuAddressArray[1] = blockBuffAddress;
@@ -111,16 +113,12 @@ void HitParticle::Init()
 
 	//生存パーティクルコマンドのカウンターバッファのリセット
 	m_aliveCommandBuffer->ResetCounterBuffer();
-
-	//パーティクルの初期化
-	std::array<Particle, s_particleNum>particleInitData;
-	m_particleBuff->Mapping(particleInitData.data());
 }
 
-void HitParticle::Update(Camera& Cam)
+void HitParticle::Update()
 {
-	m_config.camAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
-	m_configBuffer->Mapping(&m_config);
+	//m_config.camAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
+	//m_configBuffer->Mapping(&m_config);
 
 	//カウンタバッファリセット
 	m_aliveCommandBuffer->ResetCounterBuffer();
@@ -159,7 +157,8 @@ void HitParticle::Emit(int Num, Vec3<float>Pos)
 		if (pt.m_life)continue;
 
 		pt.m_pos = Pos;
-		//pt.m_pos += KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
+		pt.m_pos.x += KuroFunc::GetRand(-RANGE, RANGE);
+		pt.m_pos.z += KuroFunc::GetRand(-RANGE, RANGE);
 		pt.m_scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
 		pt.m_vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
 		pt.m_color.m_r = KuroFunc::GetRand(COL_MIN, COL_MAX);

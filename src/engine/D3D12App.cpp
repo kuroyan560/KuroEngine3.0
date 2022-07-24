@@ -17,6 +17,7 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 	D3D12GetDebugInterface(IID_PPV_ARGS(&spDebugController0));
 	spDebugController0->QueryInterface(IID_PPV_ARGS(&spDebugController1));
 	spDebugController1->SetEnableGPUBasedValidation(true);
+
 #endif
 
 	HRESULT result;
@@ -70,6 +71,16 @@ void D3D12App::Initialize(const HWND& Hwnd, const Vec2<int>& ScreenSize, const b
 			break;
 		}
 	}
+
+#ifdef _DEBUG
+	ID3D12InfoQueue* infoQueue;
+	if (SUCCEEDED(m_device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+	{
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+		infoQueue->Release();
+	}
+#endif
 
 	m_descHeapCBV_SRV_UAV = std::make_unique<DescriptorHeap_CBV_SRV_UAV>(m_device);
 	m_descHeapRTV = std::make_unique<DescriptorHeap_RTV>(m_device);
@@ -1041,7 +1052,12 @@ std::shared_ptr<IndirectCommandBuffer> D3D12App::GenerateIndirectCommandBuffer(c
 	data->InitDescHandle(UAV, uavDescHandles);
 	data->InitDescHandle(SRV, srvDescHandles);
 
-	return std::make_shared<IndirectCommandBuffer>(IndirectType, MaxCommandCount, commandSize, data, counterBuffer);
+	auto result = std::make_shared<IndirectCommandBuffer>(IndirectType, MaxCommandCount, commandSize, data, counterBuffer);
+
+	//‰Šú‰»
+	if (InitCommandData)UploadCPUResource(result->GetBuff()->GetResource(), commandSize, MaxCommandCount, InitCommandData);
+
+	return result;
 }
 
 DescHandles D3D12App::CreateSRV(const ComPtr<ID3D12Resource>& Buff, const D3D12_SHADER_RESOURCE_VIEW_DESC& ViewDesc)
