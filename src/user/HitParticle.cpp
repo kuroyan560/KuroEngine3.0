@@ -1,6 +1,7 @@
 #include "HitParticle.h"
 #include"D3D12App.h"
 #include"Camera.h"
+#include"KuroEngine.h"
 
 static const float MIN_SCALE = 0.01f;
 static const float MAX_SCALE = 0.1f;
@@ -13,38 +14,10 @@ static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
 static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
 
-const int HitParticle::GetThreadNumX()
-{
-	int threadNumX = static_cast<int>(ceil(s_particleNum / s_threadDiv));
-	return threadNumX;
-}
-
-void HitParticle::GenerateCommandBuffers(const int& GpuAddressNum)
-{
-	using namespace Microsoft::WRL;
-
-	//コマンドバッファ作成
-	{
-		m_deadComBuffer = D3D12App::Instance()->GenerateIndirectCommandBuffer(DRAW, 2, GpuAddressNum, false, nullptr, "HitParticle - DeadParticle");
-		m_aliveComBuffer = D3D12App::Instance()->GenerateIndirectCommandBuffer(DRAW, 2, GpuAddressNum, true, nullptr, "HitParticle - AliveParticle");
-	}
-
-	m_invalidCommandBuffer = false;
-}
-
 HitParticle::HitParticle()
 {
 	//ブロックの個体情報生成
-	for (auto& b : m_particleDataArray)
-	{
-		b.m_scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
-		b.m_vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
-		b.m_pos = KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
-		b.m_color.m_r = KuroFunc::GetRand(COL_MIN, COL_MAX);
-		b.m_color.m_g = KuroFunc::GetRand(COL_MIN, COL_MAX);
-		b.m_color.m_b = KuroFunc::GetRand(COL_MIN, COL_MAX);
-	}
-	m_particleBuff = D3D12App::Instance()->GenerateStructuredBuffer(sizeof(Particle), s_particleNum, m_particleDataArray.data(), "IndirectSample - BlockBuffer");
+	m_particleBuff = D3D12App::Instance()->GenerateRWStructuredBuffer(sizeof(Particle), s_particleNum, nullptr, "IndirectSample - BlockBuffer");
 
 	//グラフィックス用ルートパラメータ
 	std::vector<RootParam>gRootParams
@@ -77,40 +50,17 @@ HitParticle::HitParticle()
 			{ WrappedSampler(false, false) });
 	}
 
-	{
-		//ルートパラメータ
-		std::vector<RootParam>cRootParams
-		{
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,"死亡パーティクルコマンドバッファ"),
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,"稼働中パーティクルコマンドバッファ"),
-		};
-
-		//初期化用コンピュートパイプライン
-		auto cs = D3D12App::Instance()->CompileShader(
-			"resource/user/shaders/HitParticle_Emitter.hlsl", "CSmain_Init", "cs_6_0");
-		m_cInitPipeline = D3D12App::Instance()->GenerateComputePipeline(
-			cs, cRootParams, { WrappedSampler(false,false) });
-
-
-		//生成用コンピュートパイプライン
-		cs = D3D12App::Instance()->CompileShader(
-			"resource/user/shaders/HitParticle_Emitter.hlsl", "CSmain_Emit", "cs_6_0");
-		m_cGeneratePipeline = D3D12App::Instance()->GenerateComputePipeline(
-			cs, cRootParams, { WrappedSampler(false,false) });
-	}
-
 	//更新用コンピュートパイプライン
 	{
 		//シェーダー
 		auto cs = D3D12App::Instance()->CompileShader(
-			"resource/user/shaders/HitParticle_Update.hlsl", "CSmain", "cs_6_0");
+			"resource/user/shaders/HitParticle_Compute.hlsl", "CSmain", "cs_6_0");
 
 		//ルートパラメータ
 		std::vector<RootParam>cRootParams
 		{
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ定数バッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"設定"),
-			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"各ブロック個体情報"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,"各ブロック個体情報"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"コマンドバッファ"),
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,"カリング後のコマンドバッファ"),
 		};
@@ -125,122 +75,103 @@ HitParticle::HitParticle()
 	Vec3<float>initPos = { 0,0,0 };
 	m_vertBuff = D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vec3<float>), 1, &initPos, "IndirectSample - VertexBuffer");
 
-	m_configBuffer = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Emitter), 1, &m_config, "IndirectSample - CallingConfig");
+	m_configBuffer = D3D12App::Instance()->GenerateConstantBuffer(sizeof(Config), 1, &m_config, "IndirectSample - CallingConfig");
 }
 
-void HitParticle::Init(Camera& Cam)
+void HitParticle::Init()
 {
-	auto cmdList = D3D12App::Instance()->GetCmdList();
-
-	std::array<IndirectDrawCommand<2>, s_particleNum>commands;
-	//std::array<IndirectDrawCommand<1>, s_blockNum>commands;
-	D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
-	D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_particleBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
-	auto incrementSize = sizeof(Particle);
-	for (auto& com : commands)
+	if (m_invalidCommandBuffer)
 	{
-		com.m_drawArgs.VertexCountPerInstance = 1;
-		com.m_drawArgs.InstanceCount = 1;
-		com.m_drawArgs.StartInstanceLocation = 0;
-		com.m_drawArgs.StartVertexLocation = 0;
+		//初期化
+		std::array<IndirectDrawCommand<2>, s_particleNum>commands;
+		//D3D12_GPU_VIRTUAL_ADDRESS camBuffAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
+		D3D12_GPU_VIRTUAL_ADDRESS blockBuffAddress = m_particleBuff->GetResource()->GetBuff()->GetGPUVirtualAddress();
+		auto incrementSize = sizeof(Particle);
+		for (auto& com : commands)
+		{
+			com.m_drawArgs.VertexCountPerInstance = 1;
+			com.m_drawArgs.InstanceCount = 1;
+			com.m_drawArgs.StartInstanceLocation = 0;
+			com.m_drawArgs.StartVertexLocation = 0;
 
-		//CBV0（カメラ情報）
-		com.m_gpuAddressArray[0] = camBuffAddress;
+			//CBV0（カメラ情報）
+			//com.m_gpuAddressArray[0] = camBuffAddress;
 
-		//CBV1（パーティクル情報）
-		com.m_gpuAddressArray[1] = blockBuffAddress;
-		blockBuffAddress += incrementSize;
+			//CBV1（パーティクル情報）
+			com.m_gpuAddressArray[1] = blockBuffAddress;
+			blockBuffAddress += incrementSize;
+		}
+
+		//コマンドバッファ作成
+		m_commandBuffer = D3D12App::Instance()->GenerateIndirectCommandBuffer(DRAW, s_particleNum, 2, false, commands.data(), "HitParticle - AllParticle");
+		m_aliveCommandBuffer = D3D12App::Instance()->GenerateIndirectCommandBuffer(DRAW, s_particleNum, 2, true, nullptr, "HitParticle - AliveParticle");
+
+		m_invalidCommandBuffer = false;
 	}
-
-	//コマンドバッファ生成していなかったら生成
-	if (m_invalidCommandBuffer)GenerateCommandBuffers(2);
 
 	//生存パーティクルコマンドのカウンターバッファのリセット
-	m_aliveComBuffer->ResetCounterBuffer();
+	m_aliveCommandBuffer->ResetCounterBuffer();
 
-	//初期化用コンピュートパイプラインを走らせる
-	D3D12App::Instance()->DispathOneShot(
-		m_cInitPipeline,
-		Vec3<int>(GetThreadNumX(), 1, 1),
-		{
-			m_deadComBuffer->GetBuff(),
-			m_aliveComBuffer->GetBuff()
-		},
-		{ UAV,UAV }
-	);
-
-	//コマンドバッファにデータ転送
-	D3D12App::Instance()->UploadCPUResource(m_deadComBuffer->GetResource(), commandDataSize, s_particleNum, commands.data());
+	//パーティクルの初期化
+	std::array<Particle, s_particleNum>particleInitData;
+	m_particleBuff->Mapping(particleInitData.data());
 }
 
-void HitParticle::Update()
+void HitParticle::Update(Camera& Cam)
 {
-	for (auto& b : m_particleDataArray)
-	{
-		b.m_pos += b.m_vel;
-		if (MAX_OFFSET.y < b.m_pos.y)
-		{
-			b.m_pos = KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
-			b.m_pos.y = MIN_OFFSET.y;
-			b.m_scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
-			b.m_vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
-			b.m_color.m_r = KuroFunc::GetRand(COL_MIN, COL_MAX);
-			b.m_color.m_g = KuroFunc::GetRand(COL_MIN, COL_MAX);
-			b.m_color.m_b = KuroFunc::GetRand(COL_MIN, COL_MAX);
-		}
-	}
-	m_particleBuff->Mapping(m_particleDataArray.data());
-
+	m_config.camAddress = Cam.GetBuff()->GetResource()->GetBuff()->GetGPUVirtualAddress();
 	m_configBuffer->Mapping(&m_config);
-	//m_enableCulling = EnableCalling;
+
+	//カウンタバッファリセット
+	m_aliveCommandBuffer->ResetCounterBuffer();
+
+	auto threadX = static_cast<int>(ceil(s_particleNum / float(COMPUTE_THREAD_BLOCK_SIZE)));
+	std::vector<std::shared_ptr<DescriptorData>>datas = {
+			m_configBuffer,
+			m_particleBuff,
+			m_commandBuffer->GetBuff(),
+			m_aliveCommandBuffer->GetBuff()
+	};
+	std::vector<DESC_HANDLE_TYPE>types = { CBV,UAV,SRV,UAV };
+	D3D12App::Instance()->DispathOneShot(m_cUpdatePipeline, Vec3<int>(threadX, 1, 1), datas, types);
 }
 
 void HitParticle::Draw(Camera& Cam)
 {
-	auto cmdList = D3D12App::Instance()->GetCmdList();
-
-	//コンピュート
-	{
-		m_cPipeline->SetPipeline(cmdList);
-
-		//カメラセット
-		Cam.GetBuff()->SetComputeDescriptorBuffer(cmdList, CBV, 0);
-
-		//設定情報
-		m_configBuffer->SetComputeDescriptorBuffer(cmdList, CBV, 1);
-
-		//各ブロックの個体情報
-		m_particleBuff->SetComputeDescriptorBuffer(cmdList, SRV, 2);
-
-		//コマンドバッファ
-		m_commandBuffer->SetComputeDescriptorBuffer(cmdList, SRV, 3);
-
-		//UAVようにリソースバリア変更
-		m_processedCommandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		//カリング処理済バッファ
-		m_processedCommandBuffer->SetComputeDescriptorBuffer(cmdList, UAV, 4);
-
-
-
-
-		//実行
-		auto threadX = static_cast<UINT>(ceil(s_particleNum / float(COMPUTE_THREAD_BLOCK_SIZE)));
-		cmdList->Dispatch(threadX, 1, 1);
-	}
-
 	//グラフィックス
+	KuroEngine::Instance().Graphics().SetGraphicsPipeline(m_gPipeline);
+
+	KuroEngine::Instance().Graphics().ExecuteIndirectDraw(m_vertBuff, m_aliveCommandBuffer, m_indirectDev);
+}
+
+void HitParticle::Emit(int Num, Vec3<float>Pos)
+{
+	//CPU上でのパーティクルバッファのポインタ取得
+	Particle* ptArray = m_particleBuff->GetResource()->GetBuffOnCpu<Particle>();
+
+	int generateNum = 0;
+	for (int ptIdx = 0; ptIdx < s_particleNum; ++ptIdx)
 	{
-		m_gPipeline->SetPipeline(cmdList);
+		//パーティクル取得
+		auto& pt = ptArray[ptIdx];
 
-		cmdList->IASetVertexBuffers(0, 0, &m_vertBuff->GetVBView());
+		//稼働中ならスルー
+		if (pt.m_life)continue;
 
-		m_processedCommandBuffer->GetResource()->ChangeBarrier(cmdList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		pt.m_pos = Pos;
+		//pt.m_pos += KuroFunc::GetRand(MIN_OFFSET, MAX_OFFSET);
+		pt.m_scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
+		pt.m_vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
+		pt.m_color.m_r = KuroFunc::GetRand(COL_MIN, COL_MAX);
+		pt.m_color.m_g = KuroFunc::GetRand(COL_MIN, COL_MAX);
+		pt.m_color.m_b = KuroFunc::GetRand(COL_MIN, COL_MAX);
+		pt.m_lifeSpan = KuroFunc::GetRand(60, 120);
+		pt.m_life = pt.m_lifeSpan;
 
-		m_indirectDev->Execute(
-			cmdList,
-			s_particleNum,
-			m_processedCommandBuffer->GetResource()->GetBuff().Get(),
-			0,
-			m_counterBuffer);
+		//指定数分、生成完了
+		if (Num == ++generateNum)return;
 	}
+
+	//足りなかった
+	assert(0);
 }

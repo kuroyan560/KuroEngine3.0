@@ -110,6 +110,7 @@ struct GSOutput
     float4 svpos : SV_POSITION;
     float3 normal : NORMAL;
     float4 color : COLOR;
+    float depthInView : CAM_Z;
 };
 
 [maxvertexcount(64)]
@@ -143,16 +144,23 @@ void GSmain(
         element.normal = cubeNormal[index];
         //element.ray = normalize(pos.xyz - cameraPos);
             
-        pos = mul(cam.proj, mul(cam.view, pos)); //ビュー変換
-        //pos = mul(proj, mul(view, pos)); //ビュー変換
+        pos = mul(cam.view, pos); //ビュー変換
+        element.depthInView = pos.z;
+        pos = mul(cam.proj, pos); //プロジェクション変換
         element.svpos = pos;
         
         output.Append(element);
     }
 }
 
+struct PSOutput
+{
+    float4 color : SV_Target0;
+    float4 emissive : SV_Target1;
+    float depth : SV_Target2;
+};
 
-float4 PSmain(GSOutput input) : SV_TARGET
+PSOutput PSmain(GSOutput input)
 {
     //光の向かうベクトル（平行光線）
     float3 light = normalize(float3(1, -1, 1));
@@ -179,7 +187,12 @@ float4 PSmain(GSOutput input) : SV_TARGET
     }
     
     result.xyz *= toon.xyz;
-    return result;
+    
+    PSOutput output;
+    output.color = result;
+    output.emissive = result;
+    output.depth = input.depthInView;
+    return output;
 }
 
 float4 main(float4 pos : POSITION) : SV_POSITION

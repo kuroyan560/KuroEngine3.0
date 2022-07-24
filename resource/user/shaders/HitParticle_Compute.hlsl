@@ -3,42 +3,51 @@
 
 struct Particle
 {
-    float4 color;
-    float scale;
-    float3 vel;
-    float3 pos;
-    float pad;
+    float4 m_color;
+    float m_scale;
+    float3 m_vel;
+    float3 m_pos;
+    int m_life;
+    int m_lifeSpan;
 };
 
 struct IndirectCommand
 {
-    uint64_t cbvAddress[2];
-    uint4 drawArguments;
+    uint64_t m_cbvAddress[2];
+    uint4 m_drawArguments;
 };
 
-cbuffer Camera : register(b0)
+cbuffer RootConstants : register(b0)
 {
-    Camera cam;
-}
-
-cbuffer RootConstants : register(b1)
-{
-    uint commandCount;
+    uint maxCommandCount;
+    uint64_t cameraCbvAddress;
 };
 
-StructuredBuffer<Particle> particles : register(t0);
-StructuredBuffer<IndirectCommand> inputCommands            : register(t1);
-AppendStructuredBuffer<IndirectCommand> outputCommands    : register(u0);
+RWStructuredBuffer<Particle> particles : register(u0);
+StructuredBuffer<IndirectCommand> inputCommands            : register(t0);
+AppendStructuredBuffer<IndirectCommand> outputCommands    : register(u1);
 
 [numthreads(threadBlockSize, 1, 1)]
 void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
     uint index = (groupId.x * threadBlockSize) + groupIndex;
     
-    if (index < commandCount)
-    {
-
-        
-        outputCommands.Append(inputCommands[index]);
-    }
+    //範囲外
+    if (maxCommandCount <= index)
+        return;
+    
+    //パーティクル取得
+    Particle pt = particles[index];
+    
+    //生存してない
+    if (!pt.m_life)
+        return;
+    
+    pt.m_life--;
+    pt.m_pos += pt.m_vel;
+    
+    //カメラのGPUアドレスをアタッチして Append
+    IndirectCommand appearCommand = inputCommands[index];
+    appearCommand.m_cbvAddress[0] = cameraCbvAddress;
+    outputCommands.Append(appearCommand);
 }

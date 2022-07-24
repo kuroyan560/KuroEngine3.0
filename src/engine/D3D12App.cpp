@@ -1728,6 +1728,10 @@ void D3D12App::DispathOneShot(std::weak_ptr<ComputePipeline>Pipeline, Vec3<int> 
 		nullptr, IID_PPV_ARGS(&cmdList));
 	assert(SUCCEEDED(hr));
 
+	//ディスクリプタヒープをセット
+	ID3D12DescriptorHeap* heaps[] = { m_descHeapCBV_SRV_UAV->GetHeap().Get() };
+	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
+
 	Pipeline.lock()->SetPipeline(cmdList);
 	for (int descIdx = 0; descIdx < Datas.size(); ++descIdx)
 	{

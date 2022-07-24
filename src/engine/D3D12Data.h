@@ -140,7 +140,7 @@ public:
 	void CopyGPUResource(const ComPtr<ID3D12GraphicsCommandList>& CmdList, GPUResource& CopySource);
 
 	template<typename T>
-	const T* GetBuffOnCpu() { return (T*) m_buffOnCPU; }
+	T* GetBuffOnCpu() { return (T*) m_buffOnCPU; }
 };
 
 //レンダリングの際にセットするバッファ（ディスクリプタ登録の必要があるタイプのデータ）

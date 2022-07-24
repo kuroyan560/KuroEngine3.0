@@ -66,7 +66,7 @@ void GameScene::OnInitialize()
 	m_player.Init();
 	//GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
 	//m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
-	m_indirectSmp.Init(*GameManager::Instance()->GetNowCamera());
+	m_hitParticle.Init();
 }
 
 void GameScene::OnUpdate()
@@ -129,8 +129,8 @@ void GameScene::OnUpdate()
 
 	HitEffect::Update();
 
-	//m_hitParticle.Update();
-	m_indirectSmp.Update(m_cullingOffset);
+	auto& nowCam = *GameManager::Instance()->GetNowCamera();
+	m_hitParticle.Update(nowCam);
 
 	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
 	static const float SHADOW_MAP_HEIGHT = 100.0f;
@@ -190,7 +190,7 @@ void GameScene::OnDraw()
 	//プレイヤー
 	BasicDraw::Draw(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 
-	m_indirectSmp.Draw(nowCam);
+	m_hitParticle.Draw(nowCam);
 
 	//DOF
 	m_dof.Draw(backBuff, depthMap);

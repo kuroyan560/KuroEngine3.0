@@ -222,6 +222,7 @@
     <ClCompile Include="src\user\GameManager.cpp" />
     <ClCompile Include="src\user\GameScene.cpp" />
     <ClCompile Include="src\user\HitEffect.cpp" />
+    <ClCompile Include="src\user\HitParticle.cpp" />
     <ClCompile Include="src\user\IndirectSample.cpp" />
     <ClCompile Include="src\user\Player.cpp" />
     <ClCompile Include="src\user\PlayerAttack.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="src\user\GameManager.h" />
     <ClInclude Include="src\user\GameScene.h" />
     <ClInclude Include="src\user\HitEffect.h" />
+    <ClInclude Include="src\user\HitParticle.h" />
     <ClInclude Include="src\user\IndirectSample.h" />
     <ClInclude Include="src\user\Player.h" />
     <ClInclude Include="src\user\PlayerAttack.h" />
