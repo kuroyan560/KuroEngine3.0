@@ -44,10 +44,12 @@ void CSmain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
     if (!pt.m_life)
         return;
     
+    //パーティクルの更新
     pt.m_life--;
     pt.m_pos += pt.m_vel;
+    particles[index] = pt;
     
-    //カメラのGPUアドレスをアタッチして Append
+    //生存しているパーティクルのみAppend
     IndirectCommand appearCommand = inputCommands[index];
     //appearCommand.m_cbvAddress[0] = cameraCbvAddress;
     outputCommands.Append(appearCommand);
