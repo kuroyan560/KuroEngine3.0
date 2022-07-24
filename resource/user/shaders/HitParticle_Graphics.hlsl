@@ -17,10 +17,11 @@ cbuffer cbuff0 : register(b0)
 
 cbuffer cbuff1 : register(b1)
 {
-    float4 color;
-    float scale;
-    float3 vel;
-    float3 pos;
+    float4 m_color;
+    float3 m_vel;
+    float m_life;
+    float3 m_pos;
+    int m_lifeSpan;
 };
 
 SamplerState smp : register(s0);
@@ -121,17 +122,17 @@ void GSmain(
 {
     GSOutput element;
     //カラーはそのまま渡す
-    element.color = color;
+    element.color = m_color;
     
     float4 center = input[0]; //中心
-    center.xyz += pos;
+    center.xyz += m_pos;
     //matrix rotateMat = GetRoateMat(input[0].rotate); //回転角度
     
     //形状によって頂点数が変わる
     for (uint i = 0; i < vertNum; ++i)
     {
         //CUBE
-        float side_h = scale / 2.0f;
+        float side_h = 0.6 / 2.0f;
         int index = cubeOffsetIdx[i];
         float4 pos = center;
         pos.x += cubeOffset[index].x * side_h;

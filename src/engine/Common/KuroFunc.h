@@ -36,6 +36,8 @@ namespace KuroFunc
 	Vec2<float> GetRand(Vec2<float> Min, Vec2<float> Max);
 	Vec3<float> GetRand(Vec3<float> Min, Vec3<float> Max);
 	float GetRand(float Max);
+	Vec2<float> GetRand(Vec2<float> Max);
+	Vec3<float> GetRand(Vec3<float> Max);
 	//正負ランダム
 	int GetRandPlusMinus();
 	//基準の値から前後乱数算出

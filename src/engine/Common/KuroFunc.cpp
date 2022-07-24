@@ -253,6 +253,16 @@ float KuroFunc::GetRand(float Max)
 	return GetRand(0.0f, Max);
 }
 
+Vec2<float> KuroFunc::GetRand(Vec2<float> Max)
+{
+	return Vec2<float>(GetRand(Max.x), GetRand(Max.y));
+}
+
+Vec3<float> KuroFunc::GetRand(Vec3<float> Max)
+{
+	return Vec3<float>(GetRand(Max.x), GetRand(Max.y), GetRand(Max.z));
+}
+
 int KuroFunc::GetRandPlusMinus()
 {
 	int r = GetRand(0, 1);

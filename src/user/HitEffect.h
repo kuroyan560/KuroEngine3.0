@@ -5,18 +5,20 @@
 #include<memory>
 class TextureBuffer;
 class Camera;
+#include"HitParticle.h"
 
 class HitEffect
 {
 private:
 	static const int MAX_NUM = 300;
 	static std::array<HitEffect, MAX_NUM>s_instanceArray;
+	static std::shared_ptr<HitParticle>s_particle;
 
 public:
 	HitEffect() {}
 
 	static void Generate(const Vec3<float>& Pos);
-	static void Init();
+	static void Init(Camera& Cam);
 	static void Update();
 	static void Draw(Camera& Cam);
 	static HitEffect& GetInstance(const int& Idx) { return s_instanceArray[Idx]; }

@@ -64,8 +64,8 @@ GameScene::GameScene()
 void GameScene::OnInitialize()
 {
 	m_player.Init();
-	//GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
-	m_hitParticle.Init(*GameManager::Instance()->GetNowCamera());
+	GameManager::Instance()->ChangeCamera(Player::s_cameraKey);
+	HitEffect::Init(*GameManager::Instance()->GetNowCamera());
 }
 
 void GameScene::OnUpdate()
@@ -125,10 +125,6 @@ void GameScene::OnUpdate()
 	//	TIMER = 0;
 	//	m_hitParticle.Emit(10, { 5,5,0 });
 	//}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
-	{
-		m_hitParticle.Emit(10, { 5,5,0 });
-	}
 
 	GameManager::Instance()->Update();
 
@@ -141,7 +137,6 @@ void GameScene::OnUpdate()
 	HitEffect::Update();
 
 	//auto& nowCam = *GameManager::Instance()->GetNowCamera();
-	m_hitParticle.Update();
 
 	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
 	static const float SHADOW_MAP_HEIGHT = 100.0f;
@@ -202,7 +197,7 @@ void GameScene::OnDraw()
 	//プレイヤー
 	BasicDraw::Draw(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 
-	m_hitParticle.Draw(nowCam);
+	HitEffect::Draw(nowCam);
 
 	//DOF
 	m_dof.Draw(backBuff, depthMap);
@@ -229,7 +224,6 @@ void GameScene::OnDraw()
 	//	noise.ResetNoise();
 	//}
 	//DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
-	HitEffect::Draw(nowCam);
 }
 
 void GameScene::OnImguiDebug()

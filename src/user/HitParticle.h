@@ -16,12 +16,10 @@ class HitParticle
 	struct Particle
 	{
 		Color m_color;
-		float m_scale = 1.0f;
 		Vec3<float>m_vel = { 0,1,0 };
+		float m_life = 0;
 		Vec3<float>m_pos = { 0,0,0 };
-		int m_life = 0;
-		int m_lifeSpan = 0;
-		int pad[3];
+		int m_lifeSpan = 60;
 	};
 
 	//ブロックの各個体情報（GPU）

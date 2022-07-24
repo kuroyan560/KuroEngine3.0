@@ -3,11 +3,6 @@
 #include"Camera.h"
 #include"KuroEngine.h"
 
-static const float MIN_SCALE = 0.01f;
-static const float MAX_SCALE = 0.1f;
-static const float MIN_VEL = 0.003f;
-static const float MAX_VEL = 0.05f;
-static const float RANGE = 5.0f;
 static const float COL_MIN = 0.5f;
 static const float COL_MAX = 0.9f;
 static const UINT COMPUTE_THREAD_BLOCK_SIZE = 128;
@@ -147,6 +142,12 @@ void HitParticle::Emit(int Num, Vec3<float>Pos)
 	//CPU上でのパーティクルバッファのポインタ取得
 	Particle* ptArray = m_particleBuff->GetResource()->GetBuffOnCpu<Particle>();
 
+	int lifeSpan = KuroFunc::GetRand(45, 60);
+	Color col;
+	col.m_r = KuroFunc::GetRand(0.3f, 0.5f);
+	col.m_g = KuroFunc::GetRand(0.3f, 0.5f);
+	col.m_b = KuroFunc::GetRand(0.8f, 1.0f);
+
 	int generateNum = 0;
 	for (int ptIdx = 0; ptIdx < s_particleNum; ++ptIdx)
 	{
@@ -157,15 +158,10 @@ void HitParticle::Emit(int Num, Vec3<float>Pos)
 		if (pt.m_life)continue;
 
 		pt.m_pos = Pos;
-		pt.m_pos.x += KuroFunc::GetRand(-RANGE, RANGE);
-		pt.m_pos.z += KuroFunc::GetRand(-RANGE, RANGE);
-		pt.m_scale = KuroFunc::GetRand(MIN_SCALE, MAX_SCALE);
-		pt.m_vel = { 0,KuroFunc::GetRand(MIN_VEL,MAX_VEL),0 };
-		pt.m_color.m_r = KuroFunc::GetRand(COL_MIN, COL_MAX);
-		pt.m_color.m_g = KuroFunc::GetRand(COL_MIN, COL_MAX);
-		pt.m_color.m_b = KuroFunc::GetRand(COL_MIN, COL_MAX);
-		pt.m_lifeSpan = KuroFunc::GetRand(60, 120);
-		pt.m_life = pt.m_lifeSpan;
+		pt.m_vel = KuroFunc::GetRand(Vec3<float>(-1, -1, -1), Vec3<float>(1, 1, 1));
+		pt.m_color = col;
+		pt.m_life = 1.0f;
+		pt.m_lifeSpan = lifeSpan;
 
 		//指定数分、生成完了
 		if (Num == ++generateNum)return;

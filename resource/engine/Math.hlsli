@@ -1,43 +1,43 @@
 static const float PI = 3.14159265359f;
 
 //イージング
-float Easing_Qurd_In(float t, float totaltime, float min, float max)
+float Easing_Quad_In(float t, float totaltime, float min, float max)
 {
     max -= min;
     t /= totaltime;
     return max * t * t + min;
 }
-float2 Easing_Qurd_In(float t, float totaltime, float2 min, float2 max)
+float2 Easing_Quad_In(float t, float totaltime, float2 min, float2 max)
 {
     return float2(
-    Easing_Qurd_In(t, totaltime, min.x, max.x), 
-    Easing_Qurd_In(t, totaltime, min.y, max.y));
+    Easing_Quad_In(t, totaltime, min.x, max.x), 
+    Easing_Quad_In(t, totaltime, min.y, max.y));
 }
-float3 Easing_Qurd_In(float t, float totaltime, float3 min, float3 max)
+float3 Easing_Quad_In(float t, float totaltime, float3 min, float3 max)
 {
     return float3(
-    Easing_Qurd_In(t, totaltime, min.x, max.x),
-    Easing_Qurd_In(t, totaltime, min.y, max.y),
-    Easing_Qurd_In(t, totaltime, min.z, max.z));
+    Easing_Quad_In(t, totaltime, min.x, max.x),
+    Easing_Quad_In(t, totaltime, min.y, max.y),
+    Easing_Quad_In(t, totaltime, min.z, max.z));
 }
-float Easing_Qurd_Out(float t, float totaltime, float min, float max)
+float Easing_Quad_Out(float t, float totaltime, float min, float max)
 {
     max -= min;
     t /= totaltime;
     return -max * t * (t - 2) + min;
 }
-float2 Easing_Qurd_Out(float t, float totaltime, float2 min, float2 max)
+float2 Easing_Quad_Out(float t, float totaltime, float2 min, float2 max)
 {
     return float2(
-    Easing_Qurd_Out(t, totaltime, min.x, max.x),
-    Easing_Qurd_Out(t, totaltime, min.y, max.y));
+    Easing_Quad_Out(t, totaltime, min.x, max.x),
+    Easing_Quad_Out(t, totaltime, min.y, max.y));
 }
-float3 Easing_Qurd_Out(float t, float totaltime, float3 min, float3 max)
+float3 Easing_Quad_Out(float t, float totaltime, float3 min, float3 max)
 {
     return float3(
-    Easing_Qurd_Out(t, totaltime, min.x, max.x),
-    Easing_Qurd_Out(t, totaltime, min.y, max.y),
-    Easing_Qurd_Out(t, totaltime, min.z, max.z));
+    Easing_Quad_Out(t, totaltime, min.x, max.x),
+    Easing_Quad_Out(t, totaltime, min.y, max.y),
+    Easing_Quad_Out(t, totaltime, min.z, max.z));
 }
 float Easing_Qurd_InOut(float t, float totaltime, float min, float max)
 {

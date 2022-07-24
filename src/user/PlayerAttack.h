@@ -4,6 +4,7 @@
 #include<memory>
 #include"Collider.h"
 class ModelAnimator;
+#include"HitParticle.h"
 
 class PlayerAttack
 {

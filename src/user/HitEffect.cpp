@@ -5,6 +5,7 @@
 #include"Camera.h"
 
 std::array<HitEffect, HitEffect::MAX_NUM>HitEffect::s_instanceArray;
+std::shared_ptr<HitParticle> HitEffect::s_particle;
 static const Vec2<int>IMG_SIZE = { 512,512 };
 
 void HitEffect::Generate(const Vec3<float>& Pos)
@@ -26,11 +27,15 @@ void HitEffect::Generate(const Vec3<float>& Pos)
 		e.m_circleRadius = 0.18f;
 		break;
 	}
+	s_particle->Emit(50, Pos);
 }
 
-void HitEffect::Init()
+void HitEffect::Init(Camera& Cam)
 {
 	for (auto& e : s_instanceArray)e.m_isActive = 0;
+
+	if (!s_particle)s_particle = std::make_shared<HitParticle>();
+	s_particle->Init(Cam);
 }
 
 void HitEffect::Update()
@@ -50,6 +55,8 @@ void HitEffect::Update()
 		e.m_lifeTimer += 1.0f / e.m_lifeSpan;
 		if (1.0f <= e.m_lifeTimer)e.m_isActive = false;
 	}
+
+	s_particle->Update();
 }
 
 void HitEffect::Draw(Camera& Cam)
@@ -138,4 +145,6 @@ void HitEffect::Draw(Camera& Cam)
 		{ CBV,SRV,SRV },
 		0.0f, true
 	);
+
+	s_particle->Draw(Cam);
 }
