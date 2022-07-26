@@ -6,7 +6,7 @@
 #include"ShadowMapDevice.h"
 #include"LightBloomDevice.h"
 #include"DOF.h"
-#include"NoiseGenerator.h"
+#include<map>
 
 class Model;
 class ModelObject;
@@ -31,21 +31,11 @@ class GameScene : public BaseScene
 	Light::Point m_ptLig;
 	
 	Player m_player;
-	std::shared_ptr<ModelObject>m_testObj;
+	//std::shared_ptr<ModelObject>m_testObj;
 
 	std::shared_ptr<StaticallyCubeMap>m_staticCubeMap;
 	std::shared_ptr<DynamicCubeMap>m_dynamicCubeMap;
 
-	/*struct Noise
-	{
-		std::shared_ptr<TextureBuffer>tex;
-		NoiseInitializer initializer;
-
-		void ResetNoise();
-	}noise;*/
-
-	//bool m_enableCulling = false;
-	float m_cullingOffset = 1.0f;
 
 public:
 	GameScene();

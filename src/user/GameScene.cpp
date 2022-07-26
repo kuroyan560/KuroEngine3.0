@@ -34,8 +34,8 @@ GameScene::GameScene()
 	m_floorCol->SetHitCheckAttribute(FOOT_POINT);
 
 	//テスト用
-	m_testObj = std::make_shared<ModelObject>("resource/user/", "player_anim_test.glb");
-	m_testObj->m_transform.SetScale(8.0f);
+	//m_testObj = std::make_shared<ModelObject>("resource/user/", "player_anim_test.glb");
+	//m_testObj->m_transform.SetScale(8.0f);
 
 	m_dirLig.SetDir(Vec3<float>(0, -1, 0));
 	m_hemiLig.SetSkyColor(Color(1.0f, 1.0f, 1.0f, 1.0f));
@@ -70,62 +70,6 @@ void GameScene::OnInitialize()
 
 void GameScene::OnUpdate()
 {
-	//ポイントライト位置
-	static const float UINT = 0.1f;
-
-	//テストモデルの位置
-	//auto modelPos = testModel->transform.GetPos();
-	auto modelPos = m_ptLig.GetPos();
-	if (UsersInput::Instance()->KeyInput(DIK_E))
-	{
-		modelPos.y += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_Q))
-	{
-		modelPos.y -= UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_D))
-	{
-		modelPos.x += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_A))
-	{
-		modelPos.x -= UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_W))
-	{
-		modelPos.z += UINT;
-	}
-	if (UsersInput::Instance()->KeyInput(DIK_S))
-	{
-		modelPos.z -= UINT;
-	}
-
-	//testModel->transform.SetPos(modelPos);
-	m_ptLig.SetPos(modelPos);
-
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_2))
-	{
-		m_dirLig.SetActive();
-	}
-	if (UsersInput::Instance()->KeyOnTrigger(DIK_3))
-	{
-		m_hemiLig.SetActive();
-	}
-
-	if (UsersInput::Instance()->ControllerOnTrigger(0,XBOX_BUTTON::A))
-	{
-		HitEffect::Generate({ 0.0f,7.0f,0.0f });
-	}
-
-	//static int TIMER = 0;
-	//static const int EMIT_SPAN = 10;
-	//if (++TIMER % EMIT_SPAN == 0)
-	//{
-	//	TIMER = 0;
-	//	m_hitParticle.Emit(10, { 5,5,0 });
-	//}
-
 	GameManager::Instance()->Update();
 
 	m_player.Update();
@@ -135,8 +79,6 @@ void GameScene::OnUpdate()
 	Collider::UpdateAllColliders();
 
 	HitEffect::Update();
-
-	//auto& nowCam = *GameManager::Instance()->GetNowCamera();
 
 	//シャドウマップ用のライトカメラ、上からプレイヤーに追従
 	static const float SHADOW_MAP_HEIGHT = 100.0f;
@@ -192,22 +134,22 @@ void GameScene::OnDraw()
 	EnemyManager::Instance()->Draw(nowCam, m_dynamicCubeMap);
 
 	//テスト用
-	BasicDraw::Draw(m_ligMgr, m_testObj, nowCam, m_staticCubeMap);
+	//BasicDraw::Draw(m_ligMgr, m_testObj, nowCam, m_staticCubeMap);
 
 	//プレイヤー
 	BasicDraw::Draw(m_ligMgr, m_player.GetModelObj(), nowCam, m_staticCubeMap);
 
-	HitEffect::Draw(nowCam);
+	//HitEffect::Draw(nowCam);
 
 	//DOF
-	m_dof.Draw(backBuff, depthMap);
+	//m_dof.Draw(backBuff, depthMap);
 
 	//ライトブルーム
 	//m_lightBloomDevice.Draw(emissiveMap, backBuff);
 
 	//当たり判定デバッグ描画
-	static bool COLLIDER_DRAW = false;
-	if (UsersInput::Instance()->ControllerOnTrigger(0, XBOX_BUTTON::X))
+	static bool COLLIDER_DRAW = true;
+	if (UsersInput::Instance()->ControllerOnTrigger(0, XBOX_BUTTON::BACK))
 	{
 		COLLIDER_DRAW = !COLLIDER_DRAW;
 	}
@@ -215,88 +157,13 @@ void GameScene::OnDraw()
 	{
 		Collider::DebugDrawAllColliders(nowCam);
 	}
-
-	//ヒットエフェクト
-	//DrawFunc2D::DrawBox2D({ 0,0 }, WinApp::Instance()->GetExpandWinSize(), Color(0, 0, 0, 1), true, AlphaBlendMode_None);
-
-	//if (UsersInput::Instance()->KeyOnTrigger(DIK_SPACE))
-	//{
-	//	noise.ResetNoise();
-	//}
-	//DrawFunc2D::DrawGraph({ 0,0 }, noise.tex, AlphaBlendMode_None);
 }
 
 void GameScene::OnImguiDebug()
 {
-	ImGui::Begin("Indirect");
-	//ImGui::Checkbox("EnableCulling", &m_enableCulling);
-	ImGui::DragFloat("CullingOffset", &m_cullingOffset);
-	ImGui::End();
-
-	/*ImGui::Begin("Button");
-	ImGui::Text("RB - Player's attack");
-	ImGui::Text("A  - Emit hit effect");
-	ImGui::Text("X - Turn collider's draw flag");
-	ImGui::End();
-
-	ImGui::Begin("Noise");
-	bool change = false;
-
-	static int TYPE_IDX = WAVELET;
-	static std::string CURRENT_TYPE = NoiseGenerator::GetInterpolationName((NOISE_INTERPOLATION)TYPE_IDX);
-
-	if (ImGui::BeginCombo("Interpolation", CURRENT_TYPE.c_str()))
-	{
-		for (int n = 0; n < NOISE_INTERPOLATION_NUM; ++n)
-		{
-			auto interpolationName = NoiseGenerator::GetInterpolationName((NOISE_INTERPOLATION)n);
-			bool isSelected = (CURRENT_TYPE == interpolationName);
-			if (ImGui::Selectable(interpolationName.c_str(), isSelected))
-			{
-				CURRENT_TYPE = interpolationName;
-				TYPE_IDX = n;
-				noise.initializer.interpolation = (NOISE_INTERPOLATION)n;
-				change = true;
-			}
-			if (isSelected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-
-		ImGui::EndCombo();
-	}
-
-	if (ImGui::SliderInt("Split - X", &noise.initializer.split.x, 1, 64))change = true;
-	if (ImGui::SliderInt("Split - Y", &noise.initializer.split.y, 1, 64))change = true;
-	if (ImGui::SliderInt("Contrast", &noise.initializer.contrast, 1, 32))change = true;
-	if (ImGui::SliderInt("Octaves", &noise.initializer.octave, 1, 32))change = true;
-	if (ImGui::SliderFloat("Frequency", &noise.initializer.frequency, 1.0f, 32.0f))change = true;
-	if (ImGui::SliderFloat("Persistance", &noise.initializer.persistance, 0.0f, 1.0f))change = true;
-	if (change)
-	{
-		noise.ResetNoise();
-	}
-	ImGui::End();
-	*/
-
 	GameManager::Instance()->ImGuiDebug();
 }
 
 void GameScene::OnFinalize()
 {
 }
-
-/*
-void GameScene::Noise::ResetNoise()
-{
-	if (!tex)
-	{
-		tex = NoiseGenerator::PerlinNoise2D("DebugNoise", { 512,512 }, initializer, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	}
-	else
-	{
-		NoiseGenerator::PerlinNoise2D(tex, initializer);
-	}
-}
-*/
