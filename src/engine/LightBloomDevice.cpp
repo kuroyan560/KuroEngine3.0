@@ -45,15 +45,15 @@ void LightBloomDevice::Draw(std::weak_ptr<RenderTarget>EmissiveMap, std::weak_pt
 	auto emissiveMap = EmissiveMap.lock();
 
 	//エミッシブマップをしきい値などに応じて加工
-	KuroEngine::Instance().Graphics().SetComputePipeline(s_pipeline);
+	KuroEngine::Instance()->Graphics().SetComputePipeline(s_pipeline);
 	static const int DIV = 32;
 	Vec3<int>threadNum = { emissiveMap->GetGraphSize().x / DIV,emissiveMap->GetGraphSize().y / DIV,1 };
-	KuroEngine::Instance().Graphics().Dispatch(threadNum, { m_constBuff,emissiveMap,m_processedEmissiveMap }, { CBV,SRV,UAV });
+	KuroEngine::Instance()->Graphics().Dispatch(threadNum, { m_constBuff,emissiveMap,m_processedEmissiveMap }, { CBV,SRV,UAV });
 
 	//エミッシブマップにブラーをかける
 	m_gaussianBlur->Register(m_processedEmissiveMap);
 
-	KuroEngine::Instance().Graphics().SetRenderTargets({ Target.lock() });
+	KuroEngine::Instance()->Graphics().SetRenderTargets({ Target.lock() });
 
 	//結果を描画
 	m_gaussianBlur->DrawResult(AlphaBlendMode_Add);

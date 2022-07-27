@@ -52,7 +52,7 @@ void DOF::Draw(std::weak_ptr<RenderTarget> Src, std::weak_ptr<RenderTarget> Dept
 {
 	m_gaussianBlur->Register(Src.lock());
 
-	KuroEngine::Instance().Graphics().SetComputePipeline(s_pipeline);
+	KuroEngine::Instance()->Graphics().SetComputePipeline(s_pipeline);
 
 	static const int DIV = 32;
 	Vec3<int>threadNum = 
@@ -62,7 +62,7 @@ void DOF::Draw(std::weak_ptr<RenderTarget> Src, std::weak_ptr<RenderTarget> Dept
 		1 
 	};
 
-	KuroEngine::Instance().Graphics().Dispatch(threadNum,
+	KuroEngine::Instance()->Graphics().Dispatch(threadNum,
 		{
 			m_configBuff,
 			m_gaussianBlur->GetResultTex(),

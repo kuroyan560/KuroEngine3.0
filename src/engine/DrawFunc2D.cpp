@@ -61,7 +61,7 @@ void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos
 		LINE_PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(LINE_PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(LINE_PIPELINE[BlendMode]);
 
 	if (LINE_VERTEX_BUFF.size() < (s_DrawLineCount + 1))
 	{
@@ -75,7 +75,7 @@ void DrawFunc2D::DrawLine2D(const Vec2<float>& FromPos, const Vec2<float>& ToPos
 	};
 	LINE_VERTEX_BUFF[s_DrawLineCount]->Mapping(&vertex[0]);
 
-	KuroEngine::Instance().Graphics().ObjectRender(LINE_VERTEX_BUFF[s_DrawLineCount], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
+	KuroEngine::Instance()->Graphics().ObjectRender(LINE_VERTEX_BUFF[s_DrawLineCount], { KuroEngine::Instance()->GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
 
 	s_DrawLineCount++;
 }
@@ -144,7 +144,7 @@ void DrawFunc2D::DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& Righ
 			BOX_PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 		}
 
-		KuroEngine::Instance().Graphics().SetGraphicsPipeline(BOX_PIPELINE[BlendMode]);
+		KuroEngine::Instance()->Graphics().SetGraphicsPipeline(BOX_PIPELINE[BlendMode]);
 
 		if (BOX_VERTEX_BUFF.size() < (s_DrawBoxCount + 1))
 		{
@@ -154,7 +154,7 @@ void DrawFunc2D::DrawBox2D(const Vec2<float>& LeftUpPos, const Vec2<float>& Righ
 		BoxVertex vertex(LeftUpPos, RightBottomPos, BoxColor);
 		BOX_VERTEX_BUFF[s_DrawBoxCount]->Mapping(&vertex);
 
-		KuroEngine::Instance().Graphics().ObjectRender(BOX_VERTEX_BUFF[s_DrawBoxCount], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
+		KuroEngine::Instance()->Graphics().ObjectRender(BOX_VERTEX_BUFF[s_DrawBoxCount], { KuroEngine::Instance()->GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
 
 		s_DrawBoxCount++;
 	}
@@ -231,7 +231,7 @@ void DrawFunc2D::DrawCircle2D(const Vec2<float>& Center, const float& Radius, co
 		CIRCLE_PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(CIRCLE_PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(CIRCLE_PIPELINE[BlendMode]);
 
 	if (CIRCLE_VERTEX_BUFF.size() < (s_DrawCircleCount + 1))
 	{
@@ -242,7 +242,7 @@ void DrawFunc2D::DrawCircle2D(const Vec2<float>& Center, const float& Radius, co
 
 	CIRCLE_VERTEX_BUFF[s_DrawCircleCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(CIRCLE_VERTEX_BUFF[s_DrawCircleCount], { KuroEngine::Instance().GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
+	KuroEngine::Instance()->Graphics().ObjectRender(CIRCLE_VERTEX_BUFF[s_DrawCircleCount], { KuroEngine::Instance()->GetParallelMatProjBuff() }, { CBV }, 0.0f, true);
 
 	s_DrawCircleCount++;
 }
@@ -302,7 +302,7 @@ void DrawFunc2D::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2<floa
 		EXTEND_GRAPH_PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE[BlendMode]);
 
 	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (s_DrawExtendGraphCount + 1))
 	{
@@ -312,7 +312,7 @@ void DrawFunc2D::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec2<floa
 	ExtendGraphVertex vertex(LeftUpPos, RightBottomPos, Miror);
 	EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
+	KuroEngine::Instance()->Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount], { KuroEngine::Instance()->GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
 	s_DrawExtendGraphCount++;
 }
@@ -373,7 +373,7 @@ void DrawFunc2D::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& E
 		ROTA_GRAPH_PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE[BlendMode]);
 
 	if (ROTA_GRAPH_VERTEX_BUFF.size() < (s_DrawRotaGraphCount + 1))
 	{
@@ -383,7 +383,7 @@ void DrawFunc2D::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<float>& E
 	RotaGraphVertex vertex(Center, ExtRate, Radian,RotaCenterUV, Miror);
 	ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
+	KuroEngine::Instance()->Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount], { KuroEngine::Instance()->GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
 	s_DrawRotaGraphCount++;
 }

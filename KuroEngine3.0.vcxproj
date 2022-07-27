@@ -227,6 +227,7 @@
     <ClCompile Include="src\user\Player.cpp" />
     <ClCompile Include="src\user\PlayerAttack.cpp" />
     <ClCompile Include="src\user\PlayerCamera.cpp" />
+    <ClCompile Include="src\user\ControllerConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\dxcapi.h" />
@@ -307,6 +308,7 @@
     <ClInclude Include="src\user\Player.h" />
     <ClInclude Include="src\user\PlayerAttack.h" />
     <ClInclude Include="src\user\PlayerCamera.h" />
+    <ClInclude Include="src\user\ControllerConfig.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="lib\DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj">

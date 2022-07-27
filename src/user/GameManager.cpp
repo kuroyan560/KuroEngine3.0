@@ -16,9 +16,11 @@ void GameManager::Update()
 	}
 }
 
-void GameManager::ImGuiDebug()
+void GameManager::ImGuiDebug(UsersInput& Input)
 {
-	ImGui::Begin("GameManager - Settings");
+	m_controllerConfig.ImguiDebug(Input);
+
+	ImGui::Begin("GameManager - Camera");
 
 	//ƒJƒƒ‰‘I‘ğ
 	ImGui::BeginChild(ImGui::GetID((void*)0), ImVec2(250, 100), ImGuiWindowFlags_NoTitleBar);

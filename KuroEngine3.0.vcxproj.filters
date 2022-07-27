@@ -271,6 +271,9 @@
     <ClCompile Include="src\user\HitParticle.cpp">
       <Filter>src\user</Filter>
     </ClCompile>
+    <ClCompile Include="src\user\ControllerConfig.cpp">
+      <Filter>src\user\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\D3D12App.h">
@@ -506,6 +509,9 @@
     </ClInclude>
     <ClInclude Include="src\user\HitParticle.h">
       <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\ControllerConfig.h">
+      <Filter>src\user\Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

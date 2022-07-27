@@ -78,7 +78,7 @@ private:
 	float m_shakePower[s_controllerNum] = { 0.0f };
 	int m_shakeTimer[s_controllerNum] = { 0 };
 	//デッドゾーンに入っているか(DeadRate : デッドゾーン判定の度合い、1.0fだとデフォルト)
-	bool StickInDeadZone(Vec2<float>& Thumb, const Vec2<float>& DeadRate);
+	bool StickInDeadZone(Vec2<float>& Thumb, const Vec2<float>& DeadRate)const;
 
 	void Initialize(const WNDCLASSEX& WinClass,const HWND& Hwnd);
 
@@ -98,30 +98,30 @@ public:
 	void Update(const HWND& Hwnd, const Vec2<float>& WinSize);
 
 	//キーボード
-	bool KeyOnTrigger(int KeyCode);
-	bool KeyInput(int KeyCode);
-	bool KeyOffTrigger(int KeyCode);
+	bool KeyOnTrigger(int KeyCode)const;
+	bool KeyInput(int KeyCode)const;
+	bool KeyOffTrigger(int KeyCode)const;
 
 	//マウス
-	bool MouseOnTrigger(MOUSE_BUTTON Button);
-	bool MouseInput(MOUSE_BUTTON Button);
-	bool MouseOffTrigger(MOUSE_BUTTON Button);
+	bool MouseOnTrigger(MOUSE_BUTTON Button)const;
+	bool MouseInput(MOUSE_BUTTON Button)const;
+	bool MouseOffTrigger(MOUSE_BUTTON Button)const;
 
 	const Vec2<float>& GetMousePos()const { return m_mousePos; }
-	MouseMove GetMouseMove();
+	MouseMove GetMouseMove()const;
 	//Ray GetMouseRay();
 
 	//XBOXコントローラー
-	bool ControllerOnTrigger(const int& ControllerIdx, XBOX_BUTTON Button);
-	bool ControllerOnTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange = 0.3f, const Vec2<float>& DeadRate = { 1.0f,1.0f });
-	bool ControllerInput(const int& ControllerIdx, XBOX_BUTTON Button);
-	bool ControllerInput(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange = 0.3f, const Vec2<float>& DeadRate = { 1.0f,1.0f });
-	bool ControllerOffTrigger(const int& ControllerIdx, XBOX_BUTTON Button);
-	bool ControllerOffTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange = 0.3f, const Vec2<float>& DeadRate = { 1.0f,1.0f });
+	bool ControllerOnTrigger(const int& ControllerIdx, XBOX_BUTTON Button)const;
+	bool ControllerOnTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange = 0.3f, const Vec2<float>& DeadRate = { 1.0f,1.0f })const;
+	bool ControllerInput(const int& ControllerIdx, XBOX_BUTTON Button)const;
+	bool ControllerInput(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange = 0.3f, const Vec2<float>& DeadRate = { 1.0f,1.0f })const;
+	bool ControllerOffTrigger(const int& ControllerIdx, XBOX_BUTTON Button)const;
+	bool ControllerOffTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange = 0.3f, const Vec2<float>& DeadRate = { 1.0f,1.0f })const;
 
 	//デッドゾーン判定の度合い(1.0fだとデフォルト採用)
-	Vec2<float>GetLeftStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate = { 1.0f,1.0f });
-	Vec2<float>GetRightStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate = { 1.0f,1.0f });
+	Vec2<float>GetLeftStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate = { 1.0f,1.0f })const;
+	Vec2<float>GetRightStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate = { 1.0f,1.0f })const;
 	// "Power" must fit between 0.0f and 1.0f.
 	void ShakeController(const int& ControllerIdx, const float& Power, const int& Span);
 };

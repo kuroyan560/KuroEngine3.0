@@ -35,7 +35,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//===============================
 
 	//エンジン起動
-	KuroEngine::Instance().Initialize(engineOption);
+	KuroEngine::Instance()->Initialize(engineOption);
 
 	//シーンリスト=====================
 
@@ -48,13 +48,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//================================
 
 	//エンジンにシーンリストを渡す
-	KuroEngine::Instance().SetSceneList(sceneList, awakeScene);
+	KuroEngine::Instance()->SetSceneList(sceneList, awakeScene);
+
+	bool winEnd = false;
 
 	//ループ
 	while (1)
 	{
-		KuroEngine::Instance().Update();
-		KuroEngine::Instance().Draw();
+		//メッセージがある？
+		MSG msg{};
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);	//キー入力メッセージの処理
+			DispatchMessage(&msg);	//プロシージャにメッセージを送る
+			if (msg.message == WM_QUIT)
+			{
+				//ウィンドウが閉じられた
+				winEnd = true;
+				break;
+			}
+		}
+
+		//終了メッセージが来た / シーンマネージャの終了　でループを抜ける
+		if (winEnd || KuroEngine::Instance()->End())
+		{
+			break;
+		}
+
+		KuroEngine::Instance()->Update();
+		KuroEngine::Instance()->Draw();
 
 		//静的クラス初期化（Dirtyフラグ系）
 		Transform::DirtyReset();
@@ -69,19 +91,5 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DrawFunc3D::CountReset();
 
 		NoiseGenerator::CountReset();
-
-		//メッセージがある？
-		MSG msg{};
-		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);	//キー入力メッセージの処理
-			DispatchMessage(&msg);	//プロシージャにメッセージを送る
-		}
-
-		//終了メッセージが来た / シーンマネージャの終了　でループを抜ける
-		if (msg.message == WM_QUIT || KuroEngine::Instance().End())
-		{
-			break;
-		}
 	}
 }

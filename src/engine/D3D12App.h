@@ -17,6 +17,7 @@ class D3D12AppUser
 protected:
 	friend class D3D12App;
 	D3D12AppUser() {}
+	virtual ~D3D12AppUser(){}
 	virtual void Render() = 0;	//ƒŒƒ“ƒ_ƒŠƒ“ƒOŠÖ˜A‚Ìˆ—
 };
 

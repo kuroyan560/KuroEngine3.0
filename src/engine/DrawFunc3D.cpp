@@ -70,7 +70,7 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (LINE_VERTEX_BUFF.size() < (s_drawLineCount + 1))
 	{
@@ -81,7 +81,7 @@ void DrawFunc3D::DrawLine(Camera& Cam, const Vec3<float>& From, const Vec3<float
 	LINE_VERTEX_BUFF[s_drawLineCount]->Mapping(&vertex);
 	Vec3<float>center = From.GetCenter(To);
 
-	KuroEngine::Instance().Graphics().ObjectRender(
+	KuroEngine::Instance()->Graphics().ObjectRender(
 		LINE_VERTEX_BUFF[s_drawLineCount],
 		{
 			Cam.GetBuff(),
@@ -125,7 +125,7 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (s_drawNonShadingCount + 1))
 	{
@@ -141,7 +141,7 @@ void DrawFunc3D::DrawNonShadingModel(const std::weak_ptr<Model> Model, Transform
 	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
 		const auto& mesh = model->m_meshes[meshIdx];
-		KuroEngine::Instance().Graphics().ObjectRender(
+		KuroEngine::Instance()->Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
 			{
@@ -198,7 +198,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (s_drawAdsShadingCount + 1))
 	{
@@ -214,7 +214,7 @@ void DrawFunc3D::DrawADSShadingModel(LightManager& LigManager, const std::weak_p
 	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
 		const auto& mesh = model->m_meshes[meshIdx];
-		KuroEngine::Instance().Graphics().ObjectRender(
+		KuroEngine::Instance()->Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
 			{
@@ -280,7 +280,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (s_drawPbrShadingCount + 1))
 	{
@@ -302,7 +302,7 @@ void DrawFunc3D::DrawPBRShadingModel(LightManager& LigManager, const std::weak_p
 	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
 		const auto& mesh = model->m_meshes[meshIdx];
-		KuroEngine::Instance().Graphics().ObjectRender(
+		KuroEngine::Instance()->Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
 			{
@@ -368,7 +368,7 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, {WrappedSampler(false, false)});
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < (s_drawToonCount + 1))
 	{
@@ -382,7 +382,7 @@ void DrawFunc3D::DrawToonModel(const std::weak_ptr<TextureBuffer> ToonTex, Light
 	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
 		const auto& mesh = model->m_meshes[meshIdx];
-		KuroEngine::Instance().Graphics().ObjectRender(
+		KuroEngine::Instance()->Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
 			{

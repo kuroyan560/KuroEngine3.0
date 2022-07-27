@@ -144,7 +144,7 @@ void Sprite_Shadow::SetLimAffect(const float& Lim)
 
 void Sprite_Shadow::Draw(LightManager& LigManager)
 {
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(s_transPipeline);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(s_transPipeline);
 
 	if (m_transform.GetDirty())
 	{
@@ -153,7 +153,7 @@ void Sprite_Shadow::Draw(LightManager& LigManager)
 	}
 
 	m_mesh.Render({
-		KuroEngine::Instance().GetParallelMatProjBuff(),	//平行投影行列
+		KuroEngine::Instance()->GetParallelMatProjBuff(),	//平行投影行列
 		m_constBuff,	//カラー & ワールド行列
 		s_EyePosBuff,	//視点座標
 		LigManager.GetLigNumInfo(),	//アクティブ中のライト数

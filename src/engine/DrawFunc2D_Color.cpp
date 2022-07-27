@@ -70,7 +70,7 @@ void DrawFunc2D_Color::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec
 		EXTEND_GRAPH_PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
 
 	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (s_DrawExtendGraphCount + 1))
 	{
@@ -80,7 +80,7 @@ void DrawFunc2D_Color::DrawExtendGraph2D(const Vec2<float>& LeftUpPos, const Vec
 	ExtendGraphVertex vertex(LeftUpPos, RightBottomPos, Paint, Miror, LeftUpPaintUV, RightBottomPaintUV);
 	EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
+	KuroEngine::Instance()->Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_DrawExtendGraphCount], { KuroEngine::Instance()->GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
 	s_DrawExtendGraphCount++;
 }
@@ -145,7 +145,7 @@ void DrawFunc2D_Color::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<flo
 		ROTA_GRAPH_PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
 
 	if (ROTA_GRAPH_VERTEX_BUFF.size() < (s_DrawRotaGraphCount + 1))
 	{
@@ -155,7 +155,7 @@ void DrawFunc2D_Color::DrawRotaGraph2D(const Vec2<float>& Center, const Vec2<flo
 	RotaGraphVertex vertex(Center, ExtRate, Radian, Paint, RotaCenterUV, Miror, LeftUpPaintUV, RightBottomPaintUV);
 	ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount]->Mapping(&vertex);
 
-	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount], { KuroEngine::Instance().GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
+	KuroEngine::Instance()->Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_DrawRotaGraphCount], { KuroEngine::Instance()->GetParallelMatProjBuff(),Tex }, { CBV,SRV }, 0.0f, true);
 
 	s_DrawRotaGraphCount++;
 }

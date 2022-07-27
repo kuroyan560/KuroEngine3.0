@@ -98,7 +98,7 @@ void EnemyManager::Update()
 
 void EnemyManager::Draw(Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap)
 {
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(m_pipeline);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(m_pipeline);
 
 	for (int enemyType = 0; enemyType < ENEMY_TYPE_NUM; ++enemyType)
 	{
@@ -140,7 +140,7 @@ void EnemyManager::Draw(Camera& Cam, std::shared_ptr<CubeMap>AttachCubeMap)
 
 		for (auto& mesh : model->m_meshes)
 		{
-			KuroEngine::Instance().Graphics().ObjectRender(
+			KuroEngine::Instance()->Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
 				{

@@ -133,9 +133,9 @@ void HitEffect::Draw(Camera& Cam)
 	VERTEX_BUFF->Mapping(s_instanceArray.data());
 
 	//パイプラインセット
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE);
 
-	KuroEngine::Instance().Graphics().ObjectRender(
+	KuroEngine::Instance()->Graphics().ObjectRender(
 		VERTEX_BUFF,
 		{
 			Cam.GetBuff(),

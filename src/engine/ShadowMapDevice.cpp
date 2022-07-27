@@ -48,7 +48,7 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE);
 
 	if (TRANSFORM_BUFF.size() < Models.size())
 	{
@@ -59,7 +59,7 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 	m_shadowMapDepth->Clear(D3D12App::Instance()->GetCmdList());
 
 	//シャドウマップ書き込み
-	KuroEngine::Instance().Graphics().SetRenderTargets({ m_shadowMap }, m_shadowMapDepth);
+	KuroEngine::Instance()->Graphics().SetRenderTargets({ m_shadowMap }, m_shadowMapDepth);
 
 	for (int i = 0; i < Models.size(); ++i)
 	{
@@ -72,7 +72,7 @@ void ShadowMapDevice::DrawShadowMap(const std::vector<std::weak_ptr<ModelObject>
 		for (int meshIdx = 0; meshIdx < obj->m_model->m_meshes.size(); ++meshIdx)
 		{
 			const auto& mesh = obj->m_model->m_meshes[meshIdx];
-			KuroEngine::Instance().Graphics().ObjectRender(
+			KuroEngine::Instance()->Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
 				{
@@ -127,7 +127,7 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 		PIPELINE[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false),shadowMapSampler });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE[BlendMode]);
 
 	if (TRANSFORM_BUFF.size() < Models.size())
 	{
@@ -146,7 +146,7 @@ void ShadowMapDevice::DrawShadowReceiver(const std::vector<std::weak_ptr<ModelOb
 		for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 		{
 			const auto& mesh = model->m_meshes[meshIdx];
-			KuroEngine::Instance().Graphics().ObjectRender(
+			KuroEngine::Instance()->Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
 				{

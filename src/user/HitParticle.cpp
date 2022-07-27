@@ -132,9 +132,9 @@ void HitParticle::Update()
 void HitParticle::Draw(Camera& Cam)
 {
 	//グラフィックス
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(m_gPipeline);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(m_gPipeline);
 
-	KuroEngine::Instance().Graphics().ExecuteIndirectDraw(m_vertBuff, m_aliveCommandBuffer, m_indirectDev);
+	KuroEngine::Instance()->Graphics().ExecuteIndirectDraw(m_vertBuff, m_aliveCommandBuffer, m_indirectDev);
 }
 
 void HitParticle::Emit(int Num, Vec3<float>Pos)

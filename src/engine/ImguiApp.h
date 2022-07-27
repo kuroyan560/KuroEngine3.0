@@ -24,19 +24,6 @@ private:
 	template<class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	static ImguiApp* s_instance;
-
-public:
-	static ImguiApp* Instance()
-	{
-		if (s_instance == nullptr)
-		{
-			printf("ImguiAppのインスタンスを呼び出そうとしましたがnullptrでした\n");
-			assert(0);
-		}
-		return s_instance;
-	}
-
 private:
 	ComPtr<ID3D12DescriptorHeap>m_heap;
 

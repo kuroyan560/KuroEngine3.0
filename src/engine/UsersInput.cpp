@@ -9,7 +9,7 @@
 
 UsersInput* UsersInput::s_instance = nullptr;
 
-bool UsersInput::StickInDeadZone(Vec2<float>& Thumb, const Vec2<float>& DeadRate)
+bool UsersInput::StickInDeadZone(Vec2<float>& Thumb, const Vec2<float>& DeadRate)const
 {
 	bool x = false, y = false;
 	if ((Thumb.x < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * DeadRate.x
@@ -95,7 +95,7 @@ void UsersInput::Update(const HWND& Hwnd, const Vec2<float>& WinSize)
 			XINPUT_VIBRATION vibration;
 			ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
 
-			if (m_shakeTimer == 0)
+			if (m_shakeTimer[i] == 0)
 			{
 				vibration.wLeftMotorSpeed = static_cast<WORD>(0.0f); // use any value between 0-65535 here
 				vibration.wRightMotorSpeed = static_cast<WORD>(0.0f); // use any value between 0-65535 here
@@ -110,37 +110,37 @@ void UsersInput::Update(const HWND& Hwnd, const Vec2<float>& WinSize)
 	}
 }
 
-bool UsersInput::KeyOnTrigger(int KeyCode)
+bool UsersInput::KeyOnTrigger(int KeyCode)const
 {
 	return (!m_oldkeys[KeyCode] && m_keys[KeyCode]);
 }
 
-bool UsersInput::KeyInput(int KeyCode)
+bool UsersInput::KeyInput(int KeyCode)const
 {
 	return m_keys[KeyCode];
 }
 
-bool UsersInput::KeyOffTrigger(int KeyCode)
+bool UsersInput::KeyOffTrigger(int KeyCode)const
 {
 	return (m_oldkeys[KeyCode] && !m_keys[KeyCode]);
 }
 
-bool UsersInput::MouseOnTrigger(MOUSE_BUTTON Button)
+bool UsersInput::MouseOnTrigger(MOUSE_BUTTON Button)const
 {
 	return (!m_oldMouseState.rgbButtons[Button] && m_mouseState.rgbButtons[Button]);
 }
 
-bool UsersInput::MouseInput(MOUSE_BUTTON Button)
+bool UsersInput::MouseInput(MOUSE_BUTTON Button)const
 {
 	return m_mouseState.rgbButtons[Button];
 }
 
-bool UsersInput::MouseOffTrigger(MOUSE_BUTTON Button)
+bool UsersInput::MouseOffTrigger(MOUSE_BUTTON Button)const
 {
 	return (m_oldMouseState.rgbButtons[Button] && !m_mouseState.rgbButtons[Button]);
 }
 
-UsersInput::MouseMove UsersInput::GetMouseMove()
+UsersInput::MouseMove UsersInput::GetMouseMove()const
 {
 	MouseMove tmp;
 	tmp.m_inputX = m_mouseState.lX;
@@ -170,7 +170,7 @@ UsersInput::MouseMove UsersInput::GetMouseMove()
 //	return mouseRay;
 //}
 
-bool UsersInput::ControllerOnTrigger(const int& ControllerIdx, XBOX_BUTTON Button)
+bool UsersInput::ControllerOnTrigger(const int& ControllerIdx, XBOX_BUTTON Button)const
 {
 	//ÉgÉäÉKÅ[
 	if (Button == LT)
@@ -192,7 +192,7 @@ bool UsersInput::ControllerOnTrigger(const int& ControllerIdx, XBOX_BUTTON Butto
 	return false;
 }
 
-bool UsersInput::ControllerOnTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange, const Vec2<float>& DeadRate)
+bool UsersInput::ControllerOnTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange, const Vec2<float>& DeadRate)const
 {
 	Vec2<float>oldVec;
 	Vec2<float>vec;
@@ -241,7 +241,7 @@ bool UsersInput::ControllerOnTrigger(const int& ControllerIdx, XBOX_STICK StickI
 	return result;
 }
 
-bool UsersInput::ControllerInput(const int& ControllerIdx, XBOX_BUTTON Button)
+bool UsersInput::ControllerInput(const int& ControllerIdx, XBOX_BUTTON Button)const
 {
 	if (Button == LT)
 	{
@@ -259,7 +259,7 @@ bool UsersInput::ControllerInput(const int& ControllerIdx, XBOX_BUTTON Button)
 	return false;
 }
 
-bool UsersInput::ControllerInput(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange, const Vec2<float>& DeadRate)
+bool UsersInput::ControllerInput(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange, const Vec2<float>& DeadRate)const
 {
 	Vec2<float>vec;
 	bool isLeftStick = StickInput <= L_RIGHT;
@@ -295,7 +295,7 @@ bool UsersInput::ControllerInput(const int& ControllerIdx, XBOX_STICK StickInput
 	return false;
 }
 
-bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_BUTTON Button)
+bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_BUTTON Button)const
 {
 	//ÉgÉäÉKÅ[
 	if (Button == LT)
@@ -318,7 +318,7 @@ bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_BUTTON Butt
 	return false;
 }
 
-bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange, const Vec2<float>& DeadRate)
+bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_STICK StickInput, const float& DeadRange, const Vec2<float>& DeadRate)const
 {
 	Vec2<float>oldVec;
 	Vec2<float>vec;
@@ -368,14 +368,14 @@ bool UsersInput::ControllerOffTrigger(const int& ControllerIdx, XBOX_STICK Stick
 	return result;
 }
 
-Vec2<float> UsersInput::GetLeftStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate)
+Vec2<float> UsersInput::GetLeftStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate)const
 {
 	Vec2<float>result(static_cast<float>(m_xinputState[ControllerIdx].Gamepad.sThumbLX), static_cast<float>(-m_xinputState[ControllerIdx].Gamepad.sThumbLY));
 	StickInDeadZone(result, DeadRate);
 	return result.GetNormal();
 }
 
-Vec2<float> UsersInput::GetRightStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate)
+Vec2<float> UsersInput::GetRightStickVec(const int& ControllerIdx, const Vec2<float>& DeadRate)const
 {
 	Vec2<float>result(static_cast<float>(m_xinputState[ControllerIdx].Gamepad.sThumbRX), static_cast<float>(-m_xinputState[ControllerIdx].Gamepad.sThumbRY));
 	StickInDeadZone(result, DeadRate);

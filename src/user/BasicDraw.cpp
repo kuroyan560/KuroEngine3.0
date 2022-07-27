@@ -58,7 +58,7 @@ void BasicDraw::Draw(LightManager& LigManager, const std::weak_ptr<ModelObject> 
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(true, true) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE);
 
 	if (TRANSFORM_BUFF.size() < (s_drawCount + 1))
 	{
@@ -80,7 +80,7 @@ void BasicDraw::Draw(LightManager& LigManager, const std::weak_ptr<ModelObject> 
 	for (int meshIdx = 0; meshIdx < model->m_meshes.size(); ++meshIdx)
 	{
 		const auto& mesh = model->m_meshes[meshIdx];
-		KuroEngine::Instance().Graphics().ObjectRender(
+		KuroEngine::Instance()->Graphics().ObjectRender(
 			mesh.mesh->vertBuff,
 			mesh.mesh->idxBuff,
 			{

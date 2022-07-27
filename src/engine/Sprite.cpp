@@ -65,7 +65,7 @@ void Sprite::SetColor(const Color& Color)
 
 void Sprite::Draw(const AlphaBlendMode& BlendMode)
 {
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(s_pipeline[(int)BlendMode]);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(s_pipeline[(int)BlendMode]);
 
 	if (m_transform.GetDirty())
 	{
@@ -74,7 +74,7 @@ void Sprite::Draw(const AlphaBlendMode& BlendMode)
 	}
 
 	m_mesh.Render({
-		KuroEngine::Instance().GetParallelMatProjBuff(),	//平行投影行列
+		KuroEngine::Instance()->GetParallelMatProjBuff(),	//平行投影行列
 		m_texBuff,			//テクスチャリソース
 		m_constBuff },//カラー & ワールド行列
 		{ CBV,SRV,CBV });

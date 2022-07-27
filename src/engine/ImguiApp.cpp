@@ -1,16 +1,7 @@
 #include "ImguiApp.h"
 
-ImguiApp* ImguiApp::s_instance = nullptr;
-
 ImguiApp::ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd)
 {
-	if (s_instance != nullptr)
-	{
-		printf("既にインスタンスがあります。ImguiAppは１つのインスタンスしか持てません\n");
-		assert(0);
-	}
-	s_instance = this;
-
 	// SRV_CBV_UAV のディスクリプタヒープ
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -28,7 +19,7 @@ ImguiApp::ImguiApp(const ComPtr<ID3D12Device>& Device, const HWND& Hwnd)
 
 	auto& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	//io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	bool blnResult = ImGui_ImplWin32_Init(Hwnd);
 	if (!blnResult)assert(0);
@@ -62,8 +53,13 @@ void ImguiApp::EndImgui(const ComPtr<ID3D12GraphicsCommandList>& CmdList)
 	CmdList->SetDescriptorHeaps(1, m_heap.GetAddressOf());
 
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), CmdList.Get());
-	ImGui::UpdatePlatformWindows();
-	ImGui::RenderPlatformWindowsDefault(NULL, (void*)CmdList.Get());
+
+	auto& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault(NULL, (void*)CmdList.Get());
+	}
 }
 
 #include"Material.h"

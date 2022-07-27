@@ -130,19 +130,19 @@ void GaussianBlur::Register(const std::shared_ptr<TextureBuffer>& SourceTex)
     Vec3<int>threadNum;
 
     //Xブラー
-    KuroEngine::Instance().Graphics().SetComputePipeline(s_xBlurPipeline);
+    KuroEngine::Instance()->Graphics().SetComputePipeline(s_xBlurPipeline);
     threadNum = { m_xBlurResult->GetGraphSize().x / DIV,m_xBlurResult->GetGraphSize().y / DIV, 1 };
-    KuroEngine::Instance().Graphics().Dispatch(threadNum, { m_weightConstBuff,m_texInfoConstBuff,SourceTex,m_xBlurResult }, { CBV,CBV,SRV,UAV });
+    KuroEngine::Instance()->Graphics().Dispatch(threadNum, { m_weightConstBuff,m_texInfoConstBuff,SourceTex,m_xBlurResult }, { CBV,CBV,SRV,UAV });
 
     //Yブラー
-    KuroEngine::Instance().Graphics().SetComputePipeline(s_yBlurPipeline);
+    KuroEngine::Instance()->Graphics().SetComputePipeline(s_yBlurPipeline);
     threadNum = { m_yBlurResult->GetGraphSize().x / DIV, m_yBlurResult->GetGraphSize().y / DIV, 1 };
-    KuroEngine::Instance().Graphics().Dispatch(threadNum, { m_weightConstBuff,m_texInfoConstBuff,m_xBlurResult,m_yBlurResult }, { CBV,CBV,SRV,UAV });
+    KuroEngine::Instance()->Graphics().Dispatch(threadNum, { m_weightConstBuff,m_texInfoConstBuff,m_xBlurResult,m_yBlurResult }, { CBV,CBV,SRV,UAV });
 
     //最終結果合成
-    KuroEngine::Instance().Graphics().SetComputePipeline(s_finalPipeline);
+    KuroEngine::Instance()->Graphics().SetComputePipeline(s_finalPipeline);
     threadNum = { m_finalResult->GetGraphSize().x / DIV, m_finalResult->GetGraphSize().y / DIV, 1 };
-    KuroEngine::Instance().Graphics().Dispatch(threadNum, { m_weightConstBuff,m_texInfoConstBuff,m_yBlurResult,m_finalResult }, { CBV,CBV,SRV,UAV });
+    KuroEngine::Instance()->Graphics().Dispatch(threadNum, { m_weightConstBuff,m_texInfoConstBuff,m_yBlurResult,m_finalResult }, { CBV,CBV,SRV,UAV });
 }
 
 #include"KuroEngine.h"

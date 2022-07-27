@@ -6,7 +6,8 @@
 class Camera;
 #include"DebugCamera.h"
 #include"KuroFunc.h"
-
+#include"ControllerConfig.h"
+class UsersInput;
 
 class GameManager : public Singleton<GameManager>
 {
@@ -22,6 +23,9 @@ class GameManager : public Singleton<GameManager>
 	//カメラ配列
 	std::string m_nowCamKey = m_debugCamKey;
 	std::map<std::string, std::weak_ptr<Camera>>m_cameras;
+
+	//コントローラー設定
+	ControllerConfig m_controllerConfig;
 
 public:
 /*--- 基本ゲームループ ---*/
@@ -47,5 +51,5 @@ public:
 
 /*--- その他 ---*/
 	//Imguiを利用したデバッグ
-	void ImGuiDebug();
+	void ImGuiDebug(UsersInput& Input);
 };

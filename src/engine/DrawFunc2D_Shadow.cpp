@@ -112,7 +112,7 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 
 	StaticInit();
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(EXTEND_GRAPH_PIPELINE);
 
 	if (EXTEND_GRAPH_VERTEX_BUFF.size() < (s_drawExtendGraphCount + 1))
 	{
@@ -125,9 +125,9 @@ void DrawFunc2D_Shadow::DrawExtendGraph2D(LightManager& LigManager, const Vec2<f
 	auto normalMap = NormalMap ? NormalMap : s_defaultNormalMap;
 	auto emissiveMap = EmissiveMap ? EmissiveMap : s_defaultEmissiveMap;
 
-	KuroEngine::Instance().Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_drawExtendGraphCount],
+	KuroEngine::Instance()->Graphics().ObjectRender(EXTEND_GRAPH_VERTEX_BUFF[s_drawExtendGraphCount],
 		{
-			KuroEngine::Instance().GetParallelMatProjBuff(),
+			KuroEngine::Instance()->GetParallelMatProjBuff(),
 			s_eyePosBuff,	//視点座標
 			LigManager.GetLigNumInfo(),	//アクティブ中のライト数
 			LigManager.GetLigInfo(Light::DIRECTION),	//ディレクションライト
@@ -208,7 +208,7 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 
 	StaticInit();
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(ROTA_GRAPH_PIPELINE);
 
 	if (ROTA_GRAPH_VERTEX_BUFF.size() < (s_drawRotaGraphCount + 1))
 	{
@@ -221,9 +221,9 @@ void DrawFunc2D_Shadow::DrawRotaGraph2D(LightManager& LigManager, const Vec2<flo
 	auto normalMap = NormalMap ? NormalMap : s_defaultNormalMap;
 	auto emissiveMap = EmissiveMap ? EmissiveMap : s_defaultEmissiveMap;
 
-	KuroEngine::Instance().Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_drawRotaGraphCount],
+	KuroEngine::Instance()->Graphics().ObjectRender(ROTA_GRAPH_VERTEX_BUFF[s_drawRotaGraphCount],
 		{
-			KuroEngine::Instance().GetParallelMatProjBuff(),
+			KuroEngine::Instance()->GetParallelMatProjBuff(),
 			s_eyePosBuff,	//視点座標
 			LigManager.GetLigNumInfo(),	//アクティブ中のライト数
 			LigManager.GetLigInfo(Light::DIRECTION),	//ディレクションライト

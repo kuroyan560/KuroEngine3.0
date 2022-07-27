@@ -106,9 +106,9 @@ void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
 	constData.m_hit = Hit;
 	m_constBuff->Mapping(&constData);
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(CollisionPrimitive::GetPrimitivePipeline());
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(CollisionPrimitive::GetPrimitivePipeline());
 
-	KuroEngine::Instance().Graphics().ObjectRender(
+	KuroEngine::Instance()->Graphics().ObjectRender(
 		vertBuff,
 		idxBuff,
 		{ Cam.GetBuff(),m_constBuff }, { CBV,CBV }, GetTransformZ(), true);
@@ -150,9 +150,9 @@ void CollisionAABB::DebugDraw(const bool& Hit, Camera& Cam)
 	constData.m_hit = Hit;
 	m_constBuff->Mapping(&constData);
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(CollisionPrimitive::GetPrimitivePipeline());
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(CollisionPrimitive::GetPrimitivePipeline());
 
-	KuroEngine::Instance().Graphics().ObjectRender(
+	KuroEngine::Instance()->Graphics().ObjectRender(
 		m_vertBuff,
 		INDEX_BUFF,
 		{ Cam.GetBuff(),m_constBuff }, { CBV,CBV }, GetTransformZ(), true);
@@ -235,9 +235,9 @@ void CollisionMesh::DebugDraw(const bool& Hit, Camera& Cam)
 	constData.m_hit = Hit;
 	m_constBuff->Mapping(&constData);
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE);
 
-	KuroEngine::Instance().Graphics().ObjectRender(
+	KuroEngine::Instance()->Graphics().ObjectRender(
 		m_vertBuff,
 		{ Cam.GetBuff(),m_constBuff }, { CBV,CBV }, GetTransformZ(), true);
 }

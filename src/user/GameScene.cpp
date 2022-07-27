@@ -122,7 +122,7 @@ void GameScene::OnDraw()
 	m_shadowMapDevice.DrawShadowMap({ m_player.GetModelObj() });
 
 	//標準描画
-	KuroEngine::Instance().Graphics().SetRenderTargets({ backBuff,emissiveMap,depthMap }, dsv);
+	KuroEngine::Instance()->Graphics().SetRenderTargets({ backBuff,emissiveMap,depthMap }, dsv);
 
 	//キューブマップ描画
 	//staticCubeMap->Draw(nowCam);
@@ -161,7 +161,7 @@ void GameScene::OnDraw()
 
 void GameScene::OnImguiDebug()
 {
-	GameManager::Instance()->ImGuiDebug();
+	GameManager::Instance()->ImGuiDebug(*UsersInput::Instance());
 }
 
 void GameScene::OnFinalize()

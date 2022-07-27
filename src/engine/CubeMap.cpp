@@ -237,14 +237,14 @@ void StaticallyCubeMap::Draw(Camera& Cam)
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, INPUT_LAYOUT, ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE);
 
 	m_transformBuff->Mapping(&m_transform.GetMat());
 
 	for (int surfaceIdx = 0; surfaceIdx < SURFACE_NUM; ++surfaceIdx)
 	{
 		auto& s = m_surfaces[surfaceIdx];
-		KuroEngine::Instance().Graphics().ObjectRender(
+		KuroEngine::Instance()->Graphics().ObjectRender(
 			s.m_mesh.vertBuff,
 			{ Cam.GetBuff(),m_transformBuff, s.m_tex },
 			{ CBV,CBV,SRV },
@@ -427,8 +427,8 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 		PIPELINE = D3D12App::Instance()->GenerateGraphicsPipeline(PIPELINE_OPTION, SHADERS, ModelMesh::Vertex::GetInputLayout(), ROOT_PARAMETER, RENDER_TARGET_INFO, { WrappedSampler(false, false) });
 	}
 
-	KuroEngine::Instance().Graphics().SetRenderTargets({ m_cubeRenderTarget }, m_cubeDepth);
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(PIPELINE);
+	KuroEngine::Instance()->Graphics().SetRenderTargets({ m_cubeRenderTarget }, m_cubeDepth);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(PIPELINE);
 
 	for (auto& modelPtr : ModelObject)
 	{
@@ -436,7 +436,7 @@ void DynamicCubeMap::DrawToCubeMap(LightManager& LigManager, const std::vector<s
 
 		for (auto& mesh : m->m_model->m_meshes)
 		{
-			KuroEngine::Instance().Graphics().ObjectRender(
+			KuroEngine::Instance()->Graphics().ObjectRender(
 				mesh.mesh->vertBuff,
 				mesh.mesh->idxBuff,
 				{

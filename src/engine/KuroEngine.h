@@ -11,6 +11,7 @@
 #include"AudioApp.h"
 #include"ImguiApp.h"
 #include"GraphicsManager.h"
+#include"Singleton.h"
 
 class Fps;
 
@@ -66,15 +67,10 @@ struct EngineOption
 };
 
 //エンジン本体
-class KuroEngine : public D3D12AppUser
+class KuroEngine : public D3D12AppUser, public Singleton<KuroEngine>
 {
 public:
-	//シングルトン
-	static KuroEngine &Instance()
-	{
-		static KuroEngine engine;
-		return engine;
-	}
+	friend class Singleton<KuroEngine>;
 
 private:
 	KuroEngine() {}

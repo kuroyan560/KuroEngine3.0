@@ -171,11 +171,11 @@ void IndirectSample::Draw(Camera& Cam)
 		//カウンターバッファリセット
 		m_processedCommandBuffer->ResetCounterBuffer();
 
-		KuroEngine::Instance().Graphics().SetComputePipeline(m_cPipeline);
+		KuroEngine::Instance()->Graphics().SetComputePipeline(m_cPipeline);
 
 		auto threadX = static_cast<int>(ceil(s_blockNum / float(COMPUTE_THREAD_BLOCK_SIZE)));
 
-		KuroEngine::Instance().Graphics().Dispatch(Vec3<int>(threadX, 1, 1),
+		KuroEngine::Instance()->Graphics().Dispatch(Vec3<int>(threadX, 1, 1),
 			{
 				Cam.GetBuff(),
 				m_callingConfigBuffer,
@@ -190,14 +190,14 @@ void IndirectSample::Draw(Camera& Cam)
 	}
 
 	//グラフィックス
-	KuroEngine::Instance().Graphics().SetGraphicsPipeline(m_gPipeline);
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(m_gPipeline);
 
 	if (m_enableCulling)
 	{
-		KuroEngine::Instance().Graphics().ExecuteIndirectDraw(m_vertBuff, m_processedCommandBuffer, m_indirectDev);
+		KuroEngine::Instance()->Graphics().ExecuteIndirectDraw(m_vertBuff, m_processedCommandBuffer, m_indirectDev);
 	}
 	else
 	{
-		KuroEngine::Instance().Graphics().ExecuteIndirectDraw(m_vertBuff, m_commandBuffer, m_indirectDev);
+		KuroEngine::Instance()->Graphics().ExecuteIndirectDraw(m_vertBuff, m_commandBuffer, m_indirectDev);
 	}
 }

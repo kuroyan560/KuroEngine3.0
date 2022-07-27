@@ -94,5 +94,5 @@ void SpriteMesh::Render(const std::vector<std::shared_ptr<DescriptorData>>& Desc
 		dirty = false;
 	}
 
-	KuroEngine::Instance().Graphics().ObjectRender(mesh->vertBuff, DescDatas, DescHandleTypes, zLayer, trans, InstanceNum);
+	KuroEngine::Instance()->Graphics().ObjectRender(mesh->vertBuff, DescDatas, DescHandleTypes, zLayer, trans, InstanceNum);
 }
