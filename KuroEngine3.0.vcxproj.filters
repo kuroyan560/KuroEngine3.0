@@ -71,6 +71,9 @@
     <Filter Include="src\user\Effect">
       <UniqueIdentifier>{09de12f2-4801-4db7-956b-a4351608d029}</UniqueIdentifier>
     </Filter>
+    <Filter Include="magic_enum">
+      <UniqueIdentifier>{d1bfd7f6-cf1e-46ca-93cb-22664d23c726}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\D3D12App.cpp">
@@ -273,6 +276,9 @@
     </ClCompile>
     <ClCompile Include="src\user\ControllerConfig.cpp">
       <Filter>src\user\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\PlayerStatus.cpp">
+      <Filter>src\user\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -512,6 +518,12 @@
     </ClInclude>
     <ClInclude Include="src\user\ControllerConfig.h">
       <Filter>src\user\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\PlayerStatus.h">
+      <Filter>src\user\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\magic_enum.h">
+      <Filter>magic_enum</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

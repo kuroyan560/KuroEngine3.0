@@ -1,33 +1,29 @@
 #include "Player.h"
 #include"Object.h"
 #include"DrawFunc3D.h"
-#include"UsersInput.h"
 #include"Collision.h"
 #include"Collider.h"
 #include"Model.h"
 #include"ModelAnimator.h"
+#include"UsersInput.h"
+#include"ControllerConfig.h"
+#include<magic_enum.h>
 
 bool Player::s_instanced = false;
 const std::string Player::s_cameraKey = "PlayerCamera";
 std::unique_ptr<PlayerCamera> Player::s_camera;
 Player::CanInput Player::s_canInput;
 
-void Player::Move()
+void Player::Move(UsersInput& Input, ControllerConfig& Controller)
 {
-	//移動方向
-	Vec3<float>moveVec = { 0,0,0 };
-
-	//左スティック入力レート
-	auto stickL = UsersInput::Instance()->GetLeftStickVec(0);
-
-	//攻撃ボタン
-	auto attackInput = UsersInput::Instance()->ControllerInput(0, XBOX_BUTTON::RB);
-
 	//左スティック入力あり
-	if (!stickL.IsZero())
+	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::MOVE))
 	{
-		//走り状態
-		m_status = RUN;
+		//移動方向
+		Vec3<float>moveVec = { 0,0,0 };
+
+		//左スティック入力レート
+		auto stickL = Controller.GetMoveVec(Input);
 
 		//入力方向
 		moveVec = { stickL.x,0.0f,-stickL.y };
@@ -48,31 +44,21 @@ void Player::Move()
 		const auto up = m_model->m_transform.GetUp();
 		m_model->m_transform.SetLookAtRotate(pos + moveVec);
 	}
-	else if (attackInput)
-	{
-		//攻撃状態
-		m_status = ATTACK;
-	}
-	else
-	{
-		//待機状態
-		m_status = WAIT;
-	}
 }
 
 void Player::AnimationSwitch()
 {
-	if (StatusTrigger(WAIT))	//待機モーション
+	if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::WAIT))	//待機モーション
 	{
 		m_model->m_animator->speed = 1.0f;
 		m_model->m_animator->Play("Wait", true, false);
 	}
-	else if (StatusTrigger(RUN))	//走りモーション
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::MOVE))	//移動モーション
 	{
 		m_model->m_animator->speed = 1.5f;
 		m_model->m_animator->Play("Run", true, false);
 	}
-	else if (StatusTrigger(ATTACK))	//攻撃モーション
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::ATTACK))	//攻撃モーション
 	{
 		m_model->m_animator->speed = 1.0f;
 		m_attack.Start();	//攻撃処理開始
@@ -116,8 +102,7 @@ Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_
 
 void Player::Init()
 {
-	m_status = RUN;
-	m_oldStatus = RUN;
+	m_statusMgr.Init(PLAYER_STATUS_TAG::WAIT);
 
 	static Vec3<float>INIT_POS = { 0,0,-5 };
 	m_model->m_transform.SetPos(INIT_POS);
@@ -129,37 +114,64 @@ void Player::Init()
 	m_attack.Init();
 }
 
-void Player::Update()
+void Player::Update(UsersInput& Input, ControllerConfig& Controller)
 {
+	PlayerParameterForStatus infoForStatus;
+	infoForStatus.m_markingNum = 0;
+	infoForStatus.m_maxMarking = false;
+	infoForStatus.m_onGround = true;
+	infoForStatus.m_attackFinish = m_attack.IsActive();
+	infoForStatus.m_dodgeFinish = true;
+	infoForStatus.m_rushFinish = true;
+	infoForStatus.m_abilityFinish = true;
+
+	//ステータスの更新
+	m_statusMgr.Update(Input, Controller, infoForStatus);
+
 	//移動の処理
 	if (s_canInput.m_playerControl)
 	{
-		Move();
+		Move(Input, Controller);
 	}
 
 	//プレイヤー追従カメラ更新
 	if (s_canInput.m_camControl)
 	{
-		s_camera->Update(m_model->m_transform);
+		s_camera->Update(m_model->m_transform, Controller.GetCameraVec(Input));
 	}
 
 	//攻撃処理更新
 	m_attack.Update();
-	if (m_status != ATTACK)m_attack.Stop();
+	if (!m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::ATTACK))m_attack.Stop();
 	
 	//アニメーション切り替え
 	AnimationSwitch();
 
 	//アニメーション更新
 	m_model->m_animator->Update();
-
-	//ステータスを記録
-	m_oldStatus = m_status;
 }
 
 void Player::Draw(Camera& Cam)
 {
 	DrawFunc3D::DrawNonShadingModel(m_model, Cam);
+}
+
+#include"imguiApp.h"
+void Player::ImguiDebug()
+{
+	static std::string s_nowStatusName = std::string(magic_enum::enum_name(m_statusMgr.GetNowStatus()));
+	static std::string s_beforeStatusName = s_nowStatusName;
+
+	if (m_statusMgr.StatusTrigger())
+	{
+		s_beforeStatusName = s_nowStatusName;
+		s_nowStatusName = std::string(magic_enum::enum_name(m_statusMgr.GetNowStatus()));
+	}
+
+	ImGui::Begin("Player");
+	ImGui::Text("NowStatus : { %s }", s_nowStatusName.c_str());
+	ImGui::Text("BeforeStatus : { %s }", s_beforeStatusName.c_str());
+	ImGui::End();
 }
 
 void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)

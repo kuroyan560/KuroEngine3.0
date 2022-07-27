@@ -2,6 +2,7 @@
 #include"Angle.h"
 #include<memory>
 #include"ImguiDebugInterface.h"
+#include"Vec.h"
 
 class Camera;
 class Transform;
@@ -23,7 +24,7 @@ public:
 
 	PlayerCamera();
 	void Init(const Transform& Player);
-	void Update(const Transform& Player);
+	void Update(const Transform& Player, const Vec2<float>& InputVec);
 
 	void OnImguiDebug()override;
 };

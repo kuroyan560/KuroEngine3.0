@@ -72,7 +72,7 @@ void GameScene::OnUpdate()
 {
 	GameManager::Instance()->Update();
 
-	m_player.Update();
+	m_player.Update(*UsersInput::Instance(),GameManager::Instance()->GetControllerConfig());
 
 	EnemyManager::Instance()->Update();
 
@@ -162,6 +162,7 @@ void GameScene::OnDraw()
 void GameScene::OnImguiDebug()
 {
 	GameManager::Instance()->ImGuiDebug(*UsersInput::Instance());
+	m_player.ImguiDebug();
 }
 
 void GameScene::OnFinalize()

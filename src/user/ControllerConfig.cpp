@@ -2,7 +2,7 @@
 #include"UsersInput.h"
 #include<algorithm>
 
-int ControllerConfig::GetAllocateButtonIdx(HANDLE_INPUT_TAG Tag)
+int ControllerConfig::GetAllocateButtonIdx(HANDLE_INPUT_TAG Tag)const
 {
 	//既に割り当てられているボタンを検索
 	for (int button = 0; button < static_cast<int>(CAN_ALLOCATE_BUTTON::NUM); ++button)
@@ -22,14 +22,14 @@ void ControllerConfig::Reset()
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::A)] = HANDLE_INPUT_TAG::JUMP;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::B)] = HANDLE_INPUT_TAG::NONE;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::Y)] = HANDLE_INPUT_TAG::GENERIC_ACTION;
-	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::X)] = HANDLE_INPUT_TAG::NORMAL_ATTACK;
+	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::X)] = HANDLE_INPUT_TAG::ATTACK;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::LB)] = HANDLE_INPUT_TAG::RUSH;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::RB)] = HANDLE_INPUT_TAG::MARKING;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::LT)] = HANDLE_INPUT_TAG::GUARD_DODGE_DASH;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::RT)] = HANDLE_INPUT_TAG::ABILITY;
 }
 
-bool ControllerConfig::GetHandleInput(const UsersInput& Input, HANDLE_INPUT_TAG Tag)
+bool ControllerConfig::GetHandleInput(const UsersInput& Input, HANDLE_INPUT_TAG Tag)const
 {
 	auto button = GetAllocateButton(Tag);
 
@@ -46,17 +46,20 @@ bool ControllerConfig::GetHandleInput(const UsersInput& Input, HANDLE_INPUT_TAG 
 	return false;
 }
 
-Vec2<float> ControllerConfig::GetLeftStickVec(const UsersInput& Input)
+Vec2<float> ControllerConfig::GetMoveVec(const UsersInput& Input)const
 {
 	return Input.GetLeftStickVec(m_controllerIdx);
 }
 
-Vec2<float> ControllerConfig::GetRightStickVec(const UsersInput& Input)
+Vec2<float> ControllerConfig::GetCameraVec(const UsersInput& Input)const
 {
-	return Input.GetRightStickVec(m_controllerIdx);
+	auto rStickVec = Input.GetRightStickVec(m_controllerIdx);
+	if (m_camMirror.x)rStickVec.x *= -1;
+	if (!m_camMirror.y)rStickVec.y *= -1;	//上下は元々逆
+	return rStickVec;
 }
 
-Vec2<int>ControllerConfig::GetDpadInput(const UsersInput& Input)
+Vec2<int>ControllerConfig::GetDpadInput(const UsersInput& Input)const
 {
 	Vec2<int>result = { 0,0 };
 	if (Input.ControllerInput(m_controllerIdx, XBOX_BUTTON::DPAD_LEFT))result.x = -1;
@@ -85,7 +88,7 @@ void ControllerConfig::ImguiDebug(UsersInput& Input)
 {
 	static std::array<std::string, static_cast<int>(HANDLE_INPUT_TAG::NUM)>TAG_NAMES =
 	{
-		"NormalAttack",
+		"Attack",
 		"Jump",
 		"Guard / Dodge / DASH",
 		"Marking",
@@ -127,12 +130,16 @@ void ControllerConfig::ImguiDebug(UsersInput& Input)
 		}
 	}
 
-	ImGui::Separator();
+	//カメラミラーリング
+	ImGui::Text("CameraMirror");
+	ImGui::Checkbox("X", &m_camMirror.x);
+	ImGui::SameLine();
+	ImGui::Checkbox("Y", &m_camMirror.y);
+
 
 	//入力情報表示
 	static auto WHITE = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	static auto RED = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-	ImGui::BeginChild(ImGui::GetID((void*)0), ImVec2(250, 100), ImGuiWindowFlags_NoTitleBar);
 
 	//コントローラー番号
 	ImGui::Text("ControllerIdx : %d", m_controllerIdx);
@@ -141,13 +148,13 @@ void ControllerConfig::ImguiDebug(UsersInput& Input)
 	//左スティック入力（通常移動）
 	ImGui::Text("Move : ");
 	ImGui::SameLine();
-	auto lStickVec = GetLeftStickVec(Input);
+	auto lStickVec = GetMoveVec(Input);
 	ImGui::TextColored(lStickVec.IsZero() ? WHITE : RED, "{ %f , %f }", lStickVec.x, lStickVec.y);
 
 	//右スティック入力（カメラ操作）
 	ImGui::Text("CameraMove : ");
 	ImGui::SameLine();
-	auto rStickVec = GetRightStickVec(Input);
+	auto rStickVec = GetCameraVec(Input);
 	ImGui::TextColored(rStickVec.IsZero() ? WHITE : RED, "{ %f , %f }", rStickVec.x, rStickVec.y);
 
 	//アビリティ選択
@@ -168,7 +175,6 @@ void ControllerConfig::ImguiDebug(UsersInput& Input)
 		bool input = GetHandleInput(Input, tag);
 		ImGui::TextColored(input ? RED : WHITE, "{ %s }", input ? "TRUE" : "FALSE");
 	}
-	ImGui::EndChild();
 
 	ImGui::Separator();
 	//コントローラーを振動させるボタン

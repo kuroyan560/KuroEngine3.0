@@ -1,7 +1,6 @@
 #include "PlayerCamera.h"
 #include"Camera.h"
 #include"Transform.h"
-#include"UsersInput.h"
 
 /*
 //カメラ位置高さ制限
@@ -72,7 +71,7 @@ void PlayerCamera::Init(const Transform& Player)
 	CalculatePos(Player);
 }
 
-void PlayerCamera::Update(const Transform& Player)
+void PlayerCamera::Update(const Transform& Player, const Vec2<float>& InputVec)
 {
 	//角度の変化量
 	const Angle angleAmount = Angle(2 * (m_mirrorX ? 1 : -1));
@@ -81,7 +80,7 @@ void PlayerCamera::Update(const Transform& Player)
 	const float verticalAmount = 0.2f * (m_mirrorY ? 1 : -1);
 
 	//右スティック入力
-	Vec2<float> inputVec = UsersInput::Instance()->GetRightStickVec(0);
+	Vec2<float> inputVec = InputVec;
 
 	//右スティック入力あり
 	if (!inputVec.IsZero())

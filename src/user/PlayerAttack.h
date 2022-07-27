@@ -48,4 +48,6 @@ public:
 	void Update();
 	void Start();
 	void Stop();
+
+	const bool& IsActive() { return m_isActive; }
 };

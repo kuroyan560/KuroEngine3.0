@@ -5,8 +5,11 @@
 #include<vector>
 #include"PlayerAttack.h"
 #include"Collider.h"
+#include"PlayerStatus.h"
 class ModelObject;
 class Camera;
+class UsersInput;
+class ControllerConfig;
 
 
 class Player
@@ -17,9 +20,6 @@ private:
 
 	//プレイヤー操作カメラ（プレイヤーが作り変えられる度に、カメラを生成しなくて済むように）
 	static std::unique_ptr<PlayerCamera> s_camera;
-
-	//ステータス
-	enum STATUS { WAIT, RUN, ATTACK, STATUS_NUM };
 
 public:
 	//カメラキー
@@ -40,10 +40,8 @@ public:
 	static CanInput s_canInput;
 
 private:
-	//ステータス
-	STATUS m_status = WAIT;
-	STATUS m_oldStatus = WAIT;	//１フレーム前の状態（トリガー判定用）
-	bool StatusTrigger(const STATUS& Status) { return m_status == Status && m_oldStatus != Status; }	//ステータスのトリガー判定
+	//ステータス管理
+	PlayerStatus m_statusMgr;
 
 	//モデル
 	std::shared_ptr<ModelObject>m_model;
@@ -74,7 +72,7 @@ private:
 	}m_pushBackColliderCallBack_Foot;
 
 	//移動処理
-	void Move();
+	void Move(UsersInput& Input, ControllerConfig& Controller);
 
 	//アニメーション切り替え
 	void AnimationSwitch();
@@ -83,8 +81,11 @@ public:
 	Player();
 	~Player() { s_instanced = false; }
 	void Init();
-	void Update();
+	void Update(UsersInput& Input, ControllerConfig& Controller);
 	void Draw(Camera& Cam);
 	std::weak_ptr<ModelObject>GetModelObj() { return m_model; }
+
+	//imguiデバッグ機能
+	void ImguiDebug();
 };
 

@@ -49,6 +49,9 @@ public:
 	//現在のカメラ取得
 	std::shared_ptr<Camera>GetNowCamera() { return m_cameras[m_nowCamKey].lock(); }
 
+/*--- コントローラー設定 ---*/
+	ControllerConfig& GetControllerConfig() { return m_controllerConfig; }
+
 /*--- その他 ---*/
 	//Imguiを利用したデバッグ
 	void ImGuiDebug(UsersInput& Input);

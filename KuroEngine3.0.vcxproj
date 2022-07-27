@@ -72,22 +72,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\GLTFSDK\Inc;$(SolutionDir)lib\imgui;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc\GLTFSDK;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)lib;$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\GLTFSDK\Inc;$(SolutionDir)lib\imgui;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc\GLTFSDK;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\fbx_sdk\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\GLTFSDK\Inc;$(SolutionDir)lib\imgui;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc\GLTFSDK;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)lib;$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\GLTFSDK\Inc;$(SolutionDir)lib\imgui;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc\GLTFSDK;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\fbx_sdk\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc;$(SolutionDir)lib\imgui;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)lib;$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc;$(SolutionDir)lib\imgui;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)lib\fbx_sdk\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\imgui;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include</IncludePath>
+    <IncludePath>$(SolutionDir)lib;$(SolutionDir)src\engine\Common;$(SolutionDir)src\user;$(SolutionDir)src\engine;$(SolutionDir)lib\DirectXTex;$(SolutionDir)lib\fbx_sdk\include;$(SolutionDir)lib\imgui;$(SolutionDir)lib\glTF-SDK-master\GLTFSDK\Inc;$(IncludePath);$(SolutionDir)packages\rapidjson.temprelease.0.0.2.20\build\native\include</IncludePath>
     <LibraryPath>$(SolutionDir)lib\fbx_sdk\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -228,6 +228,7 @@
     <ClCompile Include="src\user\PlayerAttack.cpp" />
     <ClCompile Include="src\user\PlayerCamera.cpp" />
     <ClCompile Include="src\user\ControllerConfig.cpp" />
+    <ClCompile Include="src\user\PlayerStatus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\dxcapi.h" />
@@ -239,6 +240,7 @@
     <ClInclude Include="lib\imgui\imstb_rectpack.h" />
     <ClInclude Include="lib\imgui\imstb_textedit.h" />
     <ClInclude Include="lib\imgui\imstb_truetype.h" />
+    <ClInclude Include="lib\magic_enum.h" />
     <ClInclude Include="src\engine\Animation.h" />
     <ClInclude Include="src\engine\AudioApp.h" />
     <ClInclude Include="src\engine\Camera.h" />
@@ -309,6 +311,7 @@
     <ClInclude Include="src\user\PlayerAttack.h" />
     <ClInclude Include="src\user\PlayerCamera.h" />
     <ClInclude Include="src\user\ControllerConfig.h" />
+    <ClInclude Include="src\user\PlayerStatus.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="lib\DirectXTex\DirectXTex_Desktop_2019_Win10.vcxproj">

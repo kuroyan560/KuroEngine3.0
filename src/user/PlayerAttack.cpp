@@ -33,7 +33,10 @@ void PlayerAttack::Update()
 	{
 		//複数の攻撃アニメーションをループ
 		m_nowIdx++;
-		if (s_attackAnimNum <= m_nowIdx)m_nowIdx = 0;
+		if (s_attackAnimNum <= m_nowIdx)
+		{
+			Stop();
+		}
 		AnimPlay();
 	}
 }
