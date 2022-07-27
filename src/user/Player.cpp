@@ -12,57 +12,29 @@
 bool Player::s_instanced = false;
 const std::string Player::s_cameraKey = "PlayerCamera";
 std::unique_ptr<PlayerCamera> Player::s_camera;
-Player::CanInput Player::s_canInput;
 
-void Player::Move(UsersInput& Input, ControllerConfig& Controller)
+void Player::MoveByInput(UsersInput& Input, ControllerConfig& Controller)
 {
-	//左スティック入力あり
-	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::MOVE))
-	{
-		//移動方向
-		Vec3<float>moveVec = { 0,0,0 };
+	//左スティック入力レート
+	auto stickL = Controller.GetMoveVec(Input);
+	if (stickL.IsZero())return;	//入力なし
 
-		//左スティック入力レート
-		auto stickL = Controller.GetMoveVec(Input);
+	//移動方向
+	Vec3<float>moveVec = { stickL.x,0.0f,-stickL.y };
 
-		//入力方向
-		moveVec = { stickL.x,0.0f,-stickL.y };
+	//カメラ位置角度のオフセットからスティックの入力方向補正
+	static const Angle ANGLE_OFFSET(-90);
+	moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->m_posAngle + ANGLE_OFFSET)).GetNormal();
 
-		//回転行列を適用
-		//moveVec = KuroMath::TransformVec3(moveVec, model->transform.GetRotate()).GetNormal();
-		//カメラ位置角度のオフセットからスティックの入力方向補正
-		static const Angle ANGLE_OFFSET(-90);
-		moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->m_posAngle + ANGLE_OFFSET)).GetNormal();
+	//移動
+	const float moveSpeed = 0.6f;
+	auto pos = m_model->m_transform.GetPos();
+	pos += moveVec * moveSpeed;
+	m_model->m_transform.SetPos(pos);
 
-		//移動
-		const float moveSpeed = 0.6f;
-		auto pos = m_model->m_transform.GetPos();
-		pos += moveVec * moveSpeed;
-		m_model->m_transform.SetPos(pos);
-
-		//方向転換
-		const auto up = m_model->m_transform.GetUp();
-		m_model->m_transform.SetLookAtRotate(pos + moveVec);
-	}
-}
-
-void Player::AnimationSwitch()
-{
-	if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::WAIT))	//待機モーション
-	{
-		m_model->m_animator->speed = 1.0f;
-		m_model->m_animator->Play("Wait", true, false);
-	}
-	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::MOVE))	//移動モーション
-	{
-		m_model->m_animator->speed = 1.5f;
-		m_model->m_animator->Play("Run", true, false);
-	}
-	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::ATTACK))	//攻撃モーション
-	{
-		m_model->m_animator->speed = 1.0f;
-		m_attack.Start();	//攻撃処理開始
-	}
+	//方向転換
+	const auto up = m_model->m_transform.GetUp();
+	m_model->m_transform.SetLookAtRotate(pos + moveVec);
 }
 
 Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this)
@@ -102,24 +74,33 @@ Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_
 
 void Player::Init()
 {
+	//ステータス初期化
 	m_statusMgr.Init(PLAYER_STATUS_TAG::WAIT);
 
+	//初期位置と向き
 	static Vec3<float>INIT_POS = { 0,0,-5 };
 	m_model->m_transform.SetPos(INIT_POS);
 	m_model->m_transform.SetRotate(XMMatrixIdentity());
 
+	//カメラ初期化
 	s_camera->Init(m_model->m_transform);
+
+	//待機アニメーション
 	m_model->m_animator->Play("Wait", true, false);
 
+	//接地フラグON
+	m_onGround = true;
+
+	//攻撃処理初期化
 	m_attack.Init();
 }
 
-void Player::Update(UsersInput& Input, ControllerConfig& Controller)
+void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float& Gravity)
 {
 	PlayerParameterForStatus infoForStatus;
 	infoForStatus.m_markingNum = 0;
 	infoForStatus.m_maxMarking = false;
-	infoForStatus.m_onGround = true;
+	infoForStatus.m_onGround = m_onGround;
 	infoForStatus.m_attackFinish = m_attack.IsActive();
 	infoForStatus.m_dodgeFinish = true;
 	infoForStatus.m_rushFinish = true;
@@ -128,24 +109,56 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller)
 	//ステータスの更新
 	m_statusMgr.Update(Input, Controller, infoForStatus);
 
-	//移動の処理
-	if (s_canInput.m_playerControl)
+	//ステータスのトリガーを感知して、処理を呼び出す
+	if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::WAIT))	//待機
 	{
-		Move(Input, Controller);
+		//待機アニメーション
+		m_model->m_animator->speed = 1.0f;
+		m_model->m_animator->Play("Wait", true, false);
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::MOVE))	//移動
+	{
+		//移動アニメーション
+		m_model->m_animator->speed = 1.5f;
+		m_model->m_animator->Play("Run", true, false);
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::ATTACK))	//攻撃
+	{
+		//攻撃処理開始
+		m_model->m_animator->speed = 1.0f;
+		//攻撃の処理はPlayerAttack内で処理
+		m_attack.Start();
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::JUMP))	//ジャンプ
+	{
+		//接地フラグOFF
+		m_onGround = false;
+
+		//ジャンプ
+		m_fallSpeed = m_jumpPower;
 	}
 
-	//プレイヤー追従カメラ更新
-	if (s_canInput.m_camControl)
+	//無操作状態でないとき
+	if (!m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::OUT_OF_CONTROL))
 	{
+		//入力による移動の処理
+		MoveByInput(Input, Controller);
+
+		//プレイヤー追従カメラ更新
 		s_camera->Update(m_model->m_transform, Controller.GetCameraVec(Input));
 	}
 
+	//落下
+	auto pos = m_model->m_transform.GetPos();
+	pos.y += m_fallSpeed;
+	m_model->m_transform.SetPos(pos);
+	m_fallSpeed += Gravity;
+
+
 	//攻撃処理更新
 	m_attack.Update();
+	//攻撃ステータスでない（攻撃が中断された場合）
 	if (!m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::ATTACK))m_attack.Stop();
-	
-	//アニメーション切り替え
-	AnimationSwitch();
 
 	//アニメーション更新
 	m_model->m_animator->Update();
@@ -159,18 +172,35 @@ void Player::Draw(Camera& Cam)
 #include"imguiApp.h"
 void Player::ImguiDebug()
 {
+	ImGui::Begin("Player");
+
+/*--- 性能調整 ---*/
+	//ジャンプ力
+	ImGui::InputFloat("JumpPower", &m_jumpPower);
+
+	ImGui::Separator();
+
+/*--- パラメータ表示 ---*/
+	//落下速度
+	ImGui::Text("m_fallSpeed : { %f }", m_fallSpeed);
+
+	ImGui::Separator();
+/*--- ステータス表示 ---*/
+	//ステータス名取得
 	static std::string s_nowStatusName = std::string(magic_enum::enum_name(m_statusMgr.GetNowStatus()));
 	static std::string s_beforeStatusName = s_nowStatusName;
 
+	//ステータス切り替えトリガー判定取得
 	if (m_statusMgr.StatusTrigger())
 	{
 		s_beforeStatusName = s_nowStatusName;
 		s_nowStatusName = std::string(magic_enum::enum_name(m_statusMgr.GetNowStatus()));
 	}
 
-	ImGui::Begin("Player");
+	//表示
 	ImGui::Text("NowStatus : { %s }", s_nowStatusName.c_str());
 	ImGui::Text("BeforeStatus : { %s }", s_beforeStatusName.c_str());
+
 	ImGui::End();
 }
 
@@ -198,7 +228,6 @@ void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std
 
 		//押し戻し方向
 		Vec3<float>pushBackVec = (myCenter - otherCenter).GetNormal();
-		//Vec3<float>pushBackVec = (prePos - nowPos).GetNormal();
 
 		//押し戻し量
 		float pushBackAmount = mySphere->m_radius + otherSphere->m_radius + 0.1f;
@@ -221,7 +250,7 @@ void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std
 void Player::PushBackColliderCallBack_Foot::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)
 {
 	//現在の座標
-	Vec3<float>nowPos = parent->m_model->m_transform.GetPos();
+	Vec3<float>nowPos = m_parent->m_model->m_transform.GetPos();
 
 	//床の高さ取得
 	float floorY = Inter.y;
@@ -234,5 +263,11 @@ void Player::PushBackColliderCallBack_Foot::OnCollision(const Vec3<float>& Inter
 	pushBackPos.y += floorY - myPt->GetWorldPos().y;	//押し戻し
 
 	//新しい座標をセット
-	parent->m_model->m_transform.SetPos(pushBackPos);
+	m_parent->m_model->m_transform.SetPos(pushBackPos);
+
+	//接地フラグON
+	m_parent->m_onGround = true;
+
+	//落下速度リセット
+	m_parent->m_fallSpeed = 0.0f;
 }

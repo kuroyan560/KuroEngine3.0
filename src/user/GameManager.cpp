@@ -20,9 +20,16 @@ void GameManager::ImGuiDebug(UsersInput& Input)
 {
 	m_controllerConfig.ImguiDebug(Input);
 
-	ImGui::Begin("GameManager - Camera");
+	ImGui::Begin("GameManager");
 
-	//カメラ選択
+/*--- 環境 ---*/
+	//重力
+	ImGui::InputFloat("Gravity", &m_gravity);
+
+	ImGui::Separator();
+
+
+/*--- カメラ選択 ---*/
 	ImGui::BeginChild(ImGui::GetID((void*)0), ImVec2(250, 100), ImGuiWindowFlags_NoTitleBar);
 	for (auto& cam : m_cameras)
 	{

@@ -19,6 +19,9 @@ class GameManager : public Singleton<GameManager>
 
 	//デバッグ用カメラ
 	DebugCamera m_debugCam;
+
+	//重力
+	float m_gravity = -0.05f;
 	
 	//カメラ配列
 	std::string m_nowCamKey = m_debugCamKey;
@@ -51,6 +54,9 @@ public:
 
 /*--- コントローラー設定 ---*/
 	ControllerConfig& GetControllerConfig() { return m_controllerConfig; }
+
+/*--- 環境 ---*/
+	const float& GetGravity() { return m_gravity; }
 
 /*--- その他 ---*/
 	//Imguiを利用したデバッグ

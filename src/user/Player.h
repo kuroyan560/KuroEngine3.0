@@ -31,14 +31,6 @@ public:
 		return s_camera->m_cam;
 	}
 
-	//入力の受け付け状態
-	struct CanInput
-	{
-		bool m_playerControl = true;
-		bool m_camControl = true;
-	};
-	static CanInput s_canInput;
-
 private:
 	//ステータス管理
 	PlayerStatus m_statusMgr;
@@ -49,10 +41,16 @@ private:
 	//コライダー
 	std::vector<std::shared_ptr<Collider>>m_colliders;	//配列
 
-	//攻撃処理クラス
-	PlayerAttack m_attack;
+/*--- ジャンプ関連 ---*/
+	//ジャンプ力
+	float m_jumpPower = 1.0f;
+	//接地フラグ
+	bool m_onGround = true;
+	//落下速度
+	float m_fallSpeed = 0.0f;
 
-	//押し戻しコールバック処理
+/*--- コールバック ---*/
+	//押し戻し
 	class PushBackColliderCallBack : public CollisionCallBack
 	{
 		Player* m_parent;
@@ -62,26 +60,28 @@ private:
 		PushBackColliderCallBack(Player* Parent) :m_parent(Parent) {}
 	}m_pushBackColliderCallBack;
 
-	//床との押し戻しコールバック処理
+	//床との押し戻し
 	class PushBackColliderCallBack_Foot : public CollisionCallBack
 	{
-		Player* parent;
+		Player* m_parent;
 		void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override;
 	public:
-		PushBackColliderCallBack_Foot(Player* Parent) :parent(Parent) {}
+		PushBackColliderCallBack_Foot(Player* Parent) :m_parent(Parent) {}
 	}m_pushBackColliderCallBack_Foot;
 
-	//移動処理
-	void Move(UsersInput& Input, ControllerConfig& Controller);
+/*--- その他 ---*/
 
-	//アニメーション切り替え
-	void AnimationSwitch();
+	//攻撃処理クラス
+	PlayerAttack m_attack;
+
+	//移動処理
+	void MoveByInput(UsersInput& Input, ControllerConfig& Controller);
 
 public:
 	Player();
 	~Player() { s_instanced = false; }
 	void Init();
-	void Update(UsersInput& Input, ControllerConfig& Controller);
+	void Update(UsersInput& Input, ControllerConfig& Controller, const float& Gravity);
 	void Draw(Camera& Cam);
 	std::weak_ptr<ModelObject>GetModelObj() { return m_model; }
 

@@ -72,7 +72,7 @@ void GameScene::OnUpdate()
 {
 	GameManager::Instance()->Update();
 
-	m_player.Update(*UsersInput::Instance(),GameManager::Instance()->GetControllerConfig());
+	m_player.Update(*UsersInput::Instance(), GameManager::Instance()->GetControllerConfig(), GameManager::Instance()->GetGravity());
 
 	EnemyManager::Instance()->Update();
 
