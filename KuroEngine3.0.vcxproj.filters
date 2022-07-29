@@ -268,17 +268,17 @@
     <ClCompile Include="src\engine\DOF.cpp">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClCompile>
-    <ClCompile Include="src\user\IndirectSample.cpp">
-      <Filter>src\user</Filter>
-    </ClCompile>
-    <ClCompile Include="src\user\HitParticle.cpp">
-      <Filter>src\user</Filter>
-    </ClCompile>
     <ClCompile Include="src\user\ControllerConfig.cpp">
       <Filter>src\user\Game</Filter>
     </ClCompile>
     <ClCompile Include="src\user\PlayerStatus.cpp">
       <Filter>src\user\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\HitParticle.cpp">
+      <Filter>src\user\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="src\user\ActPoint.cpp">
+      <Filter>src\user</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -510,12 +510,6 @@
     <ClInclude Include="src\engine\DOF.h">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClInclude>
-    <ClInclude Include="src\user\IndirectSample.h">
-      <Filter>src\user</Filter>
-    </ClInclude>
-    <ClInclude Include="src\user\HitParticle.h">
-      <Filter>src\user</Filter>
-    </ClInclude>
     <ClInclude Include="src\user\ControllerConfig.h">
       <Filter>src\user\Game</Filter>
     </ClInclude>
@@ -524,6 +518,12 @@
     </ClInclude>
     <ClInclude Include="lib\magic_enum.h">
       <Filter>magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\HitParticle.h">
+      <Filter>src\user\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="src\user\ActPoint.h">
+      <Filter>src\user</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

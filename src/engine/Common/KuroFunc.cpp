@@ -67,7 +67,7 @@ void KuroFunc::GetDivideStr(const std::string& Str, std::string* Dir, std::strin
 }
 
 
-Vec2<float> KuroFunc::ConvertWorldToScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>& WinSize)
+Vec2<float> KuroFunc::ConvertWorldToScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<float>& WinSize)
 {
 	XMVECTOR pos = XMLoadFloat3((XMFLOAT3*)&WorldPos);
 	//ビュー行列適応
@@ -77,10 +77,10 @@ Vec2<float> KuroFunc::ConvertWorldToScreen(Vec3<float> WorldPos, const Matrix& V
 
 	//ビューポート行列
 	Matrix viewPortMat = XMMatrixIdentity();
-	viewPortMat.r[0].m128_f32[0] = (float)WinSize.x / 2.0f;
-	viewPortMat.r[1].m128_f32[1] = (float)-WinSize.y / 2.0f;
-	viewPortMat.r[3].m128_f32[0] = (float)WinSize.x / 2.0f;
-	viewPortMat.r[3].m128_f32[1] = (float)WinSize.y / 2.0f;
+	viewPortMat.r[0].m128_f32[0] = WinSize.x / 2.0f;
+	viewPortMat.r[1].m128_f32[1] = -WinSize.y / 2.0f;
+	viewPortMat.r[3].m128_f32[0] = WinSize.x / 2.0f;
+	viewPortMat.r[3].m128_f32[1] = WinSize.y / 2.0f;
 	//ビューポート行列適応
 	pos = XMVector3Transform(pos, viewPortMat);
 
@@ -134,7 +134,7 @@ Vec3<float> KuroFunc::ConvertScreenToWorld(Vec2<float> ScreenPos, float Z, const
 	return result;
 }
 
-bool KuroFunc::InScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>& WinSize)
+bool KuroFunc::InScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<float>& WinSize)
 {
 	Vec2<float> center = KuroFunc::ConvertWorldToScreen(WorldPos, ViewMat, ProjMat, WinSize);
 	if (center.x < 0)return false;

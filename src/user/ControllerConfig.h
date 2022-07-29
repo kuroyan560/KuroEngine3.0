@@ -47,10 +47,12 @@ public:
 		return GetHandleInput(Input, static_cast<HANDLE_INPUT_TAG>(TagIdx));
 	}
 
-	//左スティック
+	//移動入力
 	Vec2<float>GetMoveVec(const UsersInput& Input)const;
-	//右スティック
+	//カメラ操作入力
 	Vec2<float>GetCameraVec(const UsersInput& Input)const;
+	//カメラロックオン入力
+	bool GetCameraRock(const UsersInput& Input)const;
 	//十字ボタン（左右：x 、上下：y で -1,0,1 のいずれか）
 	Vec2<int>GetDpadInput(const UsersInput& Input)const;
 

@@ -24,7 +24,7 @@ void Player::MoveByInput(UsersInput& Input, ControllerConfig& Controller)
 
 	//カメラ位置角度のオフセットからスティックの入力方向補正
 	static const Angle ANGLE_OFFSET(-90);
-	moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->m_posAngle + ANGLE_OFFSET)).GetNormal();
+	moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->GetPosAngle() + ANGLE_OFFSET)).GetNormal();
 
 	//移動
 	const float moveSpeed = 0.6f;
@@ -143,6 +143,9 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	{
 		//入力による移動の処理
 		MoveByInput(Input, Controller);
+
+		//ロックオン
+		if (Controller.GetCameraRock(Input))s_camera->RockOn(m_model->m_transform);
 
 		//プレイヤー追従カメラ更新
 		s_camera->Update(m_model->m_transform, Controller.GetCameraVec(Input));

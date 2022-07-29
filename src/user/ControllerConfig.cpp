@@ -59,6 +59,11 @@ Vec2<float> ControllerConfig::GetCameraVec(const UsersInput& Input)const
 	return rStickVec;
 }
 
+bool ControllerConfig::GetCameraRock(const UsersInput& Input) const
+{
+	return Input.ControllerOnTrigger(m_controllerIdx, XBOX_BUTTON::R_STICK_PUSH);
+}
+
 Vec2<int>ControllerConfig::GetDpadInput(const UsersInput& Input)const
 {
 	Vec2<int>result = { 0,0 };

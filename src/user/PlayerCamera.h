@@ -3,14 +3,13 @@
 #include<memory>
 #include"ImguiDebugInterface.h"
 #include"Vec.h"
-
 class Camera;
 class Transform;
+class ActPoint;
+
 struct PlayerCamera : public ImguiDebugInterface
 {
 private:
-	void CalculatePos(const Transform& Player);
-public:
 	std::shared_ptr<Camera>m_cam;
 	float m_dist = 5.0f;		//プレイヤーとの距離
 	bool m_mirrorX = false;		//X入力ミラー
@@ -22,10 +21,36 @@ public:
 	//カメラの高さ
 	float m_height;
 
+	//ロックオン対象
+	ActPoint* m_rockOnPoint = nullptr;
+	//ロックオン可能なカメラ座標との距離の上限（３D）
+	float m_canRockOnDist3D;
+	//ロックオン可能な画面中央との距離の上限（２D）
+	float m_canRockOnDist2D;
+	//ロックオン許容角度
+	Angle m_rockOnAngleRange;
+
+	//座標計算
+	void CalculatePos(const Transform& Player);
+	//プレイヤー正面にカメラを合わせる
+	void LookAtPlayersFront(const Transform& Player);
+	//ロックオン対象に合わせてカメラを動かす
+	void RockOnTargeting(Vec3<float>PlayerPos);
+
+public:
 	PlayerCamera();
 	void Init(const Transform& Player);
-	void Update(const Transform& Player, const Vec2<float>& InputVec);
+	void Update(const Transform& Player, Vec2<float> InputVec);
 
+	//ロックオン
+	void RockOn(const Transform& Player);
+
+
+	//ゲッタ
+	std::shared_ptr<Camera>GetCam() { return m_cam; }
+	const Angle& GetPosAngle() { return m_posAngle; }
+
+	//imguiデバッグ機能
 	void OnImguiDebug()override;
 };
 

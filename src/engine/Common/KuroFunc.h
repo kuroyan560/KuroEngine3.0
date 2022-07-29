@@ -15,12 +15,12 @@ namespace KuroFunc
 	void GetDivideStr(const std::string& Str, std::string* Dir, std::string* FileName);
 
 	Vec2<float> ConvertWorldToScreen(Vec3<float> WorldPos,
-		const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>&WinSize);
+		const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<float>&WinSize);
 	Vec3<float> ConvertScreenToWorld(Vec2<float> ScreenPos, float Z,
 		const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>&WinSize);
 
 	//íÜêSç¿ïWÇ™âÊñ ì‡Ç…âfÇ¡ÇƒÇ¢ÇÈÇ©
-	bool InScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<int>& WinSize);
+	bool InScreen(Vec3<float> WorldPos, const Matrix& ViewMat, const Matrix& ProjMat, const Vec2<float>& WinSize);
 
 	bool ExistFile(const std::string FilePass);
 

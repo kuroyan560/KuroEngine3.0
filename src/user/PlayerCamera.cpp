@@ -1,21 +1,8 @@
 #include "PlayerCamera.h"
 #include"Camera.h"
 #include"Transform.h"
-
-/*
-//カメラ位置高さ制限
-static float HEIGHT_MIN = 0.1f;
-static float HEIGHT_DEFAULT = 4.0f;
-static float HEIGHT_MAX = 10.0f;
-
-//プレイヤーとの距離制限
-static float DISTANCE_MIN = 3.0f;
-static float DISTANCE_MAX = 10.0f;
-static float DISTANCE_DEFAULT = DISTANCE_MAX;
-
-//実際のプレイヤーの位置とロックオンする位置の高さオフセット
-static float ROCK_ON_HEIGHT_OFFSET = 2.0f;
-*/
+#include"ActPoint.h"
+#include"WinApp.h"
 
 //カメラ位置高さ制限
 static float HEIGHT_MIN = 3.63f;
@@ -30,6 +17,13 @@ static float DISTANCE_DEFAULT = DISTANCE_MAX;
 //実際のプレイヤーの位置とロックオンする位置のオフセット
 static float TARGET_DIST_OFFSET = 7.363f;
 static float TARGET_HEIGHT_OFFSET = 10.549f;
+
+//ロックオン可能なカメラ座標との距離の上限（３D）
+static float CAN_ROCK_ON_DIST_3D = 80.0f;
+//ロックオン可能な画面中央との距離の上限（２D）
+static float CAN_ROCK_ON_DIST_2D = 400.0f;
+//ロックオン許容角度
+static Angle ROCK_ON_ANGLE_RANGE = Angle(5);
 
 void PlayerCamera::CalculatePos(const Transform& Player)
 {
@@ -57,9 +51,56 @@ void PlayerCamera::CalculatePos(const Transform& Player)
 	m_cam->SetTarget(rockOnPlayerPos);
 }
 
+void PlayerCamera::LookAtPlayersFront(const Transform& Player)
+{
+	m_height = HEIGHT_DEFAULT;
+	m_dist = DISTANCE_DEFAULT;
+	const auto playerPos = Player.GetPos();
+	const auto playerBackVec = playerPos - Player.GetFront();
+	m_posAngle = KuroMath::GetAngle({ playerPos.x,playerPos.z }, { playerBackVec.x,playerBackVec.z });
+}
+
+void PlayerCamera::RockOnTargeting(Vec3<float> PlayerPos)
+{
+	//ロックオン対象が非アクティブになったらロックオン解除して終了
+	if (!m_rockOnPoint->IsActive())
+	{
+		m_rockOnPoint = nullptr;
+		return;
+	}
+
+	//ロックオン対象に合わせてカメラを動かす
+	const Vec3<float>rockPos = m_rockOnPoint->GetPosOn3D();
+	Angle toAngle = KuroMath::GetAngle({ rockPos.x,rockPos.z }, { PlayerPos.x,PlayerPos.z });
+
+	//0 ~ 360の範囲に収める
+	toAngle.Normalize();
+	m_posAngle.Normalize();
+
+	//目標角度までの遠回り防止
+	if (toAngle < m_posAngle && Angle::PI() < m_posAngle - toAngle)
+	{
+		m_posAngle -= Angle::ROUND();
+	}
+	else if (m_posAngle < toAngle && Angle::PI() < toAngle - m_posAngle)
+	{
+		m_posAngle += Angle::ROUND();
+	}
+
+	//許容角度より目標値との角度の差が大きければ
+	if (ROCK_ON_ANGLE_RANGE < Angle(abs(m_posAngle - toAngle)))
+	{
+		//目標値に近づく
+		m_posAngle = KuroMath::Lerp(m_posAngle, toAngle, 0.15f);
+	}
+}
+
 PlayerCamera::PlayerCamera()
 {
 	m_cam = std::make_shared<Camera>("PlayerCamera");
+	m_canRockOnDist3D = CAN_ROCK_ON_DIST_3D;
+	m_canRockOnDist2D = CAN_ROCK_ON_DIST_2D;
+	m_rockOnAngleRange = ROCK_ON_ANGLE_RANGE;
 }
 
 void PlayerCamera::Init(const Transform& Player)
@@ -69,9 +110,12 @@ void PlayerCamera::Init(const Transform& Player)
 	m_dist = DISTANCE_DEFAULT;
 
 	CalculatePos(Player);
+
+	//何もロックオンしていない
+	m_rockOnPoint = nullptr;
 }
 
-void PlayerCamera::Update(const Transform& Player, const Vec2<float>& InputVec)
+void PlayerCamera::Update(const Transform& Player, Vec2<float> InputVec)
 {
 	//角度の変化量
 	const Angle angleAmount = Angle(2 * (m_mirrorX ? 1 : -1));
@@ -82,8 +126,13 @@ void PlayerCamera::Update(const Transform& Player, const Vec2<float>& InputVec)
 	//右スティック入力
 	Vec2<float> inputVec = InputVec;
 
+	//ロックオン中
+	if (m_rockOnPoint)
+	{
+		RockOnTargeting(Player.GetPos());
+	}
 	//右スティック入力あり
-	if (!inputVec.IsZero())
+	else if (!inputVec.IsZero())
 	{
 		//左右首振り
 		m_posAngle += angleAmount * inputVec.x;
@@ -119,8 +168,76 @@ void PlayerCamera::Update(const Transform& Player, const Vec2<float>& InputVec)
 
 	//カメラ位置計算
 	CalculatePos(Player);
+}
 
+void PlayerCamera::RockOn(const Transform& Player)
+{
+	auto actPointArray = ActPoint::GetActPointArray();
+	//稼働中でないもの、ロックオン対象でないものを除く
+	std::remove_if(actPointArray.begin(), actPointArray.end(), [](ActPoint* p) {
+		return !p->IsActive() || !p->IsCanRockOn();
+		});
 
+	//算出したロックオン対象のポインタ格納先
+	ActPoint* newRockOnPoint = nullptr;
+	float nearestDist2D = 100000.0f;
+
+	//２番目に適しているロックオン対象のポインタ格納先
+	ActPoint* secondRockOnPoint = nullptr;
+
+	for (auto& p : actPointArray)
+	{
+		auto worldPos = p->GetPosOn3D();
+		//カメラ座標と離れすぎている
+		if (CAN_ROCK_ON_DIST_3D < m_cam->GetPos().Distance(worldPos))continue;
+
+		auto screenPos = p->GetPosOn2D(m_cam->GetViewMat(), m_cam->GetProjectionMat(), WinApp::Instance()->GetExpandWinSize());
+		float dist2D = WinApp::Instance()->GetExpandWinCenter().Distance(screenPos);
+		//画面中央と離れすぎている
+		if (CAN_ROCK_ON_DIST_2D < dist2D)continue;
+
+		//既に格納されているものより画面中央に近いなら更新
+		if (dist2D < nearestDist2D)
+		{
+			secondRockOnPoint = newRockOnPoint;
+			newRockOnPoint = p;
+			nearestDist2D = dist2D;
+		}
+	}
+
+	//適した相手がいない
+	if (newRockOnPoint == nullptr)
+	{
+		//既にロックオン済なら解除して終わり
+		if (m_rockOnPoint)
+		{
+			m_rockOnPoint = nullptr;
+			return;
+		}
+		//ロックオンしていないなら正面を向く
+		else
+		{
+			LookAtPlayersFront(Player);
+			return;
+		}
+	}
+
+	//元々ロックオン対象がいないか、ロックオン対象がいた場合違う相手なら設定して終わり
+	if (m_rockOnPoint == nullptr || m_rockOnPoint != newRockOnPoint)
+	{
+		m_rockOnPoint = newRockOnPoint;
+		return;
+	}
+
+	//既にロックオンしている対象と同じ相手なら、２番目のロックオン対象を採用
+	if (secondRockOnPoint)
+	{
+		m_rockOnPoint = secondRockOnPoint;
+		return;
+	}
+
+	//２番目の対象がいないならロックオン解除
+	m_rockOnPoint = nullptr;
 }
 
 #include"imguiApp.h"

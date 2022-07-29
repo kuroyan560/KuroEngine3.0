@@ -215,6 +215,7 @@
     <ClCompile Include="src\engine\Swapchain.cpp" />
     <ClCompile Include="src\engine\UsersInput.cpp" />
     <ClCompile Include="src\engine\WinApp.cpp" />
+    <ClCompile Include="src\user\ActPoint.cpp" />
     <ClCompile Include="src\user\BasicDraw.cpp" />
     <ClCompile Include="src\user\Enemy.cpp" />
     <ClCompile Include="src\user\EnemyBreed.cpp" />
@@ -223,7 +224,6 @@
     <ClCompile Include="src\user\GameScene.cpp" />
     <ClCompile Include="src\user\HitEffect.cpp" />
     <ClCompile Include="src\user\HitParticle.cpp" />
-    <ClCompile Include="src\user\IndirectSample.cpp" />
     <ClCompile Include="src\user\Player.cpp" />
     <ClCompile Include="src\user\PlayerAttack.cpp" />
     <ClCompile Include="src\user\PlayerCamera.cpp" />
@@ -298,6 +298,7 @@
     <ClInclude Include="src\engine\Swapchain.h" />
     <ClInclude Include="src\engine\UsersInput.h" />
     <ClInclude Include="src\engine\WinApp.h" />
+    <ClInclude Include="src\user\ActPoint.h" />
     <ClInclude Include="src\user\BasicDraw.h" />
     <ClInclude Include="src\user\Enemy.h" />
     <ClInclude Include="src\user\EnemyBreed.h" />
@@ -306,7 +307,6 @@
     <ClInclude Include="src\user\GameScene.h" />
     <ClInclude Include="src\user\HitEffect.h" />
     <ClInclude Include="src\user\HitParticle.h" />
-    <ClInclude Include="src\user\IndirectSample.h" />
     <ClInclude Include="src\user\Player.h" />
     <ClInclude Include="src\user\PlayerAttack.h" />
     <ClInclude Include="src\user\PlayerCamera.h" />

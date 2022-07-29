@@ -28,7 +28,7 @@ public:
 	static const std::shared_ptr<Camera>& GetCam() 
 	{ 
 		if (!s_camera)s_camera = std::make_unique<PlayerCamera>();
-		return s_camera->m_cam;
+		return s_camera->GetCam();
 	}
 
 private:
