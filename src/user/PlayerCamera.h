@@ -29,6 +29,8 @@ private:
 	float m_canRockOnDist2D;
 	//ロックオン許容角度
 	Angle m_rockOnAngleRange;
+	//ロックオン照準テクスチャ
+	std::shared_ptr<TextureBuffer>m_reticleTex;
 
 	//座標計算
 	void CalculatePos(const Transform& Player);
@@ -41,10 +43,10 @@ public:
 	PlayerCamera();
 	void Init(const Transform& Player);
 	void Update(const Transform& Player, Vec2<float> InputVec);
+	void Draw(Camera& NowCam);
 
 	//ロックオン
 	void RockOn(const Transform& Player);
-
 
 	//ゲッタ
 	std::shared_ptr<Camera>GetCam() { return m_cam; }

@@ -83,6 +83,7 @@ public:
 	void Init();
 	void Update(UsersInput& Input, ControllerConfig& Controller, const float& Gravity);
 	void Draw(Camera& Cam);
+	void DrawHUD(Camera& Cam);
 	std::weak_ptr<ModelObject>GetModelObj() { return m_model; }
 
 	//imguiデバッグ機能

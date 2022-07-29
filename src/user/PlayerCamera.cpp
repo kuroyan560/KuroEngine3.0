@@ -3,6 +3,7 @@
 #include"Transform.h"
 #include"ActPoint.h"
 #include"WinApp.h"
+#include"DrawFuncBillBoard.h"
 
 //カメラ位置高さ制限
 static float HEIGHT_MIN = 3.63f;
@@ -101,6 +102,7 @@ PlayerCamera::PlayerCamera()
 	m_canRockOnDist3D = CAN_ROCK_ON_DIST_3D;
 	m_canRockOnDist2D = CAN_ROCK_ON_DIST_2D;
 	m_rockOnAngleRange = ROCK_ON_ANGLE_RANGE;
+	m_reticleTex = D3D12App::Instance()->GenerateTextureBuffer("resource/user/reticle.png");
 }
 
 void PlayerCamera::Init(const Transform& Player)
@@ -168,6 +170,15 @@ void PlayerCamera::Update(const Transform& Player, Vec2<float> InputVec)
 
 	//カメラ位置計算
 	CalculatePos(Player);
+}
+
+#include"D3D12App.h"
+void PlayerCamera::Draw(Camera& NowCam)
+{
+	if(m_rockOnPoint)
+	{
+		DrawFuncBillBoard::Graph(NowCam, m_rockOnPoint->GetPosOn3D(), Vec2<float>(3.0f, 3.0f), m_reticleTex);
+	}
 }
 
 void PlayerCamera::RockOn(const Transform& Player)

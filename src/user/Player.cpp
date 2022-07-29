@@ -172,6 +172,11 @@ void Player::Draw(Camera& Cam)
 	DrawFunc3D::DrawNonShadingModel(m_model, Cam);
 }
 
+void Player::DrawHUD(Camera& Cam)
+{
+	s_camera->Draw(Cam);
+}
+
 #include"imguiApp.h"
 void Player::ImguiDebug()
 {

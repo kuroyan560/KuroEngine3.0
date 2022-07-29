@@ -3,24 +3,15 @@
 #include"Camera.h"
 
 //DrawBox
-int DrawFuncBillBoard::s_drawBoxCount;
+int DrawFuncBillBoard::s_drawBoxCount = 0;
+//DrawGraph
+int DrawFuncBillBoard::s_drawGraphCount = 0;
 
-void DrawFuncBillBoard::Box(Camera& Cam, const Vec3<float>& Pos, const Vec2<float>& Size, const Color& BoxColor, const AlphaBlendMode& BlendMode)
+std::array<std::shared_ptr<GraphicsPipeline>, AlphaBlendModeNum>DrawFuncBillBoard::s_pipeline;
+
+
+void DrawFuncBillBoard::GeneratePipeline(const AlphaBlendMode& BlendMode)
 {
-	static std::shared_ptr<GraphicsPipeline>s_pipeline[AlphaBlendModeNum];
-	static std::vector<std::shared_ptr<VertexBuffer>>s_boxVertBuff;
-
-	//DrawBox専用頂点
-	class BoxVertex
-	{
-	public:
-		Vec3<float>m_pos;
-		Vec2<float>m_size;
-		Color m_col;
-		BoxVertex(const Vec3<float>& Pos, const Vec2<float>& Size, const Color& Color)
-			:m_pos(Pos), m_size(Size), m_col(Color) {}
-	};
-
 	//パイプライン未生成
 	if (!s_pipeline[BlendMode])
 	{
@@ -30,9 +21,9 @@ void DrawFuncBillBoard::Box(Camera& Cam, const Vec3<float>& Pos, const Vec2<floa
 
 		//シェーダー情報
 		static Shaders s_shaders;
-		s_shaders.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawBoxBillBoard.hlsl", "VSmain", "vs_6_4");
-		s_shaders.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawBoxBillBoard.hlsl", "GSmain", "gs_6_4");
-		s_shaders.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawBoxBillBoard.hlsl", "PSmain", "ps_6_4");
+		s_shaders.m_vs = D3D12App::Instance()->CompileShader("resource/engine/DrawBillBoard.hlsl", "VSmain", "vs_6_4");
+		s_shaders.m_gs = D3D12App::Instance()->CompileShader("resource/engine/DrawBillBoard.hlsl", "GSmain", "gs_6_4");
+		s_shaders.m_ps = D3D12App::Instance()->CompileShader("resource/engine/DrawBillBoard.hlsl", "PSmain", "ps_6_4");
 
 		//インプットレイアウト
 		static std::vector<InputLayoutParam>s_inputLayOut =
@@ -46,6 +37,7 @@ void DrawFuncBillBoard::Box(Camera& Cam, const Vec3<float>& Pos, const Vec2<floa
 		static std::vector<RootParam>s_rootParams =
 		{
 			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,"カメラ情報バッファ"),
+			RootParam(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,"テクスチャ"),
 		};
 
 		//レンダーターゲット描画先情報
@@ -53,25 +45,63 @@ void DrawFuncBillBoard::Box(Camera& Cam, const Vec3<float>& Pos, const Vec2<floa
 		//パイプライン生成
 		s_pipeline[BlendMode] = D3D12App::Instance()->GenerateGraphicsPipeline(s_pipelineOption, s_shaders, s_inputLayOut, s_rootParams, s_renderTargetInfo, { WrappedSampler(false, false) });
 	}
+}
+
+void DrawFuncBillBoard::Box(Camera& Cam, const Vec3<float>& Pos, const Vec2<float>& Size, const Color& BoxColor, const AlphaBlendMode& BlendMode)
+{
+	static std::vector<std::shared_ptr<VertexBuffer>>s_boxVertBuff;
+	static std::shared_ptr<TextureBuffer>s_defaultTex = D3D12App::Instance()->GenerateTextureBuffer(Color());
+
+	if (!s_pipeline[BlendMode])GeneratePipeline(BlendMode);
 
 	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(s_pipeline[BlendMode]);
 
 	if (s_boxVertBuff.size() < (s_drawBoxCount + 1))
 	{
-		s_boxVertBuff.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(BoxVertex), 1, nullptr, ("DrawBoxBillBoard -" + std::to_string(s_drawBoxCount)).c_str()));
+		s_boxVertBuff.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vertex), 1, nullptr, ("DrawBoxBillBoard -" + std::to_string(s_drawBoxCount)).c_str()));
 	}
 
-	BoxVertex vertex(Pos, Size, BoxColor);
+	Vertex vertex(Pos, Size, BoxColor);
 	s_boxVertBuff[s_drawBoxCount]->Mapping(&vertex);
 
 	KuroEngine::Instance()->Graphics().ObjectRender(
 		s_boxVertBuff[s_drawBoxCount],
 		{
 			Cam.GetBuff(),
+			s_defaultTex
 		},
-		{ CBV },
+		{ CBV,SRV },
 		Pos.z,
 		true);
 
 	s_drawBoxCount++;
+}
+
+void DrawFuncBillBoard::Graph(Camera& Cam, const Vec3<float>& Pos, const Vec2<float>& Size, std::shared_ptr<TextureBuffer> Tex, const AlphaBlendMode& BlendMode)
+{
+	static std::vector<std::shared_ptr<VertexBuffer>>s_graphVertBuff;
+
+	if (!s_pipeline[BlendMode])GeneratePipeline(BlendMode);
+
+	KuroEngine::Instance()->Graphics().SetGraphicsPipeline(s_pipeline[BlendMode]);
+
+	if (s_graphVertBuff.size() < (s_drawGraphCount + 1))
+	{
+		s_graphVertBuff.emplace_back(D3D12App::Instance()->GenerateVertexBuffer(sizeof(Vertex), 1, nullptr, ("DrawGraphBillBoard -" + std::to_string(s_drawGraphCount)).c_str()));
+	}
+
+	Vertex vertex(Pos, Size, Color());
+	s_graphVertBuff[s_drawGraphCount]->Mapping(&vertex);
+
+	KuroEngine::Instance()->Graphics().ObjectRender(
+		s_graphVertBuff[s_drawGraphCount],
+		{
+			Cam.GetBuff(),
+			Tex
+		},
+		{ CBV,SRV },
+		Pos.z,
+		true);
+
+	s_drawGraphCount++;
 }

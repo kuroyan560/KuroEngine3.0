@@ -5,6 +5,9 @@ cbuffer cbuff0 : register(b0)
     Camera cam;
 }
 
+Texture2D<float4> tex : register(t0);
+SamplerState smp : register(s0);
+
 struct VSInput
 {
     float4 pos : POS;
@@ -21,6 +24,7 @@ struct GSOutput
 {
     float4 pos : SV_POSITION;
     float4 col : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 float4 GetPos(float4 Pos, float2 Offset)
@@ -45,22 +49,27 @@ inout TriangleStream<GSOutput> output)
     
     //ç∂â∫
     element.pos = GetPos(input[0].pos, float2(-offset.x, -offset.y));
+    element.uv = float2(0, 1);
     output.Append(element);
     
     //ç∂è„
     element.pos = GetPos(input[0].pos, float2(-offset.x, offset.y));
+    element.uv = float2(0, 0);
     output.Append(element);
     
     //âEâ∫
     element.pos = GetPos(input[0].pos, float2(offset.x, -offset.y));
+    element.uv = float2(1, 1);
     output.Append(element);
     
     //âEè„
     element.pos = GetPos(input[0].pos, float2(offset.x, offset.y));
+    element.uv = float2(1, 0);
     output.Append(element);
 }
 
 float4 PSmain(GSOutput input) : SV_TARGET
 {
-    return input.col;
+    float4 texCol = tex.Sample(smp, input.uv);
+    return input.col * texCol;
 }

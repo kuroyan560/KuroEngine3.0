@@ -154,6 +154,8 @@ void GameScene::OnDraw()
 		ActPoint::DebugDraw(nowCam);
 		Collider::DebugDrawAllColliders(nowCam);
 	}
+
+	m_player.DrawHUD(nowCam);
 }
 
 void GameScene::OnImguiDebug()
