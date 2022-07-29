@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="HLSL">
-      <UniqueIdentifier>{7303e5e9-2aee-41e9-814d-1c294b10fe83}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
@@ -73,6 +70,9 @@
     </Filter>
     <Filter Include="magic_enum">
       <UniqueIdentifier>{d1bfd7f6-cf1e-46ca-93cb-22664d23c726}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\engine\ユーザー向け\描画便利関数\BillBoard">
+      <UniqueIdentifier>{fb5340b6-4544-4095-861b-872acfba3b96}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -279,6 +279,9 @@
     </ClCompile>
     <ClCompile Include="src\user\ActPoint.cpp">
       <Filter>src\user</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\DrawFuncBillBoard.cpp">
+      <Filter>src\engine\ユーザー向け\描画便利関数\BillBoard</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -524,6 +527,9 @@
     </ClInclude>
     <ClInclude Include="src\user\ActPoint.h">
       <Filter>src\user</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\DrawFuncBillBoard.h">
+      <Filter>src\engine\ユーザー向け\描画便利関数\BillBoard</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

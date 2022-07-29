@@ -63,9 +63,10 @@ void Camera::CameraInfoUpdate()
 		cameraInfo.matView.r[3] = translateion;
 
 		//全方向ビルボード行列の計算
-		cameraInfo.billboardMat.r[0] = cameraAxisX;
-		cameraInfo.billboardMat.r[1] = cameraAxisY;
-		cameraInfo.billboardMat.r[2] = cameraAxisZ;
+		cameraInfo.billboardMat = XMMatrixInverse(nullptr, cameraInfo.matView);
+		//cameraInfo.billboardMat.r[0] = cameraAxisX;
+		//cameraInfo.billboardMat.r[1] = cameraAxisY;
+		//cameraInfo.billboardMat.r[2] = cameraAxisZ;
 		cameraInfo.billboardMat.r[3] = XMVectorSet(0, 0, 0, 1);
 
 		//Y軸回りビルボード行列の計算

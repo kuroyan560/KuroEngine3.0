@@ -184,6 +184,7 @@
     <ClCompile Include="src\engine\DebugCamera.cpp" />
     <ClCompile Include="src\engine\DescriptorHeap.cpp" />
     <ClCompile Include="src\engine\DOF.cpp" />
+    <ClCompile Include="src\engine\DrawFuncBillBoard.cpp" />
     <ClCompile Include="src\engine\LightBloomDevice.cpp" />
     <ClCompile Include="src\engine\DrawFunc2D.cpp" />
     <ClCompile Include="src\engine\DrawFunc2D_FillTex.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="src\engine\DebugCamera.h" />
     <ClInclude Include="src\engine\DescriptorHeap.h" />
     <ClInclude Include="src\engine\DOF.h" />
+    <ClInclude Include="src\engine\DrawFuncBillBoard.h" />
     <ClInclude Include="src\engine\LightBloomDevice.h" />
     <ClInclude Include="src\engine\DrawFunc2D.h" />
     <ClInclude Include="src\engine\DrawFunc2D_FillTex.h" />

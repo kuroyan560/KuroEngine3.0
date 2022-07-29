@@ -17,6 +17,7 @@
 #include"BasicDraw.h"
 
 GameScene::GameScene()
+	:m_testRockOnPoint({ -7,5,6 }, true, false)
 {
 	//床
 	m_floorModel = std::make_shared<ModelObject>("resource/user/", "floor.glb");
@@ -147,14 +148,10 @@ void GameScene::OnDraw()
 	//ライトブルーム
 	//m_lightBloomDevice.Draw(emissiveMap, backBuff);
 
-	//当たり判定デバッグ描画
-	static bool COLLIDER_DRAW = true;
-	if (UsersInput::Instance()->ControllerOnTrigger(0, XBOX_BUTTON::BACK))
+	//デバッグ描画
+	if (GameManager::Instance()->GetDebugDrawFlg())
 	{
-		COLLIDER_DRAW = !COLLIDER_DRAW;
-	}
-	if (COLLIDER_DRAW)
-	{
+		ActPoint::DebugDraw(nowCam);
 		Collider::DebugDrawAllColliders(nowCam);
 	}
 }

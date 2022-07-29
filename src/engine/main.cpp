@@ -13,6 +13,8 @@
 
 #include"DrawFunc3D.h"
 
+#include"DrawFuncBillBoard.h"
+
 #include"NoiseGenerator.h"
 
 
@@ -89,6 +91,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DrawFunc2D_Color::CountReset();
 
 		DrawFunc3D::CountReset();
+
+		DrawFuncBillBoard::CountReset();
 
 		NoiseGenerator::CountReset();
 	}

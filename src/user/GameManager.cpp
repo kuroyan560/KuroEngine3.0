@@ -22,6 +22,11 @@ void GameManager::ImGuiDebug(UsersInput& Input)
 
 	ImGui::Begin("GameManager");
 
+/*--- デバッグ描画 ---*/
+	ImGui::Checkbox("DebugDraw", &m_debugDraw);
+
+	ImGui::Separator();
+
 /*--- 環境 ---*/
 	//重力
 	ImGui::InputFloat("Gravity", &m_gravity);

@@ -14,6 +14,9 @@ class GameManager : public Singleton<GameManager>
 	friend class Singleton<GameManager>;
 	GameManager();
 
+	//デバッグ描画フラグ
+	bool m_debugDraw = true;
+
 	//デバッグカメラキー
 	const std::string m_debugCamKey = "DebugCam";
 
@@ -59,6 +62,8 @@ public:
 	const float& GetGravity() { return m_gravity; }
 
 /*--- その他 ---*/
+	//デバッグ描画フラグゲッタ
+	const bool& GetDebugDrawFlg()const { return m_debugDraw; }
 	//Imguiを利用したデバッグ
 	void ImGuiDebug(UsersInput& Input);
 };

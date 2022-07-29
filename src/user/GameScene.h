@@ -8,6 +8,8 @@
 #include"DOF.h"
 #include<map>
 
+#include"ActPoint.h"
+
 class Model;
 class ModelObject;
 class GaussianBlur;
@@ -36,6 +38,7 @@ class GameScene : public BaseScene
 	std::shared_ptr<StaticallyCubeMap>m_staticCubeMap;
 	std::shared_ptr<DynamicCubeMap>m_dynamicCubeMap;
 
+	ActPoint m_testRockOnPoint;
 
 public:
 	GameScene();

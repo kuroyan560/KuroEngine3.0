@@ -19,9 +19,9 @@ private:
 	public:
 		Matrix matView = XMMatrixIdentity(); // ビュー行列
 		Matrix matProjection = XMMatrixIdentity();	//プロジェクション行列
-		Vec3<float> eye = { 0,0,0 }; // カメラ座標（ワールド座標）
 		Matrix billboardMat = XMMatrixIdentity();
 		Matrix billboardMatY = XMMatrixIdentity();
+		Vec3<float> eye = { 0,0,0 }; // カメラ座標（ワールド座標）
 	}cameraInfo;
 	std::shared_ptr<ConstantBuffer>buff;
 

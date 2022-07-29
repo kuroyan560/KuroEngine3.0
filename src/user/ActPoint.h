@@ -2,6 +2,7 @@
 #include"Vec.h"
 #include"KuroFunc.h"
 #include<vector>
+class Camera;
 
 //ロックオン / マーキング出来るポイント
 class ActPoint
@@ -12,6 +13,7 @@ class ActPoint
 	static std::vector<ActPoint*>s_points;
 public:
 	static std::vector<ActPoint*>&GetActPointArray() { return s_points; }
+	static void DebugDraw(Camera& Cam);
 
 private:
 	//稼働中か
