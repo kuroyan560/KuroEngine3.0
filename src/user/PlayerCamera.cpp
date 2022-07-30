@@ -2,8 +2,8 @@
 #include"Camera.h"
 #include"Transform.h"
 #include"ActPoint.h"
-#include"WinApp.h"
 #include"DrawFuncBillBoard.h"
+#include"KuroEngine.h"
 
 //カメラ位置高さ制限
 static float HEIGHT_MIN = 3.63f;
@@ -25,6 +25,12 @@ static float CAN_ROCK_ON_DIST_3D = 80.0f;
 static float CAN_ROCK_ON_DIST_2D = 400.0f;
 //ロックオン許容角度
 static Angle ROCK_ON_ANGLE_RANGE = Angle(5);
+
+void PlayerCamera::SetRockOnTarget(ActPoint* Target)
+{
+	m_rockOnPoint = Target;
+	m_rockOnCollider->SetActive(Target != nullptr);
+}
 
 void PlayerCamera::CalculatePos(const Transform& Player)
 {
@@ -66,12 +72,16 @@ void PlayerCamera::RockOnTargeting(Vec3<float> PlayerPos)
 	//ロックオン対象が非アクティブになったらロックオン解除して終了
 	if (!m_rockOnPoint->IsActive())
 	{
-		m_rockOnPoint = nullptr;
+		SetRockOnTarget(nullptr);
 		return;
 	}
 
+	//ロックオン対象座標
+	const auto rockPos = m_rockOnPoint->GetPosOn3D();
+	//自身（カメラ）の座標
+	const auto camPos = m_cam->GetPos();
+
 	//ロックオン対象に合わせてカメラを動かす
-	const Vec3<float>rockPos = m_rockOnPoint->GetPosOn3D();
 	Angle toAngle = KuroMath::GetAngle({ rockPos.x,rockPos.z }, { PlayerPos.x,PlayerPos.z });
 
 	//0 ~ 360の範囲に収める
@@ -103,6 +113,12 @@ PlayerCamera::PlayerCamera()
 	m_canRockOnDist2D = CAN_ROCK_ON_DIST_2D;
 	m_rockOnAngleRange = ROCK_ON_ANGLE_RANGE;
 	m_reticleTex = D3D12App::Instance()->GenerateTextureBuffer("resource/user/reticle.png");
+
+	//ロックオン先までの線分のコライダー
+	m_rockOnColLine = std::make_shared<CollisionLine>(Vec3<float>(0, 0, 0), Vec3<float>(0, 1, 0), 1.0f, nullptr, nullptr);
+	m_rockOnCollider = Collider::Generate(m_rockOnColLine);
+	m_rockOnCollider->SetCallBack(this);
+	m_rockOnCollider->SetHitCheckAttribute(COLLIDER_ATTRIBUTE::ENEMY);
 }
 
 void PlayerCamera::Init(const Transform& Player)
@@ -114,7 +130,7 @@ void PlayerCamera::Init(const Transform& Player)
 	CalculatePos(Player);
 
 	//何もロックオンしていない
-	m_rockOnPoint = nullptr;
+	SetRockOnTarget(nullptr);
 }
 
 void PlayerCamera::Update(const Transform& Player, Vec2<float> InputVec)
@@ -170,6 +186,19 @@ void PlayerCamera::Update(const Transform& Player, Vec2<float> InputVec)
 
 	//カメラ位置計算
 	CalculatePos(Player);
+
+	//計算後、当たり判定用の線分も更新
+	if (m_rockOnPoint)
+	{
+		auto camPos = m_cam->GetPos();
+		//ロックオン当たり判定線分の始点はカメラ座標
+		m_rockOnColLine->m_start = camPos;;
+		//ロックオン先に向かう
+		auto differ = m_rockOnPoint->GetPosOn3D() - camPos;
+		m_rockOnColLine->m_dir = differ.GetNormal();
+		m_rockOnColLine->m_len = differ.Length();
+
+	}
 }
 
 #include"D3D12App.h"
@@ -222,7 +251,7 @@ void PlayerCamera::RockOn(const Transform& Player)
 		//既にロックオン済なら解除して終わり
 		if (m_rockOnPoint)
 		{
-			m_rockOnPoint = nullptr;
+			SetRockOnTarget(nullptr);
 			return;
 		}
 		//ロックオンしていないなら正面を向く
@@ -236,19 +265,19 @@ void PlayerCamera::RockOn(const Transform& Player)
 	//元々ロックオン対象がいないか、ロックオン対象がいた場合違う相手なら設定して終わり
 	if (m_rockOnPoint == nullptr || m_rockOnPoint != newRockOnPoint)
 	{
-		m_rockOnPoint = newRockOnPoint;
+		SetRockOnTarget(newRockOnPoint);
 		return;
 	}
 
 	//既にロックオンしている対象と同じ相手なら、２番目のロックオン対象を採用
 	if (secondRockOnPoint)
 	{
-		m_rockOnPoint = secondRockOnPoint;
+		SetRockOnTarget(secondRockOnPoint);
 		return;
 	}
 
 	//２番目の対象がいないならロックオン解除
-	m_rockOnPoint = nullptr;
+	SetRockOnTarget(nullptr);
 }
 
 #include"imguiApp.h"

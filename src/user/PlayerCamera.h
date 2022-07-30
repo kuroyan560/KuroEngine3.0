@@ -3,11 +3,12 @@
 #include<memory>
 #include"ImguiDebugInterface.h"
 #include"Vec.h"
+#include"Collider.h"
 class Camera;
 class Transform;
 class ActPoint;
 
-struct PlayerCamera : public ImguiDebugInterface
+struct PlayerCamera : public ImguiDebugInterface, public CollisionCallBack
 {
 private:
 	std::shared_ptr<Camera>m_cam;
@@ -32,12 +33,24 @@ private:
 	//ロックオン照準テクスチャ
 	std::shared_ptr<TextureBuffer>m_reticleTex;
 
+	//ロックオン先に繋がる当たり判定線分
+	std::shared_ptr<CollisionLine>m_rockOnColLine;
+	std::shared_ptr<Collider>m_rockOnCollider;
+
+	//ロックオン対象設定
+	void SetRockOnTarget(ActPoint* Target);
 	//座標計算
 	void CalculatePos(const Transform& Player);
 	//プレイヤー正面にカメラを合わせる
 	void LookAtPlayersFront(const Transform& Player);
 	//ロックオン対象に合わせてカメラを動かす
 	void RockOnTargeting(Vec3<float>PlayerPos);
+	//ロックオン当たり判定用線分のコールバック関数
+	void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override
+	{
+		//何かに遮られたらロックオン解除
+		SetRockOnTarget(nullptr);
+	}
 
 public:
 	PlayerCamera();

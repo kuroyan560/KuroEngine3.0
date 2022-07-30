@@ -9,7 +9,7 @@ class Camera;
 class CollisionPrimitive
 {
 public:
-	enum SHAPE { POINT, SPHERE, PLANE, CAPSULE, AABB, MESH, FLOOR_MESH };
+	enum SHAPE { POINT, LINE, SPHERE, PLANE, CAPSULE, AABB, MESH, FLOOR_MESH };
 
 private:
 	friend class Collider;
@@ -34,8 +34,6 @@ protected:
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//当たり判定の可視化
 
 public:
-	Vec3<float>m_offset = { 0,0,0 };
-
 	//ゲッタ
 	const SHAPE& GetShape()const { return m_shape; }
 	const Matrix& GetWorldMat()
@@ -69,11 +67,39 @@ private:
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 
 public:
+	Vec3<float>m_offset;
 	CollisionPoint(const Vec3<float>& Pos, Transform* World = nullptr, Matrix* Local = nullptr)
 		:CollisionPrimitive(POINT, World, Local) {	m_offset = Pos; }
 	Vec3<float>GetWorldPos() 
 	{
 		return KuroMath::TransformVec3(m_offset, GetLocalMat() * GetWorldMat());
+	}
+};
+
+//線分
+class CollisionLine : public CollisionPrimitive
+{
+private:
+	void DebugDraw(const bool& Hit, Camera& Cam)override;
+
+public:
+	//始点座標
+	Vec3<float>m_start;
+	//方向
+	Vec3<float>m_dir;
+	//最大距離
+	float m_len;
+
+	CollisionLine(const Vec3<float>& Start, const Vec3<float>& Dir, const float& MaxDistance, Transform* World = nullptr, Matrix* Local = nullptr)
+		:CollisionPrimitive(LINE, World, Local), m_start(Start), m_dir(Dir), m_len(MaxDistance) {}
+
+	Vec3<float>GetStartWorldPos()
+	{
+		return KuroMath::TransformVec3(m_start, GetLocalMat() * GetWorldMat());
+	}
+	Vec3<float>GetEndWorldPos()
+	{
+		return GetStartWorldPos() + m_dir * m_len;
 	}
 };
 
@@ -88,6 +114,7 @@ private:
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 	
 public:
+	Vec3<float>m_offset = { 0,0,0 };
 	float m_radius;					//半径
 	CollisionSphere(const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr)
 		:CollisionPrimitive(SPHERE, World, Local), m_radius(Radius) {}
@@ -124,11 +151,12 @@ private:
 	void DebugDraw(const bool& Hit, Camera& Cam)override;
 
 public:
+	Vec3<float>m_offset;
 	Vec3<float>m_sPoint;	//始点
 	Vec3<float>m_ePoint;	//終点
 	float m_radius;
 	CollisionCapsule(const Vec3<float>& StartPt, const Vec3<float>& EndPt, const float& Radius, Transform* World = nullptr, Matrix* Local = nullptr, const Vec3<float>& Offset = Vec3<float>(0, 0, 0))
-		:CollisionPrimitive(CAPSULE, World, Local), m_sPoint(StartPt), m_ePoint(EndPt), m_radius(Radius) { m_offset = Offset;	}
+		:CollisionPrimitive(CAPSULE, World, Local), m_offset(Offset), m_sPoint(StartPt), m_ePoint(EndPt), m_radius(Radius) {}
 };
 
 //AABB(軸並行境界ボックス）、色んな軸で回転すると判定がだめになる
@@ -229,6 +257,8 @@ class Collision
 	static bool SphereAndSphere(CollisionSphere* SphereA, CollisionSphere* SphereB, Vec3<float>* Inter);
 	//球と板
 	static bool SphereAndPlane(CollisionSphere* Sphere, CollisionPlane* Plane, Vec3<float>* Inter);
+	//球と線分
+	static bool SphereAndLine(CollisionSphere* Sphere, CollisionLine* Line, Vec3<float>* Inter);
 	//球とAABB
 	static bool SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter);
 	//球とメッシュ

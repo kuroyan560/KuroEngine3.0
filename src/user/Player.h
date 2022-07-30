@@ -11,7 +11,6 @@ class Camera;
 class UsersInput;
 class ControllerConfig;
 
-
 class Player
 {
 private:

@@ -2,6 +2,8 @@
 #include"KuroEngine.h"
 #include"Camera.h"
 #include<map>
+#include"DrawFunc3D.h"
+#include"DrawFuncBillBoard.h"
 
 std::shared_ptr<GraphicsPipeline> CollisionPrimitive::GetPrimitivePipeline()
 {
@@ -43,6 +45,14 @@ std::shared_ptr<GraphicsPipeline> CollisionPrimitive::GetPrimitivePipeline()
 
 void CollisionPoint::DebugDraw(const bool& Hit, Camera& Cam)
 {
+	DrawFuncBillBoard::Box(Cam, GetWorldPos(), {0.4f,0.4f }, Hit ? Color(1.0f, 0.0f, 0.0f, 1.0f) : Color());
+}
+
+void CollisionLine::DebugDraw(const bool& Hit, Camera& Cam)
+{
+	auto startPos = GetStartWorldPos();
+	auto endPos = GetEndWorldPos();
+	DrawFunc3D::DrawLine(Cam, startPos, endPos, Hit ? Color(1, 0, 0, 1) : Color(), 0.01f);
 }
 
 void CollisionSphere::DebugDraw(const bool& Hit,Camera& Cam)
@@ -285,6 +295,39 @@ bool Collision::SphereAndPlane(CollisionSphere* Sphere, CollisionPlane* Plane, V
 	return true;
 }
 
+bool Collision::SphereAndLine(CollisionSphere* Sphere, CollisionLine* Line, Vec3<float>* Inter)
+{
+	auto lineStart = Line->GetStartWorldPos();
+	XMVECTOR m = lineStart - Sphere->GetCenter();
+	float b = XMVector3Dot(m, Line->m_dir).m128_f32[0];
+	float c = XMVector3Dot(m, m).m128_f32[0] - pow(Sphere->m_radius, 2);
+	// layの始点がsphereの外側にあり(c > 0)、layがsphereから離れていく方向を
+	// 差している場合(b > 0)、当たらない
+	if (c > 0.0f && b > 0.0f) {
+		return false;
+	}
+
+	float discr = b * b - c;
+	// 負の判別式はレイが球を外れていることに一致
+	if (discr < 0.0f) {
+		return false;
+	}
+
+	// 交差する最小の値tを計算
+	float t = -b - sqrtf(discr);
+	// tが負である場合、レイは球の内側から開始しているのでtをゼロにクランプ
+	if (t < 0) t = 0.0f;
+
+	//レイの長さより遠ければ外れている
+	if (Line->m_len < t)return false;
+
+	if (Inter) {
+		*Inter = lineStart + Line->m_dir * t;
+	}
+
+	return true;
+}
+
 bool Collision::SphereAndAABB(CollisionSphere* SphereA, CollisionAABB* AABB, Vec3<float>* Inter)
 {
 	//球の中心座標とAABBとの最短距離を求める
@@ -447,13 +490,30 @@ bool Collision::CheckPrimitiveHit(CollisionPrimitive* PrimitiveA, CollisionPrimi
 			return PointAndFloorMesh(ptA, (CollisionMesh*)PrimitiveB, Inter);
 		}
 	}
+	//線分Aと
+	if (PrimitiveA->GetShape() == CollisionPrimitive::LINE)
+	{
+		CollisionLine* lineA = (CollisionLine*)PrimitiveA;
+
+		//球B
+		if (PrimitiveB->GetShape() == CollisionPrimitive::SPHERE)
+		{
+			return SphereAndLine((CollisionSphere*)PrimitiveB, lineA, Inter);
+		}
+	}
+
 	//球Aと
 	else if (PrimitiveA->GetShape() == CollisionPrimitive::SPHERE)
 	{
 		CollisionSphere* sphereA = (CollisionSphere*)PrimitiveA;
 
+		//線分B
+		if (PrimitiveB->GetShape() == CollisionPrimitive::LINE)
+		{
+			return SphereAndLine(sphereA, (CollisionLine*)PrimitiveB, Inter);
+		}
 		//球B
-		if (PrimitiveB->GetShape() == CollisionPrimitive::SPHERE)
+		else if (PrimitiveB->GetShape() == CollisionPrimitive::SPHERE)
 		{
 			return SphereAndSphere(sphereA, (CollisionSphere*)PrimitiveB, Inter);
 		}
