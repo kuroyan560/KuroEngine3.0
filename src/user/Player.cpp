@@ -93,6 +93,7 @@ void Player::Init()
 
 	//攻撃処理初期化
 	m_attack.Init();
+	m_oldAttackInput = false;
 }
 
 void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float& Gravity)
@@ -101,7 +102,7 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	infoForStatus.m_markingNum = 0;
 	infoForStatus.m_maxMarking = false;
 	infoForStatus.m_onGround = m_onGround;
-	infoForStatus.m_attackFinish = m_attack.IsActive();
+	infoForStatus.m_attackFinish = !m_attack.IsActive();
 	infoForStatus.m_dodgeFinish = true;
 	infoForStatus.m_rushFinish = true;
 	infoForStatus.m_abilityFinish = true;
@@ -122,13 +123,6 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		m_model->m_animator->speed = 1.5f;
 		m_model->m_animator->Play("Run", true, false);
 	}
-	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::ATTACK))	//攻撃
-	{
-		//攻撃処理開始
-		m_model->m_animator->speed = 1.0f;
-		//攻撃の処理はPlayerAttack内で処理
-		m_attack.Start();
-	}
 	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::JUMP))	//ジャンプ
 	{
 		//接地フラグOFF
@@ -137,6 +131,17 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		//ジャンプ
 		m_fallSpeed = m_jumpPower;
 	}
+
+	//連続攻撃
+	bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
+	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::ATTACK) && !m_oldAttackInput && attackInput)
+	{
+		//攻撃処理開始
+		m_model->m_animator->speed = 1.0f;
+		//攻撃の処理はPlayerAttack内で処理
+		m_attack.Attack();
+	}
+	m_oldAttackInput = attackInput;
 
 	//無操作状態でないとき
 	if (!m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::OUT_OF_CONTROL))
@@ -210,6 +215,9 @@ void Player::ImguiDebug()
 	ImGui::Text("BeforeStatus : { %s }", s_beforeStatusName.c_str());
 
 	ImGui::End();
+
+/*--- プレイやー攻撃機構 ---*/
+	m_attack.ImguiDebug();
 }
 
 void Player::PushBackColliderCallBack::OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)

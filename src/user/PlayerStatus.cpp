@@ -76,6 +76,7 @@ void PlayerStatus::Update(const UsersInput& Input, const ControllerConfig& Contr
 		else
 		{
 			m_inputFrame[tagIdx] = 0;
+			m_off[tagIdx] = true;
 		}
 	}
 	if (!Controller.GetMoveVec(Input).IsZero())m_leftStickInputFrame++;
@@ -96,11 +97,19 @@ void PlayerStatus::Update(const UsersInput& Input, const ControllerConfig& Contr
 
 	case PLAYER_STATUS_TAG::ATTACK:
 		//攻撃終了フラグ
-		if (Parameters.m_attackFinish)m_status = PLAYER_STATUS_TAG::WAIT;
+		if (Parameters.m_attackFinish)
+		{
+			m_status = PLAYER_STATUS_TAG::WAIT;
+			m_off[static_cast<int>(HANDLE_INPUT_TAG::ATTACK)] = false;
+		}
 		break;
 
 	case PLAYER_STATUS_TAG::JUMP:
 		m_status = JumpUpdate(Parameters);
+		if (m_status != m_oldStatus)
+		{
+			m_off[static_cast<int>(HANDLE_INPUT_TAG::JUMP)] = false;
+		}
 		break;
 
 	case PLAYER_STATUS_TAG::GUARD:
@@ -158,5 +167,12 @@ void PlayerStatus::Update(const UsersInput& Input, const ControllerConfig& Contr
 	}
 	case PLAYER_STATUS_TAG::OUT_OF_CONTROL:
 		break;
+	}
+
+	//一度も入力を離してないので状態遷移取り消し
+	if ((m_status == PLAYER_STATUS_TAG::ATTACK && !m_off[static_cast<int>(HANDLE_INPUT_TAG::ATTACK)])
+		|| (m_status == PLAYER_STATUS_TAG::JUMP && !m_off[static_cast<int>(HANDLE_INPUT_TAG::JUMP)]))
+	{
+		m_status = m_oldStatus;
 	}
 }

@@ -43,6 +43,9 @@ class PlayerStatus
 	std::array<int, static_cast<int>(HANDLE_INPUT_TAG::NUM)>m_inputFrame;
 	int m_leftStickInputFrame;
 
+	//一度ボタンを離しているかのフラグ（長押しでの連発防止）
+	std::array<bool, static_cast<int>(HANDLE_INPUT_TAG::NUM)>m_off;
+
 	//各状態中の遷移
 	PLAYER_STATUS_TAG WaitUpdate(const PlayerParameterForStatus& Parameters);
 	PLAYER_STATUS_TAG MoveUpdate(const PlayerParameterForStatus& Parameters);
@@ -58,6 +61,9 @@ public:
 		//入力フレームの記録リセット
 		m_inputFrame.fill(0);
 		m_leftStickInputFrame = 0;
+
+		//ボタン離しフラグリセット
+		m_off.fill(true);
 	}
 
 	//状態遷移更新

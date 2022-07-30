@@ -72,6 +72,8 @@ private:
 
 	//攻撃処理クラス
 	PlayerAttack m_attack;
+	//１フレーム前に攻撃入力したか
+	bool m_oldAttackInput;
 
 	//移動処理
 	void MoveByInput(UsersInput& Input, ControllerConfig& Controller);
