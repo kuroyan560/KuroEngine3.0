@@ -7,7 +7,7 @@
 #include"ModelAnimator.h"
 #include"UsersInput.h"
 #include"ControllerConfig.h"
-#include<magic_enum.h>
+#include"magic_enum.h"
 
 bool Player::s_instanced = false;
 const std::string Player::s_cameraKey = "PlayerCamera";
@@ -48,7 +48,7 @@ Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_
 	m_attack.Attach(m_model->m_animator, nrmAttackCol);
 }
 
-void Player::OnStatusTriggerUpdate()
+void Player::OnStatusTriggerUpdate(const Vec3<float>& InputMoveVec)
 {
 	if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::WAIT))	//待機
 	{
@@ -79,6 +79,11 @@ void Player::OnStatusTriggerUpdate()
 	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::DODGE))		//回避
 	{
 		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::DODGE), false, false);
+
+		//回避フレーム初期化
+		m_dodgeFrame = 0;
+		//回避の入力方向記録
+		m_dodgeMoveVec = InputMoveVec;
 	}
 	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::RUN))		//ダッシュ
 	{
@@ -112,6 +117,9 @@ void Player::Init()
 	//接地フラグON
 	m_onGround = true;
 
+	//回避初期化
+	m_dodgeFrame = m_dodgeFrameNum;
+
 	//攻撃処理初期化
 	m_attack.Init();
 	m_oldAttackInput = false;
@@ -127,15 +135,12 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	infoForStatus.m_maxMarking = false;
 	infoForStatus.m_onGround = m_onGround;
 	infoForStatus.m_attackFinish = !m_attack.IsActive();
-	infoForStatus.m_dodgeFinish = true;
+	infoForStatus.m_dodgeFinish = (m_dodgeFrameNum <= m_dodgeFrame);
 	infoForStatus.m_rushFinish = true;
 	infoForStatus.m_abilityFinish = true;
 
 	//ステータスの更新
 	m_statusMgr.Update(Input, Controller, infoForStatus);
-
-	//ステータスのトリガーを感知して、処理を呼び出す
-	OnStatusTriggerUpdate();
 
 	//左スティック入力レート
 	auto stickL = Controller.GetMoveVec(Input);
@@ -146,6 +151,9 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	//カメラ位置角度のオフセットからスティックの入力方向補正
 	static const Angle ANGLE_OFFSET(-90);
 	inputMoveVec = KuroMath::TransformVec3(inputMoveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->GetPosAngle() + ANGLE_OFFSET)).GetNormal();
+
+	//ステータスのトリガーを感知して、処理を呼び出す
+	OnStatusTriggerUpdate(inputMoveVec);
 
 	//連続攻撃の入力
 	bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
@@ -166,6 +174,16 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	{
 		//入力による移動の処理
 		m_move += inputMoveVec * m_inputMoveSpeed;
+	}
+	//回避状態
+	else if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::DODGE))
+	{
+		//回避速度計算
+		float dodgeSpeed = m_dodgeEasingParameter.Calculate(m_dodgeFrame, m_dodgeFrameNum, m_dodgePower, 0.0f);
+		//回避による移動量加算
+		m_move += m_dodgeMoveVec * dodgeSpeed;
+		//回避フレーム計測
+		m_dodgeFrame++;
 	}
 
 	//無操作状態でないとき
@@ -220,13 +238,6 @@ void Player::DrawHUD(Camera& Cam)
 void Player::ImguiDebug()
 {
 	ImGui::Begin("Player");
-
-/*--- 性能調整 ---*/
-	//ジャンプ力
-	ImGui::InputFloat("JumpPower", &m_jumpPower);
-
-	ImGui::Separator();
-
 /*--- パラメータ表示 ---*/
 	//落下速度
 	ImGui::Text("m_fallSpeed : { %f }", m_fallSpeed);
@@ -247,6 +258,45 @@ void Player::ImguiDebug()
 	//表示
 	ImGui::Text("NowStatus : { %s }", s_nowStatusName.c_str());
 	ImGui::Text("BeforeStatus : { %s }", s_beforeStatusName.c_str());
+
+/*--- 性能調整 ---*/
+	ImGui::BeginChild(ImGui::GetID((void*)0), ImVec2(300, 320), ImGuiWindowFlags_NoTitleBar);
+	//ジャンプ力
+	if (ImGui::TreeNode("Jump"))
+	{
+		if (ImGui::DragFloat("Power", &m_jumpPower) && m_jumpPower < 0)m_jumpPower = 0.0f;	//マイナス防止
+		ImGui::TreePop();
+	}
+	if (ImGui::TreeNode("Dodge"))
+	{
+		//回避にかかるフレーム数
+		if (ImGui::DragInt("FrameNum", &m_dodgeFrameNum) && m_dodgeFrameNum < 0)m_dodgeFrameNum = 0;	//マイナス防止
+		//回避力
+		if (ImGui::DragFloat("Power", &m_dodgePower) && m_dodgePower < 0)m_dodgePower = 0;	//マイナス防止
+
+		//回避のイージング変化（In,Out,InOut)
+		//名前表示
+		ImGui::Text("%s", magic_enum::enum_name(m_dodgeEasingParameter.m_changeType).data());
+		//変更
+		static int s_dodgeSelectEaseChange = m_dodgeEasingParameter.m_changeType;
+		if (ImGui::SliderInt("EaseChangeType", &s_dodgeSelectEaseChange, 0, EASE_CHANGE_TYPE_NUM - 1))
+		{
+			m_dodgeEasingParameter.m_changeType = (EASE_CHANGE_TYPE)s_dodgeSelectEaseChange;
+		}
+
+		//回避のイージングタイプ
+		//名前表示
+		ImGui::Text("%s", magic_enum::enum_name(m_dodgeEasingParameter.m_easeType).data());
+		//変更
+		static int s_dodgeSelectEase = m_dodgeEasingParameter.m_easeType;
+		if (ImGui::SliderInt("EaseType", &s_dodgeSelectEase, 0, EASING_TYPE_NUM - 1))
+		{
+			m_dodgeEasingParameter.m_easeType = (EASING_TYPE)s_dodgeSelectEase;
+		}
+
+		ImGui::TreePop();
+	}
+	ImGui::EndChild();
 
 	ImGui::End();
 

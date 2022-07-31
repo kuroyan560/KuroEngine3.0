@@ -113,11 +113,14 @@ void PlayerAttack::ImguiDebug()
 	static int nowSelectIdx = 0;
 	ImGui::SliderInt("AnimIdx", &nowSelectIdx, 0, m_attackAnimNum);
 	ImGui::BeginChild(ImGui::GetID((void*)0));
-	if (ImGui::InputInt("canNextInputFrame", &m_canNextInputFrame[nowSelectIdx]) && m_canNextInputFrame[nowSelectIdx] < 0)
+	if (ImGui::DragInt("canNextInputFrame", &m_canNextInputFrame[nowSelectIdx]) && m_canNextInputFrame[nowSelectIdx] < 0)	//ƒ}ƒCƒiƒX–hŽ~
 	{
 		m_canNextInputFrame[nowSelectIdx] = 0;
 	}
-	ImGui::InputFloat("speed", &m_animSpeed[nowSelectIdx]);
+	if (ImGui::DragFloat("speed", &m_animSpeed[nowSelectIdx]) && m_animSpeed[nowSelectIdx] < 0)		//ƒ}ƒCƒiƒX–hŽ~
+	{
+		m_animSpeed[nowSelectIdx] = 0.0f;
+	}
 	ImGui::EndChild();
 
 	ImGui::End();

@@ -6,6 +6,7 @@
 #include"PlayerAttack.h"
 #include"Collider.h"
 #include"PlayerStatus.h"
+#include"KuroMath.h"
 class ModelObject;
 class Camera;
 class UsersInput;
@@ -34,7 +35,7 @@ private:
 	//ステータス管理
 	PlayerStatus m_statusMgr;
 	//ステータスのトリガーを感知して実行する処理のまとめ
-	void OnStatusTriggerUpdate();
+	void OnStatusTriggerUpdate(const Vec3<float>& InputMoveVec);
 
 	//モデル
 	std::shared_ptr<ModelObject>m_model;
@@ -49,12 +50,24 @@ private:
 	float m_inputMoveSpeed = 0.6f;
 
 /*--- ジャンプ関連 ---*/
-		//ジャンプ力
+	//ジャンプ力
 	float m_jumpPower = 1.0f;
 	//接地フラグ
 	bool m_onGround = true;
 	//落下速度
 	float m_fallSpeed = 0.0f;
+
+/*--- 回避 ---*/
+	//回避方向の記録用
+	Vec3<float>m_dodgeMoveVec;
+	//回避のイージングパラメータ
+	EasingParameter m_dodgeEasingParameter;
+	//回避フレーム計測用
+	int m_dodgeFrame = 0;
+	//回避にかかるフレーム数
+	int m_dodgeFrameNum = 30;
+	//回避力
+	float m_dodgePower = 0.5f;
 
 /*--- コールバック ---*/
 		//押し戻し
