@@ -5,6 +5,7 @@
 #include"Collider.h"
 class ModelAnimator;
 #include"HitParticle.h"
+#include"KuroMath.h"
 
 class PlayerAttack : public CollisionCallBack
 {
@@ -44,16 +45,33 @@ private:
 	//攻撃の当たり判定用コールバック関数
 	void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider)override;
 
+	//攻撃の勢いによる前進
+	float m_momentum;
+	//勢いが乗るフレーム数
+	std::array<int, m_attackAnimNum>m_momentumFrameNum;
+	//勢いの最大値
+	std::array<float, m_attackAnimNum>m_maxMomentum;
+	//勢いのイージングパラメータ
+	std::array<EasingParameter, m_attackAnimNum>m_momentumEaseParameters;
 
 public:
-	PlayerAttack() { m_canNextInputFrame.fill(10); }
+	PlayerAttack() 
+	{
+		//初期値設定
+		m_canNextInputFrame.fill(10); 
+		m_momentumFrameNum.fill(10);
+		m_maxMomentum.fill(1.0f);
+	}
 	void Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& AttackCollider);
 	void Init();
 	void Update();
 	void Attack();
 	void Stop();
 
+	//攻撃中か
 	const bool& IsActive() { return m_isActive; }
+	//攻撃の勢いゲッタ
+	const float& GetMomentum() { return m_momentum; }
 
 	//imguiデバッグ機能
 	void ImguiDebug();

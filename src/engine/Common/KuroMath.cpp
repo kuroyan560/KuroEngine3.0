@@ -331,6 +331,7 @@ float KuroMath::BounceInOut(float t, float totaltime, float min, float max)
 float KuroMath::Ease(EASE_CHANGE_TYPE EaseChangeType, EASING_TYPE EasingType, float T, float TotalTime, float Min, float Max)
 {
     if (Min == Max)return Min;
+    if (TotalTime < T)T = TotalTime;
     return easing[EaseChangeType][EasingType](T, TotalTime, Min, Max);
 }
 

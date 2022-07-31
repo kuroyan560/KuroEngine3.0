@@ -27,14 +27,7 @@ void Player::MoveByInput(UsersInput& Input, ControllerConfig& Controller)
 	moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->GetPosAngle() + ANGLE_OFFSET)).GetNormal();
 
 	//ˆÚ“®
-	const float moveSpeed = 0.6f;
-	auto pos = m_model->m_transform.GetPos();
-	pos += moveVec * moveSpeed;
-	m_model->m_transform.SetPos(pos);
-
-	//•ûŒü“]Š·
-	const auto up = m_model->m_transform.GetUp();
-	m_model->m_transform.SetLookAtRotate(pos + moveVec);
+	m_move += moveVec * m_inputMoveSpeed;
 }
 
 Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this)
@@ -98,6 +91,9 @@ void Player::Init()
 
 void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float& Gravity)
 {
+	//ˆÚ“®—ÊƒŠƒZƒbƒg
+	m_move = { 0,0,0 };
+
 	PlayerParameterForStatus infoForStatus;
 	infoForStatus.m_markingNum = 0;
 	infoForStatus.m_maxMarking = false;
@@ -132,16 +128,22 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		m_fallSpeed = m_jumpPower;
 	}
 
-	//˜A‘±UŒ‚
-	bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
-	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::ATTACK) && !m_oldAttackInput && attackInput)
+	//UŒ‚ó‘Ô
+	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::ATTACK))
 	{
-		//UŒ‚ˆ—ŠJŽn
-		m_model->m_animator->speed = 1.0f;
-		//UŒ‚‚Ìˆ—‚ÍPlayerAttack“à‚Åˆ—
-		m_attack.Attack();
+		//˜A‘±UŒ‚‚Ì“ü—Í
+		bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
+		if (!m_oldAttackInput && attackInput)
+		{
+			//UŒ‚ˆ—ŠJŽn
+			m_model->m_animator->speed = 1.0f;
+			//UŒ‚‚Ìˆ—‚ÍPlayerAttack“à‚Åˆ—
+			m_attack.Attack();
+		}
+		//ƒgƒŠƒK[”»’è—p‚É‰ß‹Ž‚Ì“ü—Í‚Æ‚µ‚Ä‹L˜^
+		m_oldAttackInput = attackInput;
 	}
-	m_oldAttackInput = attackInput;
+
 
 	//–³‘€ìó‘Ô‚Å‚È‚¢‚Æ‚«
 	if (!m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::OUT_OF_CONTROL))
@@ -156,13 +158,6 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		s_camera->Update(m_model->m_transform, Controller.GetCameraVec(Input));
 	}
 
-	//—Ž‰º
-	auto pos = m_model->m_transform.GetPos();
-	pos.y += m_fallSpeed;
-	m_model->m_transform.SetPos(pos);
-	m_fallSpeed += Gravity;
-
-
 	//UŒ‚ˆ—XV
 	m_attack.Update();
 	//UŒ‚ƒXƒe[ƒ^ƒX‚Å‚È‚¢iUŒ‚‚ª’†’f‚³‚ê‚½ê‡j
@@ -170,6 +165,26 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 
 	//ƒAƒjƒ[ƒVƒ‡ƒ“XV
 	m_model->m_animator->Update();
+
+	//UŒ‚‚Ì¨‚¢‚ðˆÚ“®—Ê‚É‰ÁŽZ
+	auto front = m_model->m_transform.GetFront();
+	m_move += front * m_attack.GetMomentum();
+
+	//—Ž‰º
+	m_move.y += m_fallSpeed;
+	m_fallSpeed += Gravity;
+
+	//ˆÚ“®—Ê‚ð”½‰f‚³‚¹‚é
+	auto playerPos = m_model->m_transform.GetPos();
+	playerPos += m_move;
+	m_model->m_transform.SetPos(playerPos);
+
+	//•ûŒü“]Š·iXZ•½–Êj
+	if (m_move.x || m_move.z)
+	{
+		const auto up = m_model->m_transform.GetUp();
+		m_model->m_transform.SetLookAtRotate(playerPos + Vec3<float>(m_move.x, 0.0f, m_move.z));
+	}
 }
 
 void Player::Draw(Camera& Cam)

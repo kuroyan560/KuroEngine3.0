@@ -6,7 +6,8 @@ void PlayerAttack::AnimPlay()
 {
 	m_attackFrame = 0;
 	m_attachAnimator.lock()->Play(GetAnimName(m_nowIdx), false, false);
-	m_nextAttack = false;
+	m_nextAttack = false;	//次の攻撃予約フラグリセット
+	m_momentum = 0.0f;	//攻撃の勢いリセット
 }
 
 #include"HitEffect.h"
@@ -31,6 +32,7 @@ void PlayerAttack::Init()
 {
 	m_attackCollider.lock()->SetActive(false);
 	m_isActive = false;
+	m_momentum = 0.0f;
 }
 
 void PlayerAttack::Update()
@@ -38,6 +40,9 @@ void PlayerAttack::Update()
 	//攻撃中でない
 	if (!m_isActive)return;
 
+	//攻撃の勢い計算（イージング）
+	m_momentum = m_momentumEaseParameters[m_nowIdx].Calculate(m_attackFrame, m_momentumFrameNum[m_nowIdx], m_maxMomentum[m_nowIdx], 0.0f);
+	 
 	//攻撃が始まってからのフレーム数記録
 	m_attackFrame++;
 

@@ -144,3 +144,18 @@ public:
     //‰ñ“]Ž²‚ðŽw’è‚µ‚Ä‰ñ“]
     static Vec3<float>TransformVec3(const Vec3<float>& Value, const Vec3<float>& Axis, const Angle& Angle);
 };
+
+struct EasingParameter
+{
+    EASE_CHANGE_TYPE m_changeType = In;
+    EASING_TYPE m_easeType = Quad;
+
+    float Calculate(float T, float TotalTime, float Min, float Max)
+    {
+        return KuroMath::Ease(m_changeType, m_easeType, T, TotalTime, Min, Max);
+    }
+    float Calculate(float Rate, float Min, float Max)
+    {
+        return KuroMath::Ease(m_changeType, m_easeType, Rate, Min, Max);
+    }
+};

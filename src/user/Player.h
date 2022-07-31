@@ -24,8 +24,8 @@ public:
 	//カメラキー
 	static const std::string s_cameraKey;
 	//カメラポインタ
-	static const std::shared_ptr<Camera>& GetCam() 
-	{ 
+	static const std::shared_ptr<Camera>& GetCam()
+	{
 		if (!s_camera)s_camera = std::make_unique<PlayerCamera>();
 		return s_camera->GetCam();
 	}
@@ -40,16 +40,22 @@ private:
 	//コライダー
 	std::vector<std::shared_ptr<Collider>>m_colliders;	//配列
 
-/*--- ジャンプ関連 ---*/
-	//ジャンプ力
+	//移動量
+	Vec3<float>m_move;
+
+	//通常移動の速さ
+	float m_inputMoveSpeed = 0.6f;
+
+	/*--- ジャンプ関連 ---*/
+		//ジャンプ力
 	float m_jumpPower = 1.0f;
 	//接地フラグ
 	bool m_onGround = true;
 	//落下速度
 	float m_fallSpeed = 0.0f;
 
-/*--- コールバック ---*/
-	//押し戻し
+	/*--- コールバック ---*/
+		//押し戻し
 	class PushBackColliderCallBack : public CollisionCallBack
 	{
 		Player* m_parent;
@@ -68,9 +74,9 @@ private:
 		PushBackColliderCallBack_Foot(Player* Parent) :m_parent(Parent) {}
 	}m_pushBackColliderCallBack_Foot;
 
-/*--- その他 ---*/
+	/*--- その他 ---*/
 
-	//攻撃処理クラス
+		//攻撃処理クラス
 	PlayerAttack m_attack;
 	//１フレーム前に攻撃入力したか
 	bool m_oldAttackInput;
@@ -90,4 +96,3 @@ public:
 	//imguiデバッグ機能
 	void ImguiDebug();
 };
-
