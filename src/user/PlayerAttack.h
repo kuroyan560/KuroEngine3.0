@@ -22,6 +22,8 @@ private:
 
 	//アタッチされたアニメーターとコライダー
 	std::weak_ptr<ModelAnimator>m_attachAnimator;
+	//アニメーションのスピード
+	std::array<float, m_attackAnimNum>m_animSpeed;
 
 	//攻撃判定をとるコライダー
 	std::weak_ptr<Collider>m_attackCollider;
@@ -61,6 +63,7 @@ public:
 		m_canNextInputFrame.fill(10); 
 		m_momentumFrameNum.fill(10);
 		m_maxMomentum.fill(1.0f);
+		m_animSpeed.fill(1.0f);
 	}
 	void Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& AttackCollider);
 	void Init();

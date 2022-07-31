@@ -4,8 +4,10 @@
 
 void PlayerAttack::AnimPlay()
 {
+	auto animator = m_attachAnimator.lock();
 	m_attackFrame = 0;
-	m_attachAnimator.lock()->Play(GetAnimName(m_nowIdx), false, false);
+	animator->speed = m_animSpeed[m_nowIdx];
+	animator->Play(GetAnimName(m_nowIdx), false, false);
 	m_nextAttack = false;	//次の攻撃予約フラグリセット
 	m_momentum = 0.0f;	//攻撃の勢いリセット
 }
@@ -90,6 +92,7 @@ void PlayerAttack::Stop()
 {
 	m_isActive = false;
 	m_attackCollider.lock()->SetActive(false);
+	m_momentum = 0.0f;
 }
 
 #include"imguiApp.h"
@@ -103,17 +106,16 @@ void PlayerAttack::ImguiDebug()
 	ImGui::TextColored(m_attackFrame && m_isActive ? WHITE : RED, "attackFrame : { %d }", m_attackFrame);
 	ImGui::TextColored(m_nextAttack ? RED : WHITE, "nextAttack : { %s }", m_nextAttack ? "TRUE" : "FALSE");
 	ImGui::Separator();
-	ImGui::Text("CanInputFrame");
-	for (int animIdx = 0; animIdx < m_attackAnimNum; ++animIdx)
+
+	static int nowSelectIdx = 0;
+	ImGui::SliderInt("AnimIdx", &nowSelectIdx, 0, m_attackAnimNum);
+	ImGui::BeginChild(ImGui::GetID((void*)0));
+	if (ImGui::InputInt("canNextInputFrame", &m_canNextInputFrame[nowSelectIdx]) && m_canNextInputFrame[nowSelectIdx] < 0)
 	{
-		ImGui::Text(("AnimInfo - " + std::to_string(animIdx)).c_str());
-		if (ImGui::InputInt(("canNextInputFrame - " + std::to_string(animIdx)).c_str(), &m_canNextInputFrame[animIdx]) && m_canNextInputFrame[animIdx] < 0)
-		{
-			m_canNextInputFrame[animIdx] = 0;
-		}
-		ImGui::InputFloat(("speed - " + std::to_string(animIdx)).c_str(), &m_attachAnimator.lock()->speed);
-		ImGui::Separator();
+		m_canNextInputFrame[nowSelectIdx] = 0;
 	}
+	ImGui::InputFloat("speed", &m_animSpeed[nowSelectIdx]);
+	ImGui::EndChild();
 
 	ImGui::End();
 }

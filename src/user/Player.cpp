@@ -128,21 +128,20 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		m_fallSpeed = m_jumpPower;
 	}
 
+
+	//連続攻撃の入力
+	bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
 	//攻撃状態
 	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::ATTACK))
 	{
-		//連続攻撃の入力
-		bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
 		if (!m_oldAttackInput && attackInput)
 		{
-			//攻撃処理開始
-			m_model->m_animator->speed = 1.0f;
 			//攻撃の処理はPlayerAttack内で処理
 			m_attack.Attack();
 		}
-		//トリガー判定用に過去の入力として記録
-		m_oldAttackInput = attackInput;
 	}
+	//トリガー判定用に過去の入力として記録
+	m_oldAttackInput = attackInput;
 
 
 	//無操作状態でないとき
