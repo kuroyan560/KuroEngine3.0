@@ -49,6 +49,8 @@ private:
 
 	//攻撃の勢いによる前進
 	float m_momentum;
+	//攻撃の勢いの方向ベクトル
+	Vec3<float>m_attackVec;
 	//勢いが乗るフレーム数
 	std::array<int, m_attackAnimNum>m_momentumFrameNum;
 	//勢いの最大値
@@ -68,13 +70,16 @@ public:
 	void Attach(std::shared_ptr<ModelAnimator>& Animator, std::shared_ptr<Collider>& AttackCollider);
 	void Init();
 	void Update();
-	void Attack();
+	void Attack(const Vec3<float>& InputMoveVec);
 	void Stop();
 
 	//攻撃中か
 	const bool& IsActive() { return m_isActive; }
 	//攻撃の勢いゲッタ
-	const float& GetMomentum() { return m_momentum; }
+	Vec3<float>GetMomentum()
+	{
+		return m_attackVec * m_momentum;
+	}
 
 	//imguiデバッグ機能
 	void ImguiDebug();

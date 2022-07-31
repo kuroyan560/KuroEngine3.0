@@ -69,8 +69,11 @@ void PlayerAttack::Update()
 	}
 }
 
-void PlayerAttack::Attack()
+void PlayerAttack::Attack(const Vec3<float>& InputMoveVec)
 {
+	//UŒ‚‚ÌŒü‚«
+	m_attackVec = InputMoveVec;
+
 	//Šù‚ÉUŒ‚’†‚©
 	if (m_isActive)
 	{

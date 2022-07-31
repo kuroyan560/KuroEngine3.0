@@ -13,23 +13,6 @@ bool Player::s_instanced = false;
 const std::string Player::s_cameraKey = "PlayerCamera";
 std::unique_ptr<PlayerCamera> Player::s_camera;
 
-void Player::MoveByInput(UsersInput& Input, ControllerConfig& Controller)
-{
-	//左スティック入力レート
-	auto stickL = Controller.GetMoveVec(Input);
-	if (stickL.IsZero())return;	//入力なし
-
-	//移動方向
-	Vec3<float>moveVec = { stickL.x,0.0f,-stickL.y };
-
-	//カメラ位置角度のオフセットからスティックの入力方向補正
-	static const Angle ANGLE_OFFSET(-90);
-	moveVec = KuroMath::TransformVec3(moveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->GetPosAngle() + ANGLE_OFFSET)).GetNormal();
-
-	//移動
-	m_move += moveVec * m_inputMoveSpeed;
-}
-
 Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this)
 {
 	assert(!s_instanced);
@@ -128,6 +111,15 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		m_fallSpeed = m_jumpPower;
 	}
 
+	//左スティック入力レート
+	auto stickL = Controller.GetMoveVec(Input);
+
+	//移動方向
+	Vec3<float>inputMoveVec = { stickL.x,0.0f,-stickL.y };
+
+	//カメラ位置角度のオフセットからスティックの入力方向補正
+	static const Angle ANGLE_OFFSET(-90);
+	inputMoveVec = KuroMath::TransformVec3(inputMoveVec, KuroMath::RotateMat({ 0,1,0 }, -s_camera->GetPosAngle() + ANGLE_OFFSET)).GetNormal();
 
 	//連続攻撃の入力
 	bool attackInput = Controller.GetHandleInput(Input, HANDLE_INPUT_TAG::ATTACK);
@@ -137,19 +129,22 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 		if (!m_oldAttackInput && attackInput)
 		{
 			//攻撃の処理はPlayerAttack内で処理
-			m_attack.Attack();
+			m_attack.Attack(inputMoveVec);
 		}
 	}
 	//トリガー判定用に過去の入力として記録
 	m_oldAttackInput = attackInput;
 
+	//通常移動状態
+	if (m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::MOVE))
+	{
+		//入力による移動の処理
+		m_move += inputMoveVec * m_inputMoveSpeed;
+	}
 
 	//無操作状態でないとき
 	if (!m_statusMgr.CompareNowStatus(PLAYER_STATUS_TAG::OUT_OF_CONTROL))
 	{
-		//入力による移動の処理
-		MoveByInput(Input, Controller);
-
 		//ロックオン
 		if (Controller.GetCameraRock(Input))s_camera->RockOn(m_model->m_transform);
 
@@ -166,8 +161,7 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	m_model->m_animator->Update();
 
 	//攻撃の勢いを移動量に加算
-	auto front = m_model->m_transform.GetFront();
-	m_move += front * m_attack.GetMomentum();
+	m_move += m_attack.GetMomentum();
 
 	//落下
 	m_move.y += m_fallSpeed;

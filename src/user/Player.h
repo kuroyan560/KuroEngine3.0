@@ -81,9 +81,6 @@ private:
 	//‚PƒtƒŒ[ƒ€‘O‚ÉUŒ‚“ü—Í‚µ‚½‚©
 	bool m_oldAttackInput;
 
-	//ˆÚ“®ˆ—
-	void MoveByInput(UsersInput& Input, ControllerConfig& Controller);
-
 public:
 	Player();
 	~Player() { s_instanced = false; }
