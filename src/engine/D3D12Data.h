@@ -162,6 +162,7 @@ protected:
 public:
 	DescriptorData(const ComPtr<ID3D12Resource>& Buff, const D3D12_RESOURCE_STATES& Barrier) :m_resource(std::make_shared<GPUResource>(Buff, Barrier)) {}
 	DescriptorData(const std::shared_ptr<GPUResource>& GPUResource) :m_resource(GPUResource) {}	//同じものを差す
+	virtual ~DescriptorData() {}
 	//バッファセット
 	void SetGraphicsDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
 	void SetComputeDescriptorBuffer(const ComPtr<ID3D12GraphicsCommandList>& CmdList, const DESC_HANDLE_TYPE& Type, const int& RootParam);
