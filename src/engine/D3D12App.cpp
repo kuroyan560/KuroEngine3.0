@@ -4,6 +4,7 @@
 #pragma comment(lib,"dxgi.lib")
 #include<array>
 
+
 D3D12App* D3D12App::s_instance = nullptr;
 std::map<std::string, D3D12App::LoadLambda_t> D3D12App::s_loadLambdaTable;
 

@@ -531,10 +531,10 @@
     <ClInclude Include="lib\magic_enum\magic_enum.h">
       <Filter>magic_enum</Filter>
     </ClInclude>
-    <ClInclude Include="lib\dxcompiler\d3d12shader.h">
+    <ClInclude Include="lib\dxcompiler\inc\d3d12shader.h">
       <Filter>dxcompiler</Filter>
     </ClInclude>
-    <ClInclude Include="lib\dxcompiler\dxcapi.h">
+    <ClInclude Include="lib\dxcompiler\inc\dxcapi.h">
       <Filter>dxcompiler</Filter>
     </ClInclude>
   </ItemGroup>
