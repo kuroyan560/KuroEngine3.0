@@ -74,6 +74,9 @@
     <Filter Include="src\engine\ユーザー向け\描画便利関数\BillBoard">
       <UniqueIdentifier>{fb5340b6-4544-4095-861b-872acfba3b96}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dxcompiler">
+      <UniqueIdentifier>{a8455d30-a8a2-4533-b4e7-d426564b0614}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\engine\D3D12App.cpp">
@@ -504,9 +507,6 @@
     <ClInclude Include="src\engine\LightBloomDevice.h">
       <Filter>src\engine\レンダリング関連</Filter>
     </ClInclude>
-    <ClInclude Include="lib\dxcapi.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\user\BasicDraw.h">
       <Filter>src\user</Filter>
     </ClInclude>
@@ -519,9 +519,6 @@
     <ClInclude Include="src\user\PlayerStatus.h">
       <Filter>src\user\Player</Filter>
     </ClInclude>
-    <ClInclude Include="lib\magic_enum.h">
-      <Filter>magic_enum</Filter>
-    </ClInclude>
     <ClInclude Include="src\user\HitParticle.h">
       <Filter>src\user\Effect</Filter>
     </ClInclude>
@@ -531,8 +528,14 @@
     <ClInclude Include="src\engine\DrawFuncBillBoard.h">
       <Filter>src\engine\ユーザー向け\描画便利関数\BillBoard</Filter>
     </ClInclude>
-    <ClInclude Include="lib\d3d12shader.h">
-      <Filter>src</Filter>
+    <ClInclude Include="lib\magic_enum\magic_enum.h">
+      <Filter>magic_enum</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dxcompiler\d3d12shader.h">
+      <Filter>dxcompiler</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dxcompiler\dxcapi.h">
+      <Filter>dxcompiler</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
