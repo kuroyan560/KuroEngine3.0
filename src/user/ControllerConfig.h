@@ -7,7 +7,7 @@ enum struct HANDLE_INPUT_TAG
 {
 	ATTACK,			//通常攻撃
 	JUMP,							//ジャンプ
-	GUARD_DODGE_DASH,		// ガード / 回避 / ダッシュ
+	GUARD_DODGE_RUN,		// ガード / 回避 / ダッシュ
 	MARKING,						//マーキング
 	RUSH,							//ラッシュ
 	ABILITY,							//アビリティ発動
