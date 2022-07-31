@@ -37,17 +37,17 @@ public:
 	virtual ~CollisionPrimitive() {}
 	//ƒQƒbƒ^
 	const SHAPE& GetShape()const { return m_shape; }
-	const Matrix& GetWorldMat()
+	Matrix GetWorldMat()
 	{
 		if (!m_world)return XMMatrixIdentity();
 		return m_world->GetMat();
 	}
-	const Matrix& GetLocalMat()
+	Matrix GetLocalMat()
 	{
 		if (!m_local)return XMMatrixIdentity();
 		return *m_local;
 	}
-	const float& GetTransformZ()
+	float GetTransformZ()
 	{
 		return m_world ? m_world->GetPos().z : 0.0f;
 	}

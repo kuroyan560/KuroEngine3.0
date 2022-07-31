@@ -11,7 +11,7 @@
 
 bool Player::s_instanced = false;
 const std::string Player::s_cameraKey = "PlayerCamera";
-std::unique_ptr<PlayerCamera> Player::s_camera;
+std::shared_ptr<PlayerCamera> Player::s_camera;
 
 Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this), m_attack(GetAnimName(ANIM_TYPE::ATTACK))
 {

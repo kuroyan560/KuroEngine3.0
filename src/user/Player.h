@@ -19,7 +19,7 @@ private:
 	static bool s_instanced;
 
 	//プレイヤー操作カメラ（プレイヤーが作り変えられる度に、カメラを生成しなくて済むように）
-	static std::unique_ptr<PlayerCamera> s_camera;
+	static std::shared_ptr<PlayerCamera> s_camera;
 
 public:
 	//カメラキー
@@ -27,7 +27,7 @@ public:
 	//カメラポインタ
 	static const std::shared_ptr<Camera>& GetCam()
 	{
-		if (!s_camera)s_camera = std::make_unique<PlayerCamera>();
+		if (!s_camera)s_camera = std::make_shared<PlayerCamera>();
 		return s_camera->GetCam();
 	}
 
