@@ -29,6 +29,8 @@ protected:
 	/// <param name="Inter">Õ“Ë“_</param>
 	/// <param name="OthersAttribute">Õ“Ë‚µ‚½‘Šè‚ÌAttribute</param>
 	virtual void OnCollision(const Vec3<float>& Inter, std::weak_ptr<Collider> OtherCollider) = 0;
+public:
+	virtual ~CollisionCallBack() {}
 };
 
 class Collider : public std::enable_shared_from_this<Collider>

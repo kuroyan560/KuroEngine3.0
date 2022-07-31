@@ -34,6 +34,7 @@ protected:
 	virtual void DebugDraw(const bool& Hit, Camera& Cam) = 0;	//“–‚½‚è”»’è‚Ì‰ÂŽ‹‰»
 
 public:
+	virtual ~CollisionPrimitive() {}
 	//ƒQƒbƒ^
 	const SHAPE& GetShape()const { return m_shape; }
 	const Matrix& GetWorldMat()
