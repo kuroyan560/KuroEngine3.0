@@ -13,7 +13,7 @@ bool Player::s_instanced = false;
 const std::string Player::s_cameraKey = "PlayerCamera";
 std::unique_ptr<PlayerCamera> Player::s_camera;
 
-Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this)
+Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_Foot(this), m_attack(GetAnimName(ANIM_TYPE::ATTACK))
 {
 	assert(!s_instanced);
 	s_instanced = true;
@@ -48,6 +48,51 @@ Player::Player() : m_pushBackColliderCallBack(this), m_pushBackColliderCallBack_
 	m_attack.Attach(m_model->m_animator, nrmAttackCol);
 }
 
+void Player::OnStatusTriggerUpdate()
+{
+	if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::WAIT))	//待機
+	{
+		//待機アニメーション
+		m_model->m_animator->speed = 1.0f;
+		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::WAIT), true, false);
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::MOVE))	//移動
+	{
+		//移動アニメーション
+		m_model->m_animator->speed = 1.5f;
+		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::MOVE), true, false);
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::JUMP))	//ジャンプ
+	{
+		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::JUMP), true, false);
+
+		//接地フラグOFF
+		m_onGround = false;
+
+		//ジャンプ
+		m_fallSpeed = m_jumpPower;
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::GUARD))		//ガード
+	{
+		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::GUARD), true, false);
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::DODGE))		//回避
+	{
+		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::DODGE), false, false);
+	}
+	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::RUN))		//ダッシュ
+	{
+		m_model->m_animator->Play(GetAnimName(ANIM_TYPE::RUN), true, false);
+	}
+}
+
+const std::string& Player::GetAnimName(const ANIM_TYPE& Type)
+{
+	auto& str = m_animName[static_cast<int>(Type)];
+	if (str.empty())return m_animName[static_cast<int>(ANIM_TYPE::WAIT)];
+	return str;
+}
+
 void Player::Init()
 {
 	//ステータス初期化
@@ -62,7 +107,7 @@ void Player::Init()
 	s_camera->Init(m_model->m_transform);
 
 	//待機アニメーション
-	m_model->m_animator->Play("Wait", true, false);
+	m_model->m_animator->Play(GetAnimName(ANIM_TYPE::WAIT), true, false);
 
 	//接地フラグON
 	m_onGround = true;
@@ -90,26 +135,7 @@ void Player::Update(UsersInput& Input, ControllerConfig& Controller, const float
 	m_statusMgr.Update(Input, Controller, infoForStatus);
 
 	//ステータスのトリガーを感知して、処理を呼び出す
-	if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::WAIT))	//待機
-	{
-		//待機アニメーション
-		m_model->m_animator->speed = 1.0f;
-		m_model->m_animator->Play("Wait", true, false);
-	}
-	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::MOVE))	//移動
-	{
-		//移動アニメーション
-		m_model->m_animator->speed = 1.5f;
-		m_model->m_animator->Play("Run", true, false);
-	}
-	else if (m_statusMgr.StatusTrigger(PLAYER_STATUS_TAG::JUMP))	//ジャンプ
-	{
-		//接地フラグOFF
-		m_onGround = false;
-
-		//ジャンプ
-		m_fallSpeed = m_jumpPower;
-	}
+	OnStatusTriggerUpdate();
 
 	//左スティック入力レート
 	auto stickL = Controller.GetMoveVec(Input);

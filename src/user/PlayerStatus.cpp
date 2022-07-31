@@ -13,7 +13,7 @@ PLAYER_STATUS_TAG PlayerStatus::WaitUpdate(const PlayerParameterForStatus& Param
 	if (Parameters.m_onGround && GetInputFrame(HANDLE_INPUT_TAG::JUMP))return PLAYER_STATUS_TAG::JUMP;
 
 	//ガード入力
-	if (GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_DASH))return PLAYER_STATUS_TAG::GUARD;
+	if (GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_RUN))return PLAYER_STATUS_TAG::GUARD;
 
 	//アビリティ発動入力
 	if (GetInputFrame(HANDLE_INPUT_TAG::ABILITY))return PLAYER_STATUS_TAG::INVOKE_ABILITY;
@@ -39,6 +39,9 @@ PLAYER_STATUS_TAG PlayerStatus::MoveUpdate(const PlayerParameterForStatus& Param
 	//通常攻撃入力
 	if (GetInputFrame(HANDLE_INPUT_TAG::ATTACK))return PLAYER_STATUS_TAG::ATTACK;
 
+	//ガード入力
+	if (GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_RUN))return PLAYER_STATUS_TAG::GUARD;
+
 	//ジャンプ入力
 	if (Parameters.m_onGround && GetInputFrame(HANDLE_INPUT_TAG::JUMP))return PLAYER_STATUS_TAG::JUMP;
 
@@ -55,7 +58,7 @@ PLAYER_STATUS_TAG PlayerStatus::JumpUpdate(const PlayerParameterForStatus& Param
 	if (GetInputFrame(HANDLE_INPUT_TAG::ATTACK))return PLAYER_STATUS_TAG::ATTACK;
 
 	//ガード入力
-	if (GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_DASH))return PLAYER_STATUS_TAG::GUARD;
+	if (GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_RUN))return PLAYER_STATUS_TAG::GUARD;
 
 	//地面に足がついた
 	if (Parameters.m_onGround)return PLAYER_STATUS_TAG::WAIT;
@@ -115,7 +118,7 @@ void PlayerStatus::Update(const UsersInput& Input, const ControllerConfig& Contr
 	case PLAYER_STATUS_TAG::GUARD:
 	{
 		//ガード入力がなくなった
-		if (!GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_DASH))m_status = PLAYER_STATUS_TAG::WAIT;
+		if (!GetInputFrame(HANDLE_INPUT_TAG::GUARD_DODGE_RUN))m_status = PLAYER_STATUS_TAG::WAIT;
 		//移動入力
 		if (m_leftStickInputFrame)m_status = PLAYER_STATUS_TAG::DODGE;	//回避
 		break;
@@ -127,13 +130,13 @@ void PlayerStatus::Update(const UsersInput& Input, const ControllerConfig& Contr
 		if (Parameters.m_dodgeFinish)
 		{
 			//移動入力
-			if (m_leftStickInputFrame)m_status = PLAYER_STATUS_TAG::DASH;	//ダッシュに移行
+			if (m_leftStickInputFrame)m_status = PLAYER_STATUS_TAG::RUN;	//ダッシュに移行
 			else m_status = PLAYER_STATUS_TAG::WAIT;
 		}
 		break;
 	}
 
-	case PLAYER_STATUS_TAG::DASH:
+	case PLAYER_STATUS_TAG::RUN:
 	{
 		//攻撃入力
 		if (GetInputFrame(HANDLE_INPUT_TAG::ATTACK))m_status = PLAYER_STATUS_TAG::ATTACK;

@@ -12,7 +12,7 @@ enum struct PLAYER_STATUS_TAG
 	JUMP,					//ジャンプ
 	GUARD,					//ガード
 	DODGE,					//回避
-	DASH,					//ダッシュ
+	RUN,					//ダッシュ
 	MARKING,				//マーキング
 	CHARGE,				//（単発ラッシュ）のチャージ中
 	RUSH,					//ラッシュ

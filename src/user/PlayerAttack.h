@@ -59,7 +59,7 @@ private:
 	std::array<EasingParameter, m_attackAnimNum>m_momentumEaseParameters;
 
 public:
-	PlayerAttack() 
+	PlayerAttack(const std::string& AnimNameTag) : m_animNameTag(AnimNameTag)
 	{
 		//‰Šú’lİ’è
 		m_canNextInputFrame.fill(10); 

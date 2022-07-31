@@ -33,6 +33,8 @@ public:
 private:
 	//ステータス管理
 	PlayerStatus m_statusMgr;
+	//ステータスのトリガーを感知して実行する処理のまとめ
+	void OnStatusTriggerUpdate();
 
 	//モデル
 	std::shared_ptr<ModelObject>m_model;
@@ -46,7 +48,7 @@ private:
 	//通常移動の速さ
 	float m_inputMoveSpeed = 0.6f;
 
-	/*--- ジャンプ関連 ---*/
+/*--- ジャンプ関連 ---*/
 		//ジャンプ力
 	float m_jumpPower = 1.0f;
 	//接地フラグ
@@ -54,7 +56,7 @@ private:
 	//落下速度
 	float m_fallSpeed = 0.0f;
 
-	/*--- コールバック ---*/
+/*--- コールバック ---*/
 		//押し戻し
 	class PushBackColliderCallBack : public CollisionCallBack
 	{
@@ -74,9 +76,33 @@ private:
 		PushBackColliderCallBack_Foot(Player* Parent) :m_parent(Parent) {}
 	}m_pushBackColliderCallBack_Foot;
 
-	/*--- その他 ---*/
+/*--- アニメーション ---*/
+	enum struct ANIM_TYPE
+	{
+		WAIT,
+		MOVE,
+		RUN,
+		JUMP,
+		ATTACK,
+		GUARD,
+		DODGE,
+		NUM
+	};
+	const std::array<std::string, static_cast<int>(ANIM_TYPE::NUM)>m_animName =
+	{
+		"Wait",
+		"Run",
+		"Run",
+		"",
+		"Attack_",	//攻撃アニメーションは複数あるので先頭文字列だけ
+		"",
+		"",
+	};
+	const std::string& GetAnimName(const ANIM_TYPE& Type);
 
-		//攻撃処理クラス
+/*--- その他 ---*/
+
+	//攻撃処理クラス
 	PlayerAttack m_attack;
 	//１フレーム前に攻撃入力したか
 	bool m_oldAttackInput;

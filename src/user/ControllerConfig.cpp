@@ -25,7 +25,7 @@ void ControllerConfig::Reset()
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::X)] = HANDLE_INPUT_TAG::ATTACK;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::LB)] = HANDLE_INPUT_TAG::RUSH;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::RB)] = HANDLE_INPUT_TAG::MARKING;
-	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::LT)] = HANDLE_INPUT_TAG::GUARD_DODGE_DASH;
+	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::LT)] = HANDLE_INPUT_TAG::GUARD_DODGE_RUN;
 	m_allocateButton[static_cast<int>(CAN_ALLOCATE_BUTTON::RT)] = HANDLE_INPUT_TAG::ABILITY;
 }
 
@@ -95,7 +95,7 @@ void ControllerConfig::ImguiDebug(UsersInput& Input)
 	{
 		"Attack",
 		"Jump",
-		"Guard / Dodge / DASH",
+		"Guard / Dodge / Run",
 		"Marking",
 		"Rush",
 		"Ability",
