@@ -232,6 +232,7 @@
     <ClCompile Include="src\user\PlayerStatus.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\d3d12shader.h" />
     <ClInclude Include="lib\dxcapi.h" />
     <ClInclude Include="lib\imgui\imconfig.h" />
     <ClInclude Include="lib\imgui\imgui.h" />

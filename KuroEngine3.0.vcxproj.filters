@@ -531,5 +531,8 @@
     <ClInclude Include="src\engine\DrawFuncBillBoard.h">
       <Filter>src\engine\ユーザー向け\描画便利関数\BillBoard</Filter>
     </ClInclude>
+    <ClInclude Include="lib\d3d12shader.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
